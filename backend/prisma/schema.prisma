@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
+  gender    String
+  age       Int
+  faculty   String
+  major     String
+  year      Int
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+}
+
+model faculties {
+  faculty_id     Int            @id
+  faculty_name   String         @db.VarChar(255)
+  group_id       Int
+  faculty_groups faculty_groups @relation(fields: [group_id], references: [group_id], onDelete: NoAction, onUpdate: NoAction, map: "faculty_fk_groupId")
+  majors         majors[]
+}
+
+model faculty_groups {
+  group_id   Int         @id
+  group_name String      @db.VarChar(255)
+  faculties  faculties[]
+}
+
+model majors {
+  major_id   Int       @id
+  major_name String    @db.VarChar(255)
+  faculty_id Int
+  faculties  faculties @relation(fields: [faculty_id], references: [faculty_id], onDelete: NoAction, onUpdate: NoAction, map: "major_fk_faculty")
+}
