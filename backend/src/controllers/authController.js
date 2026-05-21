@@ -18,7 +18,7 @@ exports.register = async (req, res) => {
             year,
         } = req.body;
 
-        const existingUser = await prisma.user.findFirst({
+        const existingUser = await prisma.users.findFirst({
             where: {
                 OR: [
                     { email: email},
@@ -35,24 +35,39 @@ exports.register = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const newUser = await prisma.user.create({
+        // สร้าง user
+        const user = await prisma.users.create({
             data: {
-              username,
-                firstName,
-                lastName,
+                username,
                 email,
                 password: hashedPassword,
+                role_id: 1, // student
+                created_at: new Date(),
+                last_login: new Date(), 
+            },
+        });
+
+        // สร้าง student
+        await prisma.students.create({
+            data: {
+                first_name,
+                last_name,
                 gender,
-                age: Number(age),
-                faculty,
-                major,
-                year: Number(year),  
+                birth_year: new Date().getFullYear() - Number(age),
+                entry_year: Number(year),
+                major_id: Number(major),
+
+                users: {
+                connect: {
+                    id: user.id
+                }
+                }
             }
         });
 
         res.status(201).json ({
             message: "Register success",
-            user: newUser,
+            user: user,
         });
 
 
@@ -70,7 +85,7 @@ exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const user = await prisma.user.findUnique ({
+        const user = await prisma.users.findFirst ({
             where: {
                 email,
             },

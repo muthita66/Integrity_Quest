@@ -1,5 +1,17 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import {
+  FaUser,
+  FaKey,
+  FaScroll,
+  FaHatWizard,
+  FaShieldAlt,
+  FaUserAstronaut,
+  FaEnvelope,
+  FaKhanda,
+  FaArrowLeft,
+} from "react-icons/fa";
+import bgLogin from "../assets/bg_login.png";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -151,18 +163,20 @@ export default function AuthPage() {
 
   return (
     <>
+      {/* POPUP */}
       {popup.show && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-80 text-center">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-3xl p-8 shadow-2xl w-80 text-center animate-bounce">
             <h2
-              className={`text-2xl font-bold mb-3 ${
+              className={`text-3xl font-bold mb-3 ${
                 popup.type === "success" ? "text-green-600" : "text-red-600"
               }`}
             >
-              {popup.type === "success" ? "สำเร็จ" : "ผิดพลาด"}
+              {popup.type === "success" ? "🎉 สำเร็จ!" : "❌ ผิดพลาด"}
             </h2>
 
-            <p className="text-gray-700 mb-5">{popup.message}</p>
+            <p className="mb-5 text-gray-700">{popup.message}</p>
+
             <button
               onClick={() =>
                 setPopup({
@@ -170,201 +184,257 @@ export default function AuthPage() {
                   show: false,
                 })
               }
-              className="bg-indigo-600 text-white px-5 py-2 rounded-lg"
+              className="bg-indigo-600 text-white px-6 py-2 rounded-xl hover:bg-indigo-700"
             >
               ตกลง
             </button>
           </div>
         </div>
       )}
-      <div className="min-h-screen bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center p-4">
-        <div className="bg-white shadow-xl rounded-2xl w-full max-w-md p-8">
-          {/* Header */}
-          <h1 className="text-3xl font-bold text-center text-indigo-600 mb-6">
-            {isLogin ? "Login" : "Register"}
+
+      {/* BACKGROUND */}
+      <div
+        className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed"
+        style={{
+          backgroundImage: `url(${bgLogin})`,
+        }}
+      >
+        {/* BOX */}
+        <div className="bg-white/40 backdrop-blur-md border-4 border-white/60 shadow-2xl rounded-[25px] p-8 w-full max-w-4xl">
+          {/* TITLE */}
+          <h1 className="text-center text-5xl font-extrabold text-yellow-500 drop-shadow-lg">
+            WELCOME, HERO!
           </h1>
 
-          {/* Form */}
-          <form
-            onSubmit={isLogin ? handleLoginSubmit : handleRegisterSubmit}
-            className="space-y-4"
-          >
+          <p className="text-center text-xl font-bold text-gray-800 mt-1 mb-8">
+            {isLogin ? "LOGIN TO YOUR QUEST" : "SIGN UP YOUR QUEST"}
+          </p>
+
+          {/* FORM */}
+          <form onSubmit={isLogin ? handleLoginSubmit : handleRegisterSubmit}>
+            {/* LOGIN */}
             {isLogin ? (
-              <>
-                {/* Email */}
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Email
-                  </label>
+              <div className="max-w-md mx-auto space-y-5">
+                {/* EMAIL */}
+                <div className="relative">
+                  <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
+
                   <input
                     type="email"
                     name="email"
                     value={loginData.email}
                     onChange={handleLoginChange}
-                    placeholder="example@email.com"
-                    className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    placeholder="EMAIL / รหัสนิสิต"
+                    className="w-full bg-yellow-50 border-2 border-orange-300 rounded-xl py-3 pl-12 pr-4 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400"
                   />
                 </div>
 
-                {/* Password */}
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Password
-                  </label>
+                {/* PASSWORD */}
+                <div className="relative">
+                  <FaKey className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
+
                   <input
                     type="password"
                     name="password"
                     value={loginData.password}
                     onChange={handleLoginChange}
-                    placeholder="********"
-                    className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    placeholder="PASSWORD / รหัสผ่าน"
+                    className="w-full bg-yellow-50 border-2 border-orange-300 rounded-xl py-3 pl-12 pr-4 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400"
                   />
                 </div>
 
-                <button className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition">
-                  Login
+                {/* LOGIN BUTTON */}
+                <button className="w-full bg-gradient-to-b from-blue-400 to-blue-600 text-white rounded-2xl py-4 font-extrabold text-xl shadow-lg active:translate-y-1">
+                  <div className="flex items-center justify-center gap-3">
+                    <FaShieldAlt />
+                    <div>
+                      LOG IN
+                      <div className="text-xs font-medium">
+                        START ADVENTURE!
+                      </div>
+                    </div>
+                  </div>
                 </button>
-              </>
+
+                {/* BOTTOM BUTTONS */}
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsLogin(false)}
+                    className="bg-gradient-to-b from-yellow-300 to-orange-400 text-gray-800 rounded-xl h-12 font-bold shadow"
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <FaScroll />
+                      SIGN UP
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="bg-gradient-to-b from-purple-400 to-purple-600 text-white rounded-xl h-12 font-bold shadow"
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <FaHatWizard />
+                      FORGOT?
+                    </div>
+                  </button>
+                </div>
+              </div>
             ) : (
               <>
-                {/* Username */}
-                <input
-                  type="text"
-                  name="username"
-                  value={registerData.username}
-                  onChange={handleRegisterChange}
-                  placeholder="username"
-                  className="w-full border rounded-lg px-4 py-2"
-                />
+                {/* REGISTER GRID */}
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* LEFT */}
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <FaUserAstronaut className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
+                      <input
+                        name="username"
+                        value={registerData.username}
+                        onChange={handleRegisterChange}
+                        placeholder="USERNAME"
+                        className="w-full bg-yellow-50 border-2 border-orange-300 rounded-xl py-3 pl-12"
+                      />
+                    </div>
 
-                {/* First Name */}
-                <input
-                  type="text"
-                  name="firstName"
-                  value={registerData.firstName}
-                  onChange={handleRegisterChange}
-                  placeholder="ชื่อ"
-                  className="w-full border rounded-lg px-4 py-2"
-                />
+                    <input
+                      name="firstName"
+                      value={registerData.firstName}
+                      onChange={handleRegisterChange}
+                      placeholder="ชื่อ"
+                      className="w-full bg-yellow-50 border-2 border-orange-300 rounded-xl py-3 px-4"
+                    />
 
-                {/* Last Name */}
-                <input
-                  type="text"
-                  name="lastName"
-                  value={registerData.lastName}
-                  onChange={handleRegisterChange}
-                  placeholder="นามสกุล"
-                  className="w-full border rounded-lg px-4 py-2"
-                />
+                    <input
+                      name="lastName"
+                      value={registerData.lastName}
+                      onChange={handleRegisterChange}
+                      placeholder="นามสกุล"
+                      className="w-full bg-yellow-50 border-2 border-orange-300 rounded-xl py-3 px-4"
+                    />
 
-                {/* Email */}
-                <input
-                  type="email"
-                  name="email"
-                  value={registerData.email}
-                  onChange={handleRegisterChange}
-                  placeholder="Email"
-                  className="w-full border rounded-lg px-4 py-2"
-                />
+                    <div className="relative">
+                      <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
+                      <input
+                        type="email"
+                        name="email"
+                        value={registerData.email}
+                        onChange={handleRegisterChange}
+                        placeholder="EMAIL"
+                        className="w-full bg-yellow-50 border-2 border-orange-300 rounded-xl py-3 pl-12"
+                      />
+                    </div>
 
-                {/* Password */}
-                <input
-                  type="password"
-                  name="password"
-                  value={registerData.password}
-                  onChange={handleRegisterChange}
-                  placeholder="Password"
-                  className="w-full border rounded-lg px-4 py-2"
-                />
+                    <div className="relative">
+                      <FaKey className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
+                      <input
+                        type="password"
+                        name="password"
+                        value={registerData.password}
+                        onChange={handleRegisterChange}
+                        placeholder="PASSWORD"
+                        className="w-full bg-yellow-50 border-2 border-orange-300 rounded-xl py-3 pl-12"
+                      />
+                    </div>
+                  </div>
 
-                {/* Gender */}
-                <select
-                  name="gender"
-                  value={registerData.gender}
-                  onChange={handleRegisterChange}
-                  className="w-full border rounded-lg px-4 py-2"
-                >
-                  <option value="">เลือกเพศ</option>
-                  <option value="male">ชาย</option>
-                  <option value="female">หญิง</option>
-                  <option value="other">อื่นๆ</option>
-                </select>
+                  {/* RIGHT SCROLL */}
+                  <div className="bg-yellow-50 border-2 border-orange-300 rounded-2xl p-5 shadow-md space-y-4">
+                    <select
+                      name="gender"
+                      value={registerData.gender}
+                      onChange={handleRegisterChange}
+                      className="w-full bg-white rounded-xl px-4 py-3 border"
+                    >
+                      <option value="">GENDER</option>
+                      <option value="male">ชาย</option>
+                      <option value="female">หญิง</option>
+                      <option value="other">อื่นๆ</option>
+                    </select>
 
-                {/* Age */}
-                <input
-                  type="number"
-                  name="age"
-                  value={registerData.age}
-                  onChange={handleRegisterChange}
-                  placeholder="อายุ"
-                  className="w-full border rounded-lg px-4 py-2"
-                />
+                    <input
+                      type="number"
+                      name="age"
+                      value={registerData.age}
+                      onChange={handleRegisterChange}
+                      placeholder="AGE"
+                      className="w-full bg-white rounded-xl px-4 py-3 border"
+                    />
 
-                {/* Faculty */}
-                <select
-                  type="text"
-                  name="faculty"
-                  value={registerData.faculty}
-                  onChange={handleRegisterChange}
-                  className="w-full border rounded-lg px-4 py-2"
-                >
-                  <option value="">เลือกคณะ</option>
-                  {faculties.map((faculty) => (
-                    <option key={faculty.faculty_id} value={faculty.faculty_id}>
-                      {faculty.faculty_name}
-                    </option>
-                  ))}
-                </select>
+                    <select
+                      name="faculty"
+                      value={registerData.faculty}
+                      onChange={handleRegisterChange}
+                      className="w-full bg-white rounded-xl px-4 py-3 border"
+                    >
+                      <option value="">FACULTY</option>
 
-                {/* Major */}
-                <select
-                  name="major"
-                  value={registerData.major}
-                  onChange={handleRegisterChange}
-                  className="w-full border rounded-lg px-4 py-2"
-                >
-                  <option value="">เลือกสาขา</option>
+                      {faculties.map((faculty) => (
+                        <option
+                          key={faculty.faculty_id}
+                          value={faculty.faculty_id}
+                        >
+                          {faculty.faculty_name}
+                        </option>
+                      ))}
+                    </select>
 
-                  {filteredMajors.map((major) => (
-                    <option key={major.major_id} value={major.major_name}>
-                      {major.major_name}
-                    </option>
-                  ))}
-                </select>
+                    <select
+                      name="year"
+                      value={registerData.year}
+                      onChange={handleRegisterChange}
+                      className="w-full bg-white rounded-xl px-4 py-3 border"
+                    >
+                      <option value="">YEAR</option>
+                      <option value="1">ปี 1</option>
+                      <option value="2">ปี 2</option>
+                      <option value="3">ปี 3</option>
+                      <option value="4">ปี 4</option>
+                    </select>
 
-                {/* Year */}
-                <select
-                  name="year"
-                  value={registerData.year}
-                  onChange={handleRegisterChange}
-                  className="w-full border rounded-lg px-4 py-2"
-                >
-                  <option value="">เลือกชั้นปี</option>
-                  <option value="1">ปี 1</option>
-                  <option value="2">ปี 2</option>
-                  <option value="3">ปี 3</option>
-                  <option value="4">ปี 4</option>
-                  <option value="5">ปี 5</option>
-                  <option value="6">ปี 6</option>
-                </select>
+                    <select
+                      name="major"
+                      value={registerData.major}
+                      onChange={handleRegisterChange}
+                      className="w-full bg-white rounded-xl px-4 py-3 border"
+                    >
+                      <option value="">MAJOR</option>
 
-                <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
-                  Register
+                      {filteredMajors.map((major) => (
+                        <option key={major.major_id} value={major.major_id}>
+                          {major.major_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* SIGNUP BUTTON */}
+                <button className="w-full mt-8 bg-gradient-to-b from-blue-400 to-blue-600 text-white rounded-2xl py-4 font-extrabold text-xl shadow-lg">
+                  <div className="flex items-center justify-center gap-3">
+                    <FaKhanda />
+                    <div>
+                      SIGN UP
+                      <div className="text-xs">START ADVENTURE!</div>
+                    </div>
+                  </div>
                 </button>
+
+                {/* BACK */}
+                <div className="flex justify-center mt-5">
+                  <button
+                    type="button"
+                    onClick={() => setIsLogin(true)}
+                    className="bg-gradient-to-b from-yellow-300 to-orange-400 px-6 py-3 rounded-xl font-bold shadow"
+                  >
+                    <div className="flex items-center gap-2">
+                      กลับไปหน้า LOGIN
+                    </div>
+                  </button>
+                </div>
               </>
             )}
           </form>
-
-          {/* Toggle */}
-          <p className="text-center text-sm mt-6">
-            {isLogin ? "ยังไม่มีบัญชี?" : "มีบัญชีอยู่แล้ว?"}
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="ml-2 text-indigo-600 font-semibold hover:underline"
-            >
-              {isLogin ? "สมัครสมาชิก" : "เข้าสู่ระบบ"}
-            </button>
-          </p>
         </div>
       </div>
     </>
