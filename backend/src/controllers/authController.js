@@ -50,8 +50,8 @@ exports.register = async (req, res) => {
         // สร้าง student
         await prisma.students.create({
             data: {
-                first_name,
-                last_name,
+                first_name: firstName,
+                last_name: lastName,
                 gender,
                 birth_year: new Date().getFullYear() - Number(age),
                 entry_year: Number(year),
