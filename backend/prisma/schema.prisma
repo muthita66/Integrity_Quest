@@ -141,16 +141,15 @@ model roles {
 }
 
 model students {
-  student_id        Int       @id @default(autoincrement())
-  user_id           Int
-  first_name        String    @db.VarChar(255)
-  last_name         String    @db.VarChar(255)
-  gender            String    @db.VarChar(50)
-  birth_year        Int
-  entry_year        Int?
-  major_id          Int?
-  registration_date DateTime? @db.Date
-  users             users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "student_fk-userID")
+  student_id Int    @id @default(autoincrement())
+  user_id    Int
+  first_name String @db.VarChar(255)
+  last_name  String @db.VarChar(255)
+  gender     String @db.VarChar(50)
+  birth_year Int
+  entry_year Int?
+  major_id   Int?
+  users      users  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "student_fk-userID")
 }
 
 model teachers {
