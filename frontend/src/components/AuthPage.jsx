@@ -168,9 +168,8 @@ export default function AuthPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-3xl p-8 shadow-2xl w-80 text-center animate-bounce">
             <h2
-              className={`text-3xl font-bold mb-3 ${
-                popup.type === "success" ? "text-green-600" : "text-red-600"
-              }`}
+              className={`text-3xl font-bold mb-3 ${popup.type === "success" ? "text-green-600" : "text-red-600"
+                }`}
             >
               {popup.type === "success" ? "🎉 สำเร็จ!" : "❌ ผิดพลาด"}
             </h2>
@@ -224,7 +223,7 @@ export default function AuthPage() {
                     name="email"
                     value={loginData.email}
                     onChange={handleLoginChange}
-                    placeholder="EMAIL / รหัสนิสิต"
+                    placeholder="EMAIL / รหัส"
                     className="w-full bg-yellow-50 border-2 border-orange-300 rounded-xl py-3 pl-12 pr-4 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400"
                   />
                 </div>
