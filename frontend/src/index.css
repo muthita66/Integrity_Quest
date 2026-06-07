@@ -1,5 +1,6 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&display=swap');
+@import "tailwindcss";
+
 
 /* ── Global Game Dashboard Styles ── */
 * {
@@ -504,6 +505,4 @@ body,
   100% {
     transform: translate(-50%, -50%) scale(1.12);
   }
-
-  >>>>>>>feature/nareerat
 }
