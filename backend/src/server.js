@@ -4,6 +4,7 @@ require("dotenv").config();
 
 const authRoutes = require("./routes/authRoutes");
 const masterRoutes = require("./routes/masterRoutes");
+const unitContentRoutes = require("./routes/unitContent");
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/master", masterRoutes);
+app.use("/api/unitContent", unitContentRoutes);
 
 app.get("/", (req, res) => {
     res.send("APT running...");
