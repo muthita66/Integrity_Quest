@@ -223,7 +223,7 @@ export default function AuthPage() {
                     name="email"
                     value={loginData.email}
                     onChange={handleLoginChange}
-                    placeholder="EMAIL / รหัส"
+                    placeholder="EMAIL / รหัสนิสิต"
                     className="w-full bg-yellow-50 border-2 border-orange-300 rounded-xl py-3 pl-12 pr-4 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400"
                   />
                 </div>
