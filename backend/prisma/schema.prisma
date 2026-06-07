@@ -94,14 +94,14 @@ model mission_types {
 }
 
 model missions {
-  mission_id            Int                     @id @default(autoincrement())
+  mission_id            Int                     @id
   unit_id               Int
   type_id               Int
-  level_number          Int
+  level_number          Int?
   mission_name          String                  @db.VarChar(255)
   is_active             Boolean
   game_contents_mission game_contents_mission[]
-  mission_rewards       mission_rewards[]       @ignore
+  mission_rewards       mission_rewards[]     @ignore
   mission_types         mission_types           @relation(fields: [type_id], references: [type_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_type")
   units                 units                   @relation(fields: [unit_id], references: [unit_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_unit")
   user_missions         user_missions[]
@@ -171,6 +171,7 @@ model unit_contents {
   description         String?
   order_number        Int
   parent_id           Int?
+  image_url           String?         @db.VarChar(255)
   units               units           @relation(fields: [unit_id], references: [unit_id], onDelete: NoAction, onUpdate: NoAction, map: "content_fk_unit")
   unit_contents       unit_contents?  @relation("unit_contentsTounit_contents", fields: [parent_id], references: [content_id], onDelete: Cascade, onUpdate: NoAction)
   other_unit_contents unit_contents[] @relation("unit_contentsTounit_contents")
@@ -267,6 +268,17 @@ model users {
   user_quiz_answers   user_quiz_answers[]
   user_stats          user_stats?
   roles               roles                 @relation(fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction, map: "user_fk_roleID")
+}
+
+model level {
+  level_id    Int      @id @default(autoincrement())
+  unit_id     Int
+  title       String   @db.VarChar(255)
+  description String
+  level_type  String   @db.VarChar(255)
+  game_type   String   @db.VarChar(255)
+  order_no    Int
+  created_at  DateTime @db.Timestamptz(6)
 }
 
 enum quiz_type_enum {

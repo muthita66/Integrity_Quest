@@ -182,3 +182,65 @@
     border-right-color: var(--border);
   }
 }
+
+/* ========== Mirror Glint Effect (แสงแวบวับแนวเฉียง) ========== */
+@keyframes mirror-glint {
+  0% {
+    transform: skewX(-20deg) translateX(-200%);
+    opacity: 0;
+  }
+  10% { opacity: 1; }
+  50% { opacity: 0.9; }
+  70% {
+    opacity: 0;
+    transform: skewX(-20deg) translateX(350%);
+  }
+  100% {
+    transform: skewX(-20deg) translateX(350%);
+    opacity: 0;
+  }
+}
+
+.mirror-glint {
+  position: absolute;
+  pointer-events: none;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.mirror-glint::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 28%;
+  height: 150%;
+  background: linear-gradient(
+    105deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.95) 50%,
+    transparent 75%
+  );
+  /* screen จะทำให้แสงขาวโชว์บนพื้นที่สว่าง (กระจก) แต่ซ่อนตัวบนพื้นที่มืด (กรอบ) */
+  mix-blend-mode: screen;
+  animation: mirror-glint 3s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+
+.mirror-glint::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 14%;
+  height: 150%;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.7) 50%,
+    transparent 80%
+  );
+  mix-blend-mode: screen;
+  animation: mirror-glint 3s ease-in-out infinite;
+  animation-delay: 0.65s;
+}
