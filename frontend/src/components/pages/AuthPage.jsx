@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -14,6 +15,7 @@ import {
 import bgLogin from "../../assets/bg_login.png";
 
 export default function AuthPage() {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
 
   const [faculties, setFaculties] = useState([]);
@@ -112,8 +114,13 @@ export default function AuthPage() {
       setPopup({
         show: true,
         type: "success",
-        message: "เข้าสู่ระบบสำเร็จ!",
+        message: "เข้าสู่ระบบสำเร็จ!",
       });
+
+      setTimeout(() => {
+        navigate("/map");
+      }, 1000);
+
     } catch (error) {
       console.log(error);
 

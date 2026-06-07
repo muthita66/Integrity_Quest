@@ -1,37 +1,18 @@
-import './App.css'
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
-import AuthPage from './components/pages/AuthPage'
-import MirrorQuiz from './components/unit1/level1'
-import UnitContentPage from './components/pages/UnitContentPage'
-import ShoppingGame from './components/unit2/level1'
-import CalculationGame from './components/unit2/level2'
-import FinalMissionGame from './components/unit2/FinalMission'
+import AuthPage from "./components/Pages/AuthPage";
+import MapPage from "./components/Pages/MapPage";
+import PreTestPage from "./components/Pages/PreTestPage";
 
 function App() {
   return (
-    <>
+    <Routes>
+      <Route path="/" element={<AuthPage />} />
+      <Route path="/map" element={<MapPage />} />
+      <Route path="/pretest" element={<PreTestPage />} />
 
-      <AuthPage />
-      <MirrorQuiz />
-      <BrowserRouter>
-        <Routes>
-          <Route
-            path="/"
-            element={<UnitContentPage />}
-          />
-          <Route
-            path="/unit/:unitId"
-            element={<UnitContentPage />}
-          />
-        </Routes>
-      </BrowserRouter>
-      <ShoppingGame />
-      <CalculationGame />
-      <FinalMissionGame />
-
-    </>
-  )
+    </Routes>
+  );
 }
 
-export default App
+export default App;
