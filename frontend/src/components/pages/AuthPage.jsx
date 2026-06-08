@@ -1,5 +1,5 @@
-import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   FaUser,
@@ -12,12 +12,11 @@ import {
   FaKhanda,
   FaArrowLeft,
 } from "react-icons/fa";
-import bgLogin from "../../assets/bg_login.png";
+import bg_login from "../../assets/bg_login.png";
 
-export default function AuthPage() {
-  const navigate = useNavigate();
+function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
-
+  const navigate = useNavigate();
   const [faculties, setFaculties] = useState([]);
   const [filteredMajors, setFilteredMajors] = useState([]);
 
@@ -114,7 +113,7 @@ export default function AuthPage() {
       setPopup({
         show: true,
         type: "success",
-        message: "เข้าสู่ระบบสำเร็จ!",
+        message: "เข้าสู่ระบบสำเร็จ!",
       });
 
       setTimeout(() => {
@@ -182,7 +181,7 @@ export default function AuthPage() {
             </h2>
 
             <p className="mb-5 text-gray-700">{popup.message}</p>
-
+            {/*
             <button
               onClick={() =>
                 setPopup({
@@ -194,6 +193,7 @@ export default function AuthPage() {
             >
               ตกลง
             </button>
+            */}
           </div>
         </div>
       )}
@@ -202,7 +202,7 @@ export default function AuthPage() {
       <div
         className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed"
         style={{
-          backgroundImage: `url(${bgLogin})`,
+          backgroundImage: `url(${bg_login})`,
         }}
       >
         {/* BOX */}
@@ -230,7 +230,7 @@ export default function AuthPage() {
                     name="email"
                     value={loginData.email}
                     onChange={handleLoginChange}
-                    placeholder="EMAIL / รหัสนิสิต"
+                    placeholder="EMAIL / รหัส"
                     className="w-full bg-yellow-50 border-2 border-orange-300 rounded-xl py-3 pl-12 pr-4 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400"
                   />
                 </div>
@@ -446,3 +446,5 @@ export default function AuthPage() {
     </>
   );
 }
+
+export default AuthPage;

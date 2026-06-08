@@ -1,14 +1,28 @@
 import castle from "../../../assets/castle.png";
+import { useNavigate } from "react-router-dom";
 
 function UnitNode({ unit }) {
+    const navigate = useNavigate();
+
+    const handleClick = () => {
+        // เมื่อคลิกที่ป้อม ให้เปลี่ยนหน้าไปที่เนื้อหาของ Unit นั้นๆ
+        // สมมติว่า URL ของ Unit คือ /unit/unit1, /unit/unit2
+        navigate(`/unit/unit${unit.id}`);
+    };
+
     return (
-        <div className="unit-node-container" style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            position: "relative",
-            userSelect: "none"
-        }}>
+        <div 
+            className="unit-node-container" 
+            onClick={handleClick}
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                position: "relative",
+                userSelect: "none",
+                cursor: "pointer"
+            }}
+        >
             {/* ฝัง CSS สำหรับเอฟเฟกต์ป้อมปราการโดยเฉพาะ */}
             <style>{`
                 .castle-img {

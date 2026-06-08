@@ -5,7 +5,8 @@ import MapPage from "./components/pages/MapPage";
 import PreTestPage from "./components/pages/PreTestPage";
 import UnitContentPage from "./components/pages/UnitContentPage";
 
-import MirrorQuiz from "./components/unit1/level1";
+import MirrorIntroPage from "./components/unit1/MirrorIntroPage";
+import MirrorQuizPage from "./components/unit1/MirrorQuizPage";
 
 import ShoppingGame from "./components/unit2/level1";
 import CalculationGame from "./components/unit2/level2";
@@ -21,7 +22,8 @@ function App() {
       <Route path="/unit/:unitId" element={<UnitContentPage />} />
 
       {/* Unit 1 */}
-      <Route path="/unit1/level1" element={<MirrorQuiz />} />
+      <Route path="/unit1/Introlevel1" element={<MirrorIntroPage />} />
+      <Route path="/unit1/Quizlevel1" element={<MirrorQuizPage />} />
 
       {/* Unit 2 */}
       <Route path="/unit2/level1" element={<ShoppingGame />} />
