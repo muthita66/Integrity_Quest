@@ -19,12 +19,12 @@ export default function MirrorIntroPage() {
             textAudioRef.current.play().then(() => {
                 textAudioRef.current.pause();
                 textAudioRef.current.currentTime = 0;
-            }).catch(() => {});
+            }).catch(() => { });
 
             magicAudioRef.current.play().then(() => {
                 magicAudioRef.current.pause();
                 magicAudioRef.current.currentTime = 0;
-            }).catch(() => {});
+            }).catch(() => { });
 
             setHasStarted(true);
         }
@@ -78,10 +78,10 @@ export default function MirrorIntroPage() {
         // เล่นเสียงตอนกดปุ่ม START
         if (magicAudioRef.current) {
             magicAudioRef.current.currentTime = 0;
-            magicAudioRef.current.play().catch(() => {});
+            magicAudioRef.current.play().catch(() => { });
         }
         setTimeout(() => {
-            navigate("/unit1/Quizlevel1");
+            navigate("/unit1/start");
         }, 300);
     };
 
@@ -131,7 +131,7 @@ export default function MirrorIntroPage() {
                         }}
                         className="start-btn bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-10 py-4 rounded-xl text-xl animate-fadeIn"
                     >
-                        START
+                        CONTINUE
                     </button>
                 )}
             </div>

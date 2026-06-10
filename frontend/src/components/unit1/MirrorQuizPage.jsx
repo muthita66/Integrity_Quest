@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import bgGameLevel1 from "../../assets/unit1/bgGameLevel1.jpg";
+import Mirror from "../../assets/unit1/Mirror.png"
+import MirrorIntroAnimation from "./MirrorIntroAnimation.jsx";
 
 const mirrorQuestions = [
     {
@@ -59,118 +62,122 @@ export default function MirrorQuizPage() {
 
     const [current, setCurrent] = useState(0);
     const [score, setScore] = useState(0);
+    const [reaction, setReaction] = useState(null);
+    const [hoverReaction, setHoverReaction] = useState(null); // เพิ่ม state สำหรับการ hover
 
     const question = mirrorQuestions[current];
 
     const handleAnswer = (choice) => {
-        let newScore = score;
+        if (reaction !== null) return; // ป้องกันการกดซ้ำระหว่างแสดงรีแอคชั่น
 
+        const isGood = choice === "A";
+        setReaction(isGood ? "smile" : "frown");
+        setHoverReaction(null); // รีเซ็ตตอนกด
 
-        if (choice === "A") {
-            newScore += 10;
-        } else {
-            newScore -= 5;
-        }
+        setTimeout(() => {
+            let newScore = score + (isGood ? 10 : -5);
+            setScore(newScore);
 
-        setScore(newScore);
+            if (current >= mirrorQuestions.length - 1) {
+                localStorage.setItem("mirrorScore", newScore);
+                navigate("/unit1/resultlevel1");
+                return;
+            }
 
-        if (current >= mirrorQuestions.length - 1) {
-            localStorage.setItem(
-                "mirrorScore",
-                newScore
-            );
-
-            navigate("/unit1/resultlevel1");
-            return;
-        }
-
-        setCurrent((prev) => prev + 1);
-
-
+            setCurrent((prev) => prev + 1);
+            setReaction(null);
+        }, 1200); // แสดงหน้ายิ้มหรือบึ้ง 1.2 วินาที ก่อนเปลี่ยนข้อ
     };
 
-    const progress =
-        ((current + 1) / mirrorQuestions.length) * 100;
+    const progress = ((current + 1) / mirrorQuestions.length) * 100;
 
-    const mirrorState = () => {
-        if (score >= 80) return "🌟👑🪞👑🌟";
-        if (score >= 50) return "✨🪞✨";
-        return "💥🪞";
-    };
 
-    return (<div className="min-h-screen bg-gradient-to-b from-indigo-950 via-slate-900 to-black flex items-center justify-center p-6"> <div className="max-w-3xl w-full">
+    return (
 
-        ```
-        <div className="mb-5">
-            <div className="flex justify-between text-white mb-2">
-                <span>score : {score}</span>
-                <span>
-                    {current + 1}/{mirrorQuestions.length}
-                </span>
-            </div>
+        <div
+            className="
+            min-h-screen
+            flex
+            items-center
+            justify-center
+            relative
+            overflow-hidden
+        "
+            style={{
+                backgroundImage: `url(${bgGameLevel1})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+            }}
+        >
+            {/* overlay */}
+            <div className="absolute inset-0 bg-black/40" />
 
-            <div className="h-4 bg-gray-700 rounded-full overflow-hidden">
+            {/* Mirror */}
+            <div
+                className="
+                relative
+
+                w-[85vw]
+                max-w-[1000px]
+
+                h-[78vh]
+
+                rounded-[40px]
+
+                border-[10px]
+                border-yellow-400
+
+                bg-gradient-to-b
+                from-yellow-200
+                via-yellow-400
+                to-yellow-600
+
+                shadow-[0_0_60px_rgba(255,215,0,0.5)]
+
+                overflow-hidden
+
+                z-10
+            "
+            >
+                {/* Inner Mirror */}
                 <div
-                    className="h-full bg-yellow-400 transition-all duration-300"
-                    style={{
-                        width: `${progress}%`,
-                    }}
-                />
-            </div>
-        </div>
+                    className="
+                    absolute
+                    inset-[10px]
 
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8">
+                    rounded-[30px]
 
-            <div className="text-center mb-8">
+                    border-[4px]
+                    border-yellow-100/80
 
-                <div className="text-7xl mb-4 animate-pulse">
-                    {mirrorState()}
+                    bg-white/10
+                    backdrop-blur-md
+
+                    overflow-hidden
+                "
+                >
+                    <MirrorIntroAnimation
+                        question={question}
+                        handleAnswer={handleAnswer}
+                        reaction={reaction}
+                    />
+
+                    {/* Reflection */}
+                    <div
+                        className="
+                        absolute
+                        inset-0
+
+                        bg-gradient-to-br
+                        from-white/25
+                        via-transparent
+                        to-transparent
+
+                        pointer-events-none
+                    "
+                    />
                 </div>
-
-                <h1 className="text-3xl text-yellow-300 font-bold mb-2">
-                    Mirror of Integrity
-                </h1>
-
-                <p className="text-gray-300 mb-6">
-                    กระจกวิเศษส่องจิต
-                </p>
-
-                <h2 className="text-white text-2xl font-semibold leading-relaxed">
-                    {question.question}
-                </h2>
-
             </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-
-                <button
-                    onClick={() => handleAnswer("A")}
-                    className="bg-green-600 hover:bg-green-700 p-5 rounded-xl text-left text-white transition"
-                >
-                    <div className="font-bold text-xl mb-2">
-                        A
-                    </div>
-
-                    {question.A}
-                </button>
-
-                <button
-                    onClick={() => handleAnswer("B")}
-                    className="bg-red-600 hover:bg-red-700 p-5 rounded-xl text-left text-white transition"
-                >
-                    <div className="font-bold text-xl mb-2">
-                        B
-                    </div>
-
-                    {question.B}
-                </button>
-
-            </div>
-
         </div>
-    </div>
-    </div>
-
-
     );
 }
