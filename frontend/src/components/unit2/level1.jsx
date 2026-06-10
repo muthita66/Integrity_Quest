@@ -11,6 +11,7 @@ import SmartPhone from '../../assets/unit2/smartphone.png';
 import House from '../../assets/unit2/house.png';
 import Shirt from '../../assets/unit2/shirt.png';
 import { FaTimes } from "react-icons/fa";
+import { GiPartyPopper } from "react-icons/gi";
 
 
 
@@ -280,8 +281,8 @@ export default function ShoppingGame() {
                 {/* 1. กรณี: แยกถูกหมดทั้งหมด (ผ่าน) */}
                 {gameResult === 'pass' && (
                     <div className="absolute inset-0 bg-white/95 flex flex-col justify-center items-center p-6 z-50">
-                        <span className="text-6xl mb-2">🎉</span>
-                        <h2 className="text-3xl md:text-4xl font-black text-emerald-600 mb-2">ผ่านฉลุย! คุณแยกแยะสำเร็จแล้ว</h2>
+                        <span className="text-6xl mb-2" style={{ background: 'linear-gradient(90deg, #ff0000, #ff8c00, #ffd700, #00c853, #2979ff, #ab47bc)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{<GiPartyPopper />}</span>
+                        <h2 className="text-3xl md:text-4xl font-green text-emerald-600 mb-2">ผ่านฉลุย! คุณแยกแยะสำเร็จแล้ว</h2>
                         <p className="text-base md:text-lg text-slate-600 max-w-md font-medium mb-6">
                             ยอดเยี่ยมมาก คุณเข้าใจความแตกต่างระหว่างสิ่งที่จำเป็นและสิ่งที่ต้องการอย่างถูกต้องครบถ้วน!
                         </p>
