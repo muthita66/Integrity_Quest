@@ -1,0 +1,271 @@
+.circle-play-button {
+    position: relative;
+    width: 62px;
+    height: 62px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    cursor: pointer;
+    display: block;
+    transition: transform 0.15s ease;
+}
+
+.circle-play-button__outer {
+    position: relative;
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: #eff6ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        inset 0 0 1px 1px rgba(0, 0, 0, 0.3),
+        2px 3px 5px rgba(0, 0, 0, 0.15);
+}
+
+.circle-play-button__shadow {
+    position: absolute;
+    z-index: 10;
+    width: 58px;
+    height: 58px;
+    left: 50%;
+    top: 5px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: #000;
+    filter: blur(1px);
+}
+
+.circle-play-button__main {
+    --color-top: #2563eb;
+    --color-bottom: #60a5fa;
+    --color-shadow: #1e3a8a;
+    --icon-color: #dbeafe;
+    position: absolute;
+    z-index: 20;
+    width: 58px;
+    height: 58px;
+    left: 50%;
+    top: 5px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: linear-gradient(to bottom,
+            var(--color-top),
+            var(--color-bottom));
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-shadow:
+        inset 0 4px 2px var(--color-bottom),
+        inset 0 -4px 0 var(--color-shadow),
+        0 0 2px rgba(0, 0, 0, 0.5);
+
+    transition:
+        transform 0.15s ease,
+        filter 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.circle-play-button__icon {
+    position: relative;
+    z-index: 30;
+    width: 26px;
+    fill: var(--icon-color);
+    filter:
+        drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+    transition:
+        width 0.12s ease,
+        filter 0.15s ease;
+}
+
+/* Blue */
+.circle-play-button.blue .circle-play-button__main {
+    --color-top: #2563eb;
+    --color-bottom: #60a5fa;
+    --color-shadow: #1e3a8a;
+    --icon-color: #dbeafe;
+}
+
+/* Green */
+.circle-play-button.green .circle-play-button__main {
+    --color-top: #16a34a;
+    --color-bottom: #4ade80;
+    --color-shadow: #166534;
+    --icon-color: #dcfce7;
+}
+
+/* Yellow */
+.circle-play-button.yellow .circle-play-button__main {
+    --color-top: #eab308;
+    --color-bottom: #fde047;
+    --color-shadow: #a16207;
+    --icon-color: #fef9c3;
+}
+
+/* Orange */
+.circle-play-button.orange .circle-play-button__main {
+    --color-top: #e68a00;
+    --color-bottom: #ffcc66;
+    --color-shadow: #b86b00;
+    --icon-color: #ffe5b3;
+}
+
+/* Purple */
+.circle-play-button.purple .circle-play-button__main {
+    --color-top: #9333ea;
+    --color-bottom: #c084fc;
+    --color-shadow: #581c87;
+    --icon-color: #f3e8ff;
+}
+
+/* Pink */
+.circle-play-button.pink .circle-play-button__main {
+    --color-top: #ec4899;
+    --color-bottom: #f9a8d4;
+    --color-shadow: #9d174d;
+    --icon-color: #fce7f3;
+}
+
+.circle-play-button:hover {
+    transform: translateY(-2px);
+}
+
+.circle-play-button:hover .circle-play-button__main {
+    transform: translateX(-50%) translateY(-2px);
+
+    filter: brightness(1.08);
+
+    box-shadow:
+        inset 0 5px 3px var(--color-bottom),
+        inset 0 -5px 0 var(--color-shadow),
+        0 0 4px rgba(0, 0, 0, 0.35);
+}
+
+.circle-play-button:hover .circle-play-button__icon {
+    width: 28px;
+
+    filter:
+        drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
+}
+
+.circle-play-button:active {
+    transform: translateY(2px);
+}
+
+.circle-play-button:active .circle-play-button__main {
+    transform: translateX(-50%) translateY(4px);
+
+    box-shadow:
+        inset 0 4px 2px rgba(255, 255, 255, 0.3),
+        inset 0 -4px 2px var(--color-shadow),
+        0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.circle-play-button:active .circle-play-button__icon {
+    width: 25px;
+}
+
+.circle-play-button:active .circle-play-button__shadow {
+    transform: translateX(-50%) translateY(4px);
+}
+
+
+
+.plaque-button-wrapper {
+    display: inline-block;
+}
+
+.plaque-button {
+    position: relative;
+    width: 200px;
+    height: 76px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition:
+        transform 0.15s ease,
+        filter 0.15s ease;
+}
+
+/* รูปกรอบปุ่ม */
+.plaque-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+}
+
+/* ข้อความบนปุ่ม */
+.plaque-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    color: #5b2d08;
+    font-family: "Sarabun", sans-serif;
+    font-size: 21px;
+    font-weight: 700;
+    text-shadow:
+        0 1px 0 rgba(255, 230, 150, 0.8),
+        0 2px 2px rgba(70, 30, 2, 0.25);
+
+    pointer-events: none;
+}
+
+/* Hover */
+.plaque-button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+}
+
+/* Click */
+.plaque-button:active {
+    transform: translateY(3px);
+    filter: brightness(0.96);
+}
+
+.plaque-text-green {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    color: #094f07;
+    font-family: "Sarabun", sans-serif;
+    font-size: 21px;
+    font-weight: 700;
+    text-shadow:
+        0 1px 0 rgba(255, 230, 150, 0.8),
+        0 2px 2px rgba(70, 30, 2, 0.25);
+
+    pointer-events: none;
+}
+
+.plaque-text-red {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    color: #a01010;
+    font-family: "Sarabun", sans-serif;
+    font-size: 21px;
+    font-weight: 700;
+    text-shadow:
+        0 1px 0 rgba(204, 145, 145, 0.8),
+        0 2px 2px rgba(70, 30, 2, 0.25);
+
+    pointer-events: none;
+}

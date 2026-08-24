@@ -5,14 +5,43 @@ import MapPage from "./components/pages/MapPage";
 import PreTestPage from "./components/pages/PreTestPage";
 import UnitContentPage from "./components/pages/UnitContentPage";
 
-import MirrorIntroPage from "./components/unit1/MirrorIntroPage";
-import StartPage from "./components/unit1/startPage";
-import MirrorQuizPage from "./components/unit1/MirrorQuizPage";
-import MirrorResultPage from "./components/unit1/MirrorResultPage";
+import Level1IntrpPage from "./components/unit1/level1/scenes/Level1IntroPage";
+import AttendanceIntroAnimation from "./components/unit1/level1/AttendanceIntroAnimation";
 
-import ShoppingGame from "./components/unit2/level1";
-import CalculationGame from "./components/unit2/level2";
-import FinalMissionGame from "./components/unit2/FinalMission";
+import MirrorQuizPage from "./components/unit1/level1/components/MirrorQuizPage";
+import MirrorResultPage from "./components/unit1/level1/components/MirrorResultPage";
+
+import FinalLevel from "./components/unit1/finalLevel/FinalLevel";
+import TitleFinal from "./components/unit1/finalLevel/components/TitleScreen"
+
+import LevelTransition from "./components/common/LevelTransition";
+
+import BubbleShooterPage from "./components/unit1/level2/bubbleShooterPage";
+import Unit1Level2IntroPage from "./components/unit1/level2/scenes/Level2IntroPage";
+import Unit1Level2ResultPage from "./components/unit1/level2/components/BubbleResultPage";
+
+
+import Unit2IntroPage from "./components/unit2/level1/introPage";
+import ShoppingGame from "./components/unit2/level1/ShoppingGame";
+import Unit2ResultPage from "./components/unit2/level1/resultPage";
+import Unit2Level2IntroPage from "./components/unit2/level2/Level2IntroPage";
+import Unit2SceneMission from "./components/unit2/level1/scenes/SceneMission";
+import CalculationGame from "./components/unit2/level2/CalculationGame";
+import FinalLevelGame from "./components/unit2/finalLevel/FinalLevelGame";
+
+import SceneMission from "./components/unit2/finalLevel/scenes/SceneThreeIntro";
+
+import Level1IntroPage from "./components/unit3/level1/scenes/Level1IntroPage";
+import ReceiptGamePage from "./components/unit3/level1/ReceiptGamePage";
+import ResultPage from "./components/unit3/level1/ResultPage";
+
+
+import Level2IntroPage from "./components/unit3/level2/scenes/Level2IntroPage";
+import MoneyGamePage from "./components/unit3/level2/MoneyGamePage";
+import MoneyResultPage from "./components/unit3/level2/ResultPage";
+
+import Unit3FinalLevel from "./components/unit3/finalLevel/TreasurerGame";
+import FinalLevelIntroPage from "./components/unit3/finalLevel/scenes/FinalLevelIntroPage";
 
 function App() {
   return (
@@ -24,15 +53,58 @@ function App() {
       <Route path="/unit/:unitId" element={<UnitContentPage />} />
 
       {/* Unit 1 */}
-      <Route path="/unit1/Introlevel1" element={<MirrorIntroPage />} />
-      <Route path="/unit1/start" element={<StartPage />} />
+      <Route path="/unit1/Level1IntroPage" element={<Level1IntrpPage />} />
+      <Route path="/unit1/MirrorIntroPage2" element={<AttendanceIntroAnimation />} />
+
       <Route path="/unit1/Quizlevel1" element={<MirrorQuizPage />} />
       <Route path="/unit1/resultlevel1" element={<MirrorResultPage />} />
 
+      <Route path="/unit1/level2/intro" element={<Unit1Level2IntroPage />} />
+      <Route path="/unit1/level2" element={<BubbleShooterPage />} />
+      <Route path="/unit1/level2/result" element={<Unit1Level2ResultPage />} />
+
+      <Route path="/unit1/final" element={<FinalLevel />} />
+      <Route path="/unit1/final/start" element={<TitleFinal />} />
+
+      <Route
+        path="/unit1/level2/transition"
+        element={
+          <LevelTransition
+            nextPath="/unit1/level2/intro"
+          />
+        }
+      />
+
+
       {/* Unit 2 */}
+      <Route path="/unit2/intro" element={<Unit2IntroPage />} />
       <Route path="/unit2/level1" element={<ShoppingGame />} />
-      <Route path="/unit2/level2" element={<CalculationGame />} />
-      <Route path="/unit2/final" element={<FinalMissionGame />} />
+      <Route path="/unit2/level1/result" element={<Unit2ResultPage />} />
+      <Route path="/sceneMission" element={<Unit2SceneMission />} />
+
+      <Route path="/unit2/level2/intro" element={<Unit2Level2IntroPage />} />
+      <Route path="/unit2/level2/start" element={<CalculationGame />} />
+
+      <Route path="/unit2/final/introMission" element={<SceneMission />} />
+      <Route path="/unit2/final" element={<FinalLevelGame />} />
+
+      {/* Unit 3 */}
+      <Route path="/unit3/level1/intro" element={<Level1IntroPage />} />
+      <Route path="/unit3/level1/game" element={<ReceiptGamePage />} />
+      <Route path="/unit3/level1/result" element={<ResultPage />} />
+
+      <Route
+        path="/unit3/level2/intro"
+        element={<Level2IntroPage />}
+      />
+
+      <Route
+        path="/unit3/level2/game"
+        element={<MoneyGamePage />}
+      />
+      <Route path="/unit3/level2/result" element={<MoneyResultPage />} />
+      <Route path="/unit3/final/start" element={<FinalLevelIntroPage />} />
+      <Route path="/unit3/final" element={<Unit3FinalLevel />} />
     </Routes>
   );
 }
