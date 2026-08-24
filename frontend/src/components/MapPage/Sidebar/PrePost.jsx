@@ -1,4 +1,4 @@
-import { FaClipboardCheck, FaLock, FaUnlock, FaUnlockAlt } from "react-icons/fa";
+import { FaLock, FaUnlock, FaUnlockAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 function PrePost({ completedUnits = 0, totalUnits = 6 }) {
@@ -27,7 +27,7 @@ function PrePost({ completedUnits = 0, totalUnits = 6 }) {
                     marginBottom: "10px",
                 }}
             >
-                <FaClipboardCheck />
+                <FaUnlock />
                 Pre-Test
             </button>
 
@@ -53,7 +53,7 @@ function PrePost({ completedUnits = 0, totalUnits = 6 }) {
             >
                 {isPostTestUnlocked ? (
                     <>
-                        <FaUnlockAlt />
+                        <FaUnlock />
                         Post-Test
                     </>
                 ) : (

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import bg_game from "../../assets/bg_game.png";
+import { useNavigate } from "react-router-dom";
 
 const questions = [
     "ฉันวางแผนการใช้เงินก่อนใช้จริง",
@@ -17,6 +18,8 @@ const questions = [
 function PreTest() {
     const [answers, setAnswers] = useState({});
 
+    const navigate = useNavigate();
+
     const handleSelect = (questionIndex, score) => {
         setAnswers((prev) => ({
             ...prev,
@@ -25,13 +28,13 @@ function PreTest() {
     };
 
     const handleSubmit = () => {
-        const totalScore = Object.values(answers).reduce(
-            (sum, value) => sum + value,
-            0
-        );
+        if (Object.keys(answers).length !== questions.length) {
+            alert("กรุณาตอบคำถามให้ครบทุกข้อ");
+            return;
+        }
 
-        alert(`คะแนนรวม ${totalScore}`);
-    };
+        navigate("/map");
+    }
 
     return (
         <div
@@ -51,49 +54,39 @@ function PreTest() {
                         backdropFilter: "blur(12px)",
                         border: "2px solid rgba(255,255,255,.3)",
                         borderRadius: "30px",
-                        padding: "30px",
+                        padding: "60px 30px 30px 30px",
                         boxShadow: "0 8px 30px rgba(0,0,0,.25)",
                     }}
                 >
-                    {/* Unit */}
-                    <div
-                        className="absolute top-0 left-0"
-                        style={{
-                            background: "#ea580c",
-                            color: "white",
-                            fontWeight: "bold",
-                            padding: "12px 24px",
-                            borderBottomRightRadius: "20px",
-                            fontSize: "18px",
-                        }}
-                    >
-                        Unit 2: กับดักความอยาก
-                    </div>
-
                     {/* Title */}
-                    <h1
+                    <div
                         style={{
-                            textAlign: "center",
+                            position: "absolute",
+                            top: "-30px",
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            backgroundColor: "#ea580c",
                             color: "white",
+                            padding: "12px 60px",
+                            borderRadius: "20px",
                             fontSize: "42px",
                             fontWeight: "800",
-                            marginTop: "20px",
-                            marginBottom: "20px",
                             textShadow: "0 4px 12px rgba(0,0,0,.5)",
+                            boxShadow: "0 6px 15px rgba(0,0,0,.25)",
                         }}
                     >
-                        📜 Pre-Test
-                    </h1>
+                        Pre-Test
+                    </div>
 
                     {/* Description */}
                     <div
                         style={{
                             textAlign: "center",
-                            color: "white",
+                            color: "#603535ff",
                             fontWeight: "700",
                             fontSize: "20px",
                             marginBottom: "35px",
-                            textShadow: "0 2px 8px rgba(0,0,0,.5)",
+                            textShadow: "0 2px 8px rgba(0, 0, 0, 0)",
                         }}
                     >
                         กรุณาให้คะแนนตามระดับความคิดเห็นของท่าน
@@ -123,13 +116,13 @@ function PreTest() {
                         >
                             <div
                                 style={{
-                                    color: "white",
+                                    color: "#4c2323ff",
                                     fontSize: "20px",
                                     fontWeight: "600",
                                     flex: 1,
                                     textAlign: "left",
                                     paddingRight: "30px",
-                                    textShadow: "0 2px 8px rgba(0,0,0,.5)",
+                                    textShadow: "0 2px 8px rgba(255, 255, 255, 1)",
                                 }}
                             >
                                 {qIndex + 1}. {question}
@@ -192,17 +185,15 @@ function PreTest() {
                         <button
                             onClick={handleSubmit}
                             style={{
-                                background:
-                                    "linear-gradient(135deg,#ff9a00,#ff4d00)",
-                                border: "none",
+                                backgroundColor: "#ea580c",
                                 color: "white",
-                                padding: "18px 60px",
-                                borderRadius: "999px",
-                                fontSize: "24px",
+                                padding: "10px 40px",
+                                borderRadius: "25px",
+                                fontSize: "18px",
                                 fontWeight: "bold",
                                 cursor: "pointer",
                                 boxShadow:
-                                    "0 10px 20px rgba(255,77,0,.4)",
+                                    "0 5px 15px rgba(91, 56, 41, 0.99)",
                             }}
                         >
                             SUBMIT

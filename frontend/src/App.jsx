@@ -43,6 +43,13 @@ import MoneyResultPage from "./components/unit3/level2/ResultPage";
 import Unit3FinalLevel from "./components/unit3/finalLevel/TreasurerGame";
 import FinalLevelIntroPage from "./components/unit3/finalLevel/scenes/FinalLevelIntroPage";
 
+import Intro from "./components/Unit4/Intro";
+import Level1Fake from "./components/Unit4/level1Fake";
+import TutorialSlip from "./components/Unit4/TutorialSlip";
+import SlipMission from "./components/Unit4/SlipMission";
+import Level2Slot from "./components/Unit4/level2Slot";
+import FinalMission from "./components/Unit4/FinalMission";
+
 function App() {
   return (
     <Routes>
@@ -79,6 +86,18 @@ function App() {
       {/* Unit 2 */}
       <Route path="/unit2/intro" element={<Unit2IntroPage />} />
       <Route path="/unit2/level1" element={<ShoppingGame />} />
+
+      <Route path="/unit2/level2" element={<CalculationGame />} />
+      <Route path="/unit2/final" element={<FinalMissionGame />} />
+
+      {/* Unit 4 */}
+      <Route path="/unit4/intro" element={<Intro />} />
+      <Route path="/unit4/level1" element={<Level1Fake />} />
+      <Route path="/unit4/tutorialSlip" element={<TutorialSlip />} />
+      <Route path="/unit4/slipMission" element={<SlipMission />} />
+      <Route path="/unit4/level2" element={<Level2Slot />} />
+      <Route path="/unit4/final" element={<FinalMission />} />
+
       <Route path="/unit2/level1/result" element={<Unit2ResultPage />} />
       <Route path="/sceneMission" element={<Unit2SceneMission />} />
 
