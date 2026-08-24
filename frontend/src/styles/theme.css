@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,600&family=Noto+Serif+Thai:wght@400;500;600;700&display=swap');
+
+:root {
+    --bg-dark: #0B1320;
+    --bg-radial: radial-gradient(circle at top, #1E293B, #0F172A 60%, #020617);
+
+    --gold-light: #FDE68A;
+    --gold-main: #D4AF37;
+    --gold-dark: #92400E;
+    --gold-gradient: linear-gradient(135deg, #FDE68A 0%, #EAB308 50%, #CA8A04 100%);
+
+    --paper-bg-left: linear-gradient(90deg, #FDFBF7, #F4EEDD);
+    --paper-bg-right: linear-gradient(90deg, #F5EEDD, #FAF7EE);
+    --paper-border: #E5D5B5;
+
+    --text-primary: #331E0B;
+    --text-secondary: #785E3A;
+    --text-gold: #B45309;
+
+    --font-title: 'Cinzel', serif;
+    --font-serif: 'Noto Serif Thai', 'Cormorant Garamond', serif;
+}
+
+/* Custom Scrollbar สำหรับโซนที่ต้องเลื่อนภายในกระดาษ */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(180, 83, 9, 0.3);
+    border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(180, 83, 9, 0.6);
+}
