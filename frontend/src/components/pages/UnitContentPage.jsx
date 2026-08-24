@@ -2,6 +2,7 @@ import React from 'react';
 import bgGame from "../../assets/bg_game.png";
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from "react-router-dom";
+import { FaCircleArrowRight, FaHouse } from "react-icons/fa6";
 
 export default function UnitContentPage() {
     const navigate = useNavigate();
@@ -33,58 +34,90 @@ export default function UnitContentPage() {
 
     const handleStart = () => {
         if (currentUnitId === 1) {
-            navigate('/unit1/Introlevel1');
+            navigate("/unit1/Level1IntroPage");
         } else if (currentUnitId === 2) {
-            navigate('/unit2/level1');
+            navigate("/unit2/intro");
+        } else if (currentUnitId === 3) {
+            navigate("/unit3/level1/intro");
         } else {
-            // สำหรับ Unit ถัดๆ ไป
             navigate(`/unit${currentUnitId}/level1`);
         }
     };
 
     return (
         <div
-            className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed"
+            className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed sarabun-medium relative"
             style={{
                 backgroundImage: `url(${bgGame})`,
             }}
         >
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px]"></div>
 
-            {/* Container หลักภายนอก */}
-            <div className="w-full max-w-5xl bg-white/50 backdrop-blur-sm rounded-3xl p-6 border-4 border-black shadow-2xl relative overflow-hidden">
+            {/* หัวข้อ Unit มุมซ้ายบน — ติดขอบบนสุดของหน้า */}
+            <div className="absolute top-0 left-0 z-20 bg-orange-600 text-white sarabun-semibold px-6 py-2 rounded-br-2xl text-lg shadow-md">
+                Unit {currentUnitId}: {header?.name_th || header?.title || "กำลังโหลด..."}
+            </div>
 
-                {/* หัวข้อ Unit มุมซ้ายบน */}
-                <div className="absolute top-0 left-0 bg-orange-600 hover:bg-orange-500 text-white font-bold px-6 py-2 rounded-br-2xl text-lg shadow-md">
-                    Unit {currentUnitId}: {header?.name_th || header?.title || "กำลังโหลด..."}
-                </div>
+            {/* ปุ่มกลับหน้าหลัก มุมขวาบน — ติดขอบบนสุดของหน้า */}
+            <button
+                onClick={() => navigate("/map")}
+                className="absolute top-3 right-4 z-20 flex items-center gap-2 bg-white/80 hover:bg-orange-600 hover:text-white text-orange-600 border-2 border-orange-600 px-2 py-2 rounded-full text-sm shadow-md transition-all duration-200 hover:scale-105"
+            >
+                <FaHouse size={24} />
+            </button>
+
+            {/* Content */}
+            <div className="relative z-10 w-full px-6 py-8">
 
                 {/* หัวข้อหลัก */}
-                <div className="text-center mt-8 mb-6">
-                    <h1 className="text-3xl font-black text-gray-800 tracking-wide uppercase">{header?.title || header?.name_en}</h1>
+                <div className="text-center mt-2 mb-4">
+                    <h1 className="text-3xl sarabun-bold text-gray-800 tracking-wide uppercase">
+                        {header?.title || header?.name_en}
+                    </h1>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
+                {/* Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-[1300px] h-[550px] mx-auto">
                     {cards.length > 0 ? (
                         cards.map((item) => (
                             <div
                                 key={item.content_id}
-                                className="border-[3px] border-amber-900 bg-white rounded-2xl p-5 flex flex-col items-center justify-between min-h-[400px]"
+                                className="
+                                border-[3px]
+                                border-black
+                                bg-white/90
+                                rounded-2xl
+                                px-4
+                                py-4
+                                flex
+                                flex-col
+                                items-center
+                                justify-between
+                                min-h-[450px]
+                                shadow-lg
+                            "
                             >
-                                <h2 className="text-xl font-bold text-center border-b pb-2 w-full">
+                                <h2 className="text-xl sarabun-bold text-center border-b pb-1 w-full">
                                     {item.title}
                                 </h2>
 
-                                <div className="flex-grow flex items-center justify-center my-4">
+                                <p className="mt-2 sarabun-light text-md text-center text-black whitespace-pre-line">
+                                    {item.description}
+                                </p>
+
+                                <div className="flex-grow flex items-center justify-center my-4 w-full">
                                     <img
                                         src={`/image/${item.image_url}`}
                                         alt={item.title}
-                                        className="max-h-56 object-contain"
+                                        className="max-h-64 max-w-full object-contain"
                                     />
                                 </div>
 
-                                <p className="text-sm text-center text-gray-700">
-                                    {item.description}
+                                <p className='sarabun-light text-md text-center justify-center text-black whitespace-pre-line'>
+                                    {item.reflection}
                                 </p>
+
                             </div>
                         ))
                     ) : (
@@ -93,13 +126,14 @@ export default function UnitContentPage() {
                         </div>
                     )}
                 </div>
-                {/* ปุ่ม START ด้านล่าง */}
-                <div className="flex justify-center mt-8 mb-2">
-                    <button 
+
+                {/* ปุ่ม START */}
+                <div className="flex justify-center mt-2 mb-2">
+                    <button
                         onClick={handleStart}
-                        className="bg-orange-600 hover:bg-orange-500 text-white font-black text-xl px-16 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all tracking-wider"
+                        className="w-[48px] h-[48px] bg-white/80 hover:bg-orange-600 hover:text-white text-orange-600 border-2 border-orange-600 px-2 py-2 rounded-full text-sm shadow-md transition-all duration-200 hover:scale-105"
                     >
-                        START
+                        <FaCircleArrowRight className="w-full h-full" />
                     </button>
                 </div>
 

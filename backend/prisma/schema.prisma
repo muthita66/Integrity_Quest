@@ -74,6 +74,7 @@ model majors {
   major_name String?    @db.VarChar(255)
   faculty_id Int?
   faculties  faculties? @relation(fields: [faculty_id], references: [faculty_id], onDelete: NoAction, onUpdate: NoAction, map: "major_fk_faculty")
+  students   students[]
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -141,15 +142,16 @@ model roles {
 }
 
 model students {
-  student_id Int    @id @default(autoincrement())
+  student_id Int     @id @default(autoincrement())
   user_id    Int
-  first_name String @db.VarChar(255)
-  last_name  String @db.VarChar(255)
-  gender     String @db.VarChar(50)
+  first_name String  @db.VarChar(255)
+  last_name  String  @db.VarChar(255)
+  gender     String  @db.VarChar(50)
   birth_year Int
   entry_year Int?
   major_id   Int?
-  users      users  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "student_fk-userID")
+  users      users   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "student_fk-userID")
+  majors     majors? @relation(fields: [major_id], references: [major_id], onDelete: NoAction, onUpdate: NoAction, map: "student_fk_majorID")
 }
 
 model teachers {
@@ -172,6 +174,7 @@ model unit_contents {
   order_number        Int
   parent_id           Int?
   image_url           String?         @db.VarChar(255)
+  reflection          String?
   units               units           @relation(fields: [unit_id], references: [unit_id], onDelete: NoAction, onUpdate: NoAction, map: "content_fk_unit")
   unit_contents       unit_contents?  @relation("unit_contentsTounit_contents", fields: [parent_id], references: [content_id], onDelete: Cascade, onUpdate: NoAction)
   other_unit_contents unit_contents[] @relation("unit_contentsTounit_contents")
@@ -271,14 +274,45 @@ model users {
 }
 
 model level {
-  level_id    Int      @id @default(autoincrement())
+  level_id    Int           @id @default(autoincrement())
   unit_id     Int
-  title       String   @db.VarChar(255)
-  description String
-  level_type  String   @db.VarChar(255)
-  game_type   String   @db.VarChar(255)
+  title       String        @db.VarChar(255)
+  description String?
+  level_type  String        @db.VarChar(255)
+  game_type   String        @db.VarChar(255)
   order_no    Int
-  created_at  DateTime @db.Timestamptz(6)
+  created_at  DateTime      @db.Timestamptz(6)
+  pass_score  String?       @db.VarChar
+  level_items level_items[]
+}
+
+model item_types {
+  id          Int           @id @default(autoincrement())
+  code        String        @db.VarChar(100)
+  name        String        @db.VarChar(100)
+  description String?
+  level_items level_items[]
+}
+
+model items {
+  items_id    Int           @id
+  name        String        @db.VarChar(150)
+  description String?
+  image       String?       @db.VarChar(255)
+  category    String?       @db.VarChar(50)
+  level_items level_items[]
+}
+
+model level_items {
+  id           Int        @id
+  level_id     Int
+  item_id      Int
+  item_type_id Int        @default(0)
+  quantity     Int?       @default(1)
+  is_required  Boolean?   @default(false)
+  item_types   item_types @relation(fields: [item_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "item_type_id_fk")
+  items        items      @relation(fields: [item_id], references: [items_id], onDelete: NoAction, onUpdate: NoAction, map: "items_id_fk")
+  level        level      @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction, map: "level_id_fk")
 }
 
 enum quiz_type_enum {
