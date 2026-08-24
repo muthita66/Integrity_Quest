@@ -1,0 +1,346 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600&family=Noto+Sans+Thai:wght@400;500&display=swap');
+
+.mirror-scene {
+    background: #0A0B1F;
+    transition: opacity 0.5s ease;
+}
+
+.mirror-scene--leaving {
+    opacity: 0;
+}
+
+.mirror-scene__bg {
+    position: absolute;
+    inset: -3%;
+    background-size: cover;
+    background-position: center;
+    animation: mirrorPan 22s ease-in-out infinite alternate;
+    z-index: 0;
+}
+
+@keyframes mirrorPan {
+    0% {
+        transform: scale(1) translate(0, 0);
+    }
+
+    100% {
+        transform: scale(1.06) translate(-1%, -1%);
+    }
+}
+
+.mirror-scene__vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        radial-gradient(ellipse at 50% 60%, rgba(10, 11, 31, 0) 0%, rgba(10, 11, 31, 0.55) 65%, rgba(10, 11, 31, 0.92) 100%),
+        linear-gradient(180deg, rgba(36, 27, 78, 0.35) 0%, rgba(10, 11, 31, 0) 30%, rgba(10, 11, 31, 0.75) 100%);
+    pointer-events: none;
+}
+
+.mirror-scene__sweep {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(115deg,
+            transparent 40%,
+            rgba(127, 212, 255, 0.28) 49%,
+            rgba(242, 200, 121, 0.22) 51%,
+            transparent 60%);
+    background-size: 300% 300%;
+    background-position: -100% -100%;
+    animation: mirrorSweep 1.8s ease-out forwards;
+}
+
+@keyframes mirrorSweep {
+    0% {
+        background-position: -60% -60%;
+        opacity: 0;
+    }
+
+    15% {
+        opacity: 1;
+    }
+
+    60% {
+        background-position: 60% 60%;
+        opacity: 1;
+    }
+
+    100% {
+        background-position: 160% 160%;
+        opacity: 0;
+    }
+}
+
+.mirror-scene__particles {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.mirror-scene__dot {
+    position: absolute;
+    bottom: -10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(160, 220, 255, 0.9) 0%, rgba(160, 220, 255, 0) 70%);
+    box-shadow: 0 0 6px rgba(160, 220, 255, 0.7);
+    animation-name: mirrorFloat;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    opacity: 0;
+}
+
+@keyframes mirrorFloat {
+    0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: translateY(-45vh) translateX(6px);
+        opacity: 0.5;
+    }
+
+    90% {
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(-85vh) translateX(-4px);
+        opacity: 0;
+    }
+}
+
+.mirror-scene__gate {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    background: radial-gradient(circle at 50% 50%, rgba(36, 27, 78, 0.35) 0%, rgba(10, 11, 31, 0.85) 75%);
+}
+
+.mirror-scene__gate-glyph {
+    color: #7FD4FF;
+    animation: glyphPulse 2.4s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(127, 212, 255, 0.6));
+}
+
+@keyframes glyphPulse {
+
+    0%,
+    100% {
+        opacity: 0.55;
+        transform: scale(0.95) rotate(0deg);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.05) rotate(3deg);
+    }
+}
+
+.mirror-scene__gate-text {
+    font-family: 'Noto Sans Thai', sans-serif;
+    color: #F5F2FF;
+    font-size: 1.15rem;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 16px rgba(127, 212, 255, 0.5);
+    animation: gateTextPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes gateTextPulse {
+
+    0%,
+    100% {
+        opacity: 0.65;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+.mirror-scene__stage {
+    position: relative;
+    z-index: 6;
+    max-width: 46rem;
+    min-height: 7rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.mirror-scene__line {
+    grid-column: 1;
+    grid-row: 1;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 14px);
+    opacity: 0;
+    filter: blur(6px);
+    transition: opacity 0.9s ease, transform 0.9s ease, filter 0.9s ease;
+    padding: 0 1rem;
+}
+
+.mirror-scene__line.is-active {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    filter: blur(0);
+}
+
+.mirror-scene__line--gold {
+    font-family: 'Noto Serif Thai', serif;
+    font-weight: 600;
+    font-size: 2rem;
+    color: #F2C879;
+    text-shadow: 0 0 18px rgba(242, 200, 121, 0.55), 0 0 40px rgba(242, 200, 121, 0.25);
+    animation: goldGlow 2.6s ease-in-out infinite;
+}
+
+.mirror-scene__line--gold.is-active {
+    animation: goldGlow 2.6s ease-in-out infinite;
+}
+
+@keyframes goldGlow {
+
+    0%,
+    100% {
+        text-shadow: 0 0 14px rgba(242, 200, 121, 0.45), 0 0 32px rgba(242, 200, 121, 0.2);
+    }
+
+    50% {
+        text-shadow: 0 0 22px rgba(242, 200, 121, 0.7), 0 0 48px rgba(242, 200, 121, 0.35);
+    }
+}
+
+.mirror-scene__line--white {
+    font-family: 'Noto Sans Thai', sans-serif;
+    font-weight: 400;
+    font-size: 1.4rem;
+    color: #F5F2FF;
+    text-shadow: 0 0 14px rgba(127, 212, 255, 0.3);
+}
+
+.mirror-scene__dots {
+    position: absolute;
+    bottom: -2.4rem;
+    display: flex;
+    gap: 10px;
+}
+
+.mirror-scene__progress-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(245, 242, 255, 0.25);
+    transition: background 0.5s ease, box-shadow 0.5s ease, transform 0.5s ease;
+}
+
+.mirror-scene__progress-dot.is-lit {
+    background: #7FD4FF;
+    box-shadow: 0 0 8px rgba(127, 212, 255, 0.7);
+}
+
+.mirror-scene__progress-dot.is-current {
+    transform: scale(1.4);
+}
+
+.mirror-scene__button {
+    position: relative;
+    margin-top: 4.5rem;
+    padding: 0.75rem 2.6rem;
+    font-family: 'Noto Sans Thai', sans-serif;
+    font-weight: 500;
+    font-size: 1.05rem;
+    letter-spacing: 0.18em;
+    color: #F5F2FF;
+    background: rgba(127, 212, 255, 0.08);
+    border: 1px solid rgba(127, 212, 255, 0.45);
+    border-radius: 999px;
+    backdrop-filter: blur(4px);
+    overflow: hidden;
+    cursor: pointer;
+    animation: buttonRise 0.7s ease both, buttonGlow 2.8s ease-in-out infinite;
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+
+.mirror-scene__button:hover {
+    transform: translateY(-2px) scale(1.03);
+    border-color: rgba(242, 200, 121, 0.8);
+    background: rgba(127, 212, 255, 0.14);
+}
+
+.mirror-scene__button span {
+    position: relative;
+    z-index: 1;
+}
+
+.mirror-scene__button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 20%, rgba(242, 200, 121, 0.5) 50%, transparent 80%);
+    background-size: 250% 100%;
+    background-position: 150% 0;
+    transition: background-position 0.7s ease;
+}
+
+.mirror-scene__button:hover::after {
+    background-position: -50% 0;
+}
+
+@keyframes buttonGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 10px rgba(127, 212, 255, 0.25);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(127, 212, 255, 0.5);
+    }
+}
+
+@keyframes buttonRise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .mirror-scene__bg,
+    .mirror-scene__sweep,
+    .mirror-scene__dot,
+    .mirror-scene__gate-glyph,
+    .mirror-scene__gate-text,
+    .mirror-scene__line--gold,
+    .mirror-scene__button {
+        animation: none !important;
+    }
+
+    .mirror-scene__line {
+        transition: opacity 0.4s ease;
+        filter: none;
+        transform: translate(-50%, 0);
+    }
+}

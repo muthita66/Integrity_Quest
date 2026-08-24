@@ -1,0 +1,26 @@
+.confetti-particle {
+    opacity: 0;
+    animation-name: confetti-pop;
+    animation-fill-mode: forwards;
+    animation-timing-function: ease-out;
+}
+
+@keyframes confetti-pop {
+    0% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0deg) scale(1);
+    }
+
+    15% {
+        transform: translate(calc(var(--dx) * 0.7), calc(var(--dy) * 0.7)) rotate(calc(var(--rot) * 0.3)) scale(1);
+    }
+
+    75% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(var(--dx), calc(var(--dy) + 220px)) rotate(var(--rot)) scale(0.5);
+    }
+}
