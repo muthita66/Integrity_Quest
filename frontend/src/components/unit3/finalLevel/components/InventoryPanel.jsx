@@ -4,10 +4,7 @@ export default function InventoryPanel({
     requiredItems,
     cart,
 }) {
-
-
     return (
-
         <div
             className="
                 bg-white/90
@@ -18,32 +15,26 @@ export default function InventoryPanel({
                 shadow-xl
             "
         >
-
-            <h2 className="
-                text-xl
-                font-black
-                mb-3
-            ">
-                📋 รายการจำเป็น
+            <h2
+                className="
+                    text-lg
+                    font-black
+                    mb-3
+                "
+            >
+                รายการจำเป็น
             </h2>
 
             <div className="space-y-2">
+                {requiredItems.map((item) => {
+                    const purchasedItem = cart.find(
+                        (x) => x.id === item.id
+                    );
 
-                {
-                    requiredItems.map(id => {
-
-
-                        const item =
-                            cart.find(
-                                x => x.id === id
-                            );
-
-
-                        return (
-
-                            <div
-                                key={id}
-                                className="
+                    return (
+                        <div
+                            key={item.id}
+                            className="
                                 flex
                                 items-center
                                 gap-2
@@ -53,51 +44,20 @@ export default function InventoryPanel({
                                 p-2
                                 bg-gray-100
                             "
-                            >
+                        >
+                            {purchasedItem ? (
+                                <CheckCircle className="text-green-600" />
+                            ) : (
+                                <Circle className="text-gray-400" />
+                            )}
 
-                                {
-                                    item
-
-                                        ?
-
-                                        <CheckCircle
-                                            className="text-green-600"
-                                        />
-
-                                        :
-
-                                        <Circle
-                                            className="text-gray-400"
-                                        />
-
-                                }
-
-
-                                <span className="
-                                font-bold
-                            ">
-
-                                    {
-                                        item
-                                            ?
-                                            item.name
-                                            :
-                                            id
-                                    }
-
-                                </span>
-
-
-                            </div>
-
-                        );
-
-                    })
-                }
-
+                            <span className="font-light">
+                                {item.name}
+                            </span>
+                        </div>
+                    );
+                })}
             </div>
-
         </div>
-
     );
 }

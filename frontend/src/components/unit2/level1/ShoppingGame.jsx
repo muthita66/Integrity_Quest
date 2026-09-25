@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { MdTableRows, MdArrowBack } from "react-icons/md";
 import { FaLightbulb, FaStar } from "react-icons/fa";
 import bgGameImg from "../../../assets/unit2/Level1/bgmarket.png";
+import bgMusic from "../../../assets/sounds/Unit2/bg_Level1.mp3";
+import useBackgroundMusic from "../../../hooks/useBackgroundMusic";
+import useGameMuted from "../../../hooks/useGameMuted";
 
 import PoolZone from "./components/PoolZone";
 import BasketZone from "./components/BasketZone";
@@ -48,6 +51,10 @@ export default function ShoppingGame() {
     const [showHintDialog, setShowHintDialog] = useState(false);
     const [hintUnlocked, setHintUnlocked] = useState(false);
 
+    // เพลงพื้นหลัง เบา ๆ เล่นวน เปิด/ปิดได้จากปุ่มใน ExitDialog
+    const [muted] = useGameMuted();
+    useBackgroundMusic(bgMusic, { volume: 0.15, muted });
+
     return (
         <div
             className="relative flex min-h-screen flex-col items-center overflow-hidden bg-cover bg-center font-sans text-slate-800 sarabun-bold"
@@ -60,8 +67,21 @@ export default function ShoppingGame() {
             {/* Top Navigation */}
             <div className="relative z-10 flex w-full items-center justify-between px-2 py-4 md:px-4">
                 {/* Back Button */}
+                {/*
+                 * เดิมปุ่มนี้ navigate ไปที่ "/unit2/level1/SceneMission"
+                 * ตรงๆ ซึ่ง route นั้น render <SceneMission /> เดี่ยวๆ
+                 * โดยไม่มีใครส่ง prop scene/onBack/onNext/handleSkip ให้
+                 * เลย (ดู App.jsx) ทำให้หน้า Mission ที่เห็นว่างเปล่า —
+                 * ที่ถูกต้องคือกลับไปที่หน้า intro จริง (Unit2IntroPage
+                 * ที่ mount อยู่ที่ "/unit2/intro") แล้วบอกให้เริ่มที่
+                 * ฉาก Mission (ฉากสุดท้าย) ผ่าน router state แทน
+                 */}
                 <button
-                    onClick={() => navigate("/unit2/intro")}
+                    onClick={() =>
+                        navigate("/unit2/intro", {
+                            state: { startAtMission: true },
+                        })
+                    }
                     className="flex h-12 w-12 shrink-0 -translate-y-5 items-center justify-center rounded-full border-4 border-white bg-amber-700 text-white shadow-lg transition hover:scale-105 active:scale-95"
                 >
                     <MdArrowBack size={28} />
@@ -182,7 +202,7 @@ export default function ShoppingGame() {
                     resetGame();
                     setShowExitDialog(false);
                 }}
-                onExit={() => navigate("/map  ")}
+                onExit={() => navigate("/map")}
             />
 
             <HintDialog

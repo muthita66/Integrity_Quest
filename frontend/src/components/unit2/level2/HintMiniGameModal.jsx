@@ -2,26 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaLock, FaUnlock, FaTimes } from "react-icons/fa";
 import "../../../styles/unit2/button/level2/button.css";
 import Hint from "../../../assets/unit2/Level2/Hint/Hint.png";
-
-import Question1Img from "../../../assets/unit2/Level2/Hint/QuestionOne.png";
-import One from "../../../assets/unit2/Level2/Hint/Q1/one.jpg";
-import Five from "../../../assets/unit2/Level2/Hint/Q1/five.jpg";
-import Ten from "../../../assets/unit2/Level2/Hint/Q1/ten.jpg";
-import Twenty from "../../../assets/unit2/Level2/Hint/Q1/twenty.jpg";
-import Fifty from "../../../assets/unit2/Level2/Hint/Q1/fifty.jpg";
-import OneHundred from "../../../assets/unit2/Level2/Hint/Q1/onehundred.jpg";
-
-import BagSchool from "../../../assets/unit2/Level2/Hint/BagSchool.jpg";
-import BagFashion from "../../../assets/unit2/Level2/Hint/Fashion.jpg";
-import BagBrand from "../../../assets/unit2/Level2/Hint/Luxurybrand.png";
-
-
-import Rice from "../../../assets//unit2/Level2/Hint/Q5/Rice.png";
-import Car from "../../../assets/unit2/Level2/Hint/Q5/Car.png";
-import Water from "../../../assets/unit2/Level2/Hint/Q5/Water.png";
-import Game from "../../../assets/unit2/Level2/Hint/Q5/Game.png";
-import Shoes from "../../../assets/unit2/Level2/Hint/Q5/Shoes.png";
-
+import Lock from "../../../assets/unit2/Level2/Hint/Lock.png";
 
 export default function HintMiniGameModal({ isOpen, onClose, questionId, hint }) {
     const [isUnlocked, setIsUnlocked] = useState(false);
@@ -69,10 +50,11 @@ export default function HintMiniGameModal({ isOpen, onClose, questionId, hint })
                     </div>
                 ) : (
                     <div className="flex flex-col items-center">
-                        <img src={Question1Img} alt="" className="w-full max-w-[100px] mb-2" />
-                        <h2 className="text-xl font-black text-[#3D2B1F] mb-6 text-center">
-                            เล่นมินิเกมเพื่อปลดล็อคคำใบ้!
+                        <img src={Lock} alt="" className="w-full max-w-[100px] mb-1" />
+                        <h2 className="text-xl font-black text-black mb-2 text-center">
+                            เล่นเกมเพื่อปลดล็อคคำใบ้!
                         </h2>
+                        <div className="w-50 h-px bg-[#8B5A2B] mb-4" />
 
                         <div className="w-full min-h-[200px] flex items-center justify-center">
                             {questionId === 1 && <MoneyMatchGame onWin={handleWin} onWrong={handleWrong} state={gameState} />}
@@ -90,90 +72,152 @@ export default function HintMiniGameModal({ isOpen, onClose, questionId, hint })
 
 // ================= Mini Game 1: Money Match =================
 function MoneyMatchGame({ onWin, onWrong, state }) {
+    const [money, setMoney] = useState([]);
     const [selected, setSelected] = useState([]);
-    const target = 150;
-    const coins = [
-        { value: 1, src: One },
-        { value: 5, src: Five },
-        { value: 10, src: Ten },
-        { value: 20, src: Twenty },
-        { value: 50, src: Fifty },
-        { value: 100, src: OneHundred },
-    ];
+    const [target, setTarget] = useState(150);
+    const [status, setStatus] = useState("loading");
+    const [error, setError] = useState("");
 
-    const total = selected.reduce((a, b) => a + b, 0);
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-    const addCoin = (val) => {
-        setSelected([...selected, val]);
+    useEffect(() => {
+        const fetchGame = async () => {
+            try {
+                setStatus("loading");
+                setError("");
+
+                const response = await fetch(`${API_URL}/api/hintMinigame/1`);
+
+                if (!response.ok) {
+                    throw new Error("ไม่สามารถโหลดข้อมูลมินิเกมได้");
+                }
+
+                const data = await response.json();
+
+                if (!data?.options?.length) {
+                    throw new Error("ไม่พบข้อมูลตัวเลือกของมินิเกม");
+                }
+
+                setTarget(data.target_value ?? 150);
+                setMoney(data.options);
+                setSelected([]);
+                setStatus("playing");
+            } catch (err) {
+                console.error("Error fetching Money Match mini-game:", err);
+                setError(err.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
+                setStatus("error");
+            }
+        };
+
+        fetchGame();
+    }, [API_URL]);
+
+    const total = selected.reduce((sum, value) => sum + value, 0);
+
+    const addMoney = (value) => {
+        if (state !== "playing" || status !== "playing") return;
+        setSelected((prev) => [...prev, value]);
     };
 
     const reset = () => {
+        if (state !== "playing" || status !== "playing") return;
         setSelected([]);
     };
 
-    const check = () => {
-        if (total === target) onWin();
-        else {
-            onWrong();
-            reset();
+    const checkAnswer = () => {
+        if (state !== "playing" || status !== "playing") return;
+
+        if (total === target) {
+            onWin();
+            return;
         }
+
+        onWrong();
+        setSelected([]);
     };
+
+    if (status === "loading") {
+        return (
+            <div className="flex flex-col items-center justify-center w-full text-center py-8">
+                <div className="text-4xl mb-3">⏳</div>
+                <p className="text-sm font-bold text-slate-600">กำลังโหลดข้อมูล...</p>
+            </div>
+        );
+    }
+
+    if (status === "error") {
+        return (
+            <div className="flex flex-col items-center w-full text-center py-6">
+                <div className="text-4xl mb-3">⚠️</div>
+                <p className="text-sm font-bold text-red-500 mb-3">{error}</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col items-center w-full">
-            <p className="text-lg font-bold mb-4">สร้างเงินให้ครบ {target} ฿</p>
+            <p className="text-lg font-bold mb-4">
+                สร้างเงินให้ครบ {target} ฿
+            </p>
 
             <div className="flex flex-wrap justify-center gap-4 mb-6 max-w-[400px]">
-                {coins.map((coin, i) => (
+                {money.map((item) => (
                     <button
-                        key={i}
-                        onClick={() => addCoin(coin.value)}
+                        key={item.id}
+                        type="button"
+                        onClick={() => addMoney(Number(item.value))}
+                        disabled={state !== "playing" || status !== "playing"}
                         className="
-                group
-                flex
-                items-center
-                justify-center
-                w-28
-                h-20
-                rounded-xl
-                transition-all
-                duration-200
-                hover:-translate-y-1
-                hover:scale-105
-                active:scale-95
-            "
+                            group flex items-center justify-center
+                            w-28 h-20 rounded-xl transition-all duration-200
+                            hover:-translate-y-1 hover:scale-105 active:scale-95
+                            disabled:cursor-not-allowed
+                        "
                     >
                         <img
-                            src={coin.src}
-                            alt={`${coin.value} บาท`}
+                            src={item.image}
+                            alt={`${item.value} บาท`}
                             className="
-                    max-w-full
-                    max-h-full
-                    object-contain
-                    drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]
-                    transition-transform
-                    duration-200
-                    group-hover:scale-110
-                "
+                                max-w-full max-h-full object-contain
+                                drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]
+                                transition-transform duration-200 group-hover:scale-110
+                            "
                         />
                     </button>
                 ))}
             </div>
 
-            <div className={`w-full max-w-[300px] p-4 rounded-2xl border-4 text-center mb-6 transition-all ${state === "wrong" ? "border-red-500 bg-red-100 scale-105" : "border-slate-300 bg-white"}`}>
-                <p className="text-base text-slate-500 font-bold mb-1">เงินที่เลือก</p>
-                <p className="text-4xl font-black text-blue-600">{total} ฿</p>
+            <div
+                className={`
+                    w-full max-w-[300px] p-4 rounded-2xl border-4
+                    text-center mb-6 transition-all
+                    ${state === "wrong"
+                        ? "border-red-500 bg-red-100 scale-105"
+                        : "border-slate-300 bg-white"
+                    }
+                `}
+            >
+                <p className="text-base text-slate-500 font-bold mb-1">จำนวนเงิน</p>
+                <p className="text-4xl font-black text-black">{total} ฿</p>
             </div>
 
-            <div className="flex gap-8">
-                <button onClick={reset} className="Minigame-button Minigame-button--red">
-                    <span className="button-highlight"></span>
-                    <span className="button-text">ล้าง</span>
+            <div className="flex gap-4">
+                <button
+                    type="button"
+                    onClick={reset}
+                    disabled={state !== "playing" || status !== "playing"}
+                    className="Minigame-button"
+                >
+                    <span className="button_top">ล้าง</span>
                 </button>
 
-                <button onClick={check} className="Minigame-button Minigame-button--green">
-                    <span className="button-highlight"></span>
-                    <span className="button-text">ยืนยัน</span>
+                <button
+                    type="button"
+                    onClick={checkAnswer}
+                    disabled={state !== "playing" || status !== "playing"}
+                    className="Minigame-button green"
+                >
+                    <span className="button_top">ยืนยัน</span>
                 </button>
             </div>
         </div>
@@ -182,46 +226,118 @@ function MoneyMatchGame({ onWin, onWrong, state }) {
 
 // ================= Mini Game 2: Worth =================
 function WorthGame({ onWin, onWrong, state }) {
-    const check = (choice) => {
-        if (choice === 'A') onWin();
-        else onWrong();
+    const [options, setOptions] = useState([]);
+    const [status, setStatus] = useState("loading");
+    const [error, setError] = useState("");
+
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+    useEffect(() => {
+        const fetchGame = async () => {
+            try {
+                setStatus("loading");
+                setError("");
+
+                const response = await fetch(`${API_URL}/api/hintMinigame/2`);
+
+                if (!response.ok) {
+                    throw new Error("ไม่สามารถโหลดข้อมูลมินิเกมได้");
+                }
+
+                const data = await response.json();
+
+                if (!data?.options?.length) {
+                    throw new Error("ไม่พบข้อมูลตัวเลือกของมินิเกม");
+                }
+
+                setOptions(data.options);
+                setStatus("playing");
+            } catch (err) {
+                console.error("Error fetching Worth mini-game:", err);
+                setError(err.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
+                setStatus("error");
+            }
+        };
+
+        fetchGame();
+    }, [API_URL]);
+
+    const check = (option) => {
+        if (state !== "playing" || status !== "playing") return;
+
+        if (option.is_correct) {
+            onWin();
+        } else {
+            onWrong();
+        }
     };
+
+    if (status === "loading") {
+        return (
+            <div className="flex flex-col items-center justify-center w-full text-center py-8">
+                <div className="text-4xl mb-3">⏳</div>
+                <p className="text-sm font-bold text-slate-600">กำลังโหลดข้อมูล...</p>
+            </div>
+        );
+    }
+
+    if (status === "error") {
+        return (
+            <div className="flex flex-col items-center w-full text-center py-6">
+                <div className="text-4xl mb-3">⚠️</div>
+                <p className="text-sm font-bold text-red-500 mb-3">{error}</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col items-center w-full">
             <div className="mb-4 text-center">
-                <p className="text-lg font-bold text-slate-700">วันนี้มีงบ <span className="text-blue-600 font-black text-xl">1,000 บาท</span></p>
-                <p className="text-sm font-bold text-slate-600 mt-1">ต้องซื้อกระเป๋าสำหรับใส่โน้ตบุ๊กไปมหาวิทยาลัย</p>
+                <p className="text-lg font-bold text-slate-700">
+                    วันนี้มีงบ{" "}
+                    <span className="text-blue-600 font-black text-xl">1,000 บาท</span>
+                </p>
+
+                <p className="text-sm font-bold text-slate-600 mt-1">
+                    ต้องซื้อกระเป๋าสำหรับใส่โน้ตบุ๊กไปมหาวิทยาลัย
+                </p>
             </div>
 
             <div className="flex flex-col md:flex-row gap-3 mb-4 w-full justify-center">
-                {/* Choice A */}
-                <button
-                    onClick={() => check('A')}
-                    className="flex flex-col items-center p-3 border-4 border-slate-300 rounded-xl bg-white hover:border-gray-500 hover:bg-gray-100 active:scale-95 transition-all shadow-sm flex-1 max-w-[120px]"
-                >
-                    <img src={BagSchool} alt="" className="w-full max-w-[120px]" />
-                </button>
-
-                {/* Choice B */}
-                <button
-                    onClick={() => check('B')}
-                    className="flex flex-col items-center p-3 border-4 border-slate-300 rounded-xl bg-white hover:border-gray-500 hover:bg-gray-100 active:scale-95 transition-all shadow-sm flex-1 max-w-[120px]"
-                >
-                    <img src={BagFashion} alt="" className="w-full h-full object-contain scale-120" />
-                </button>
-
-                {/* Choice C */}
-                <button
-                    onClick={() => check('C')}
-                    className="flex flex-col items-center justify-center p-3 border-4 border-slate-300 rounded-xl bg-white hover:border-gray-500 hover:bg-gray-100 active:scale-95 transition-all shadow-sm flex-1 max-w-[120px] overflow-hidden"
-                >
-                    <img src={BagBrand} alt="" className="w-full h-full object-contain scale-150" />
-                </button>
+                {options.map((option) => (
+                    <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => check(option)}
+                        disabled={state !== "playing" || status !== "playing"}
+                        className="
+                            flex flex-col items-center justify-center p-3
+                            border-4 border-slate-300 rounded-xl bg-white
+                            hover:border-gray-500 hover:bg-gray-100
+                            active:scale-95 transition-all shadow-sm
+                            flex-1 max-w-[120px] overflow-hidden
+                            disabled:cursor-not-allowed
+                        "
+                    >
+                        <img
+                            src={option.image}
+                            alt={option.option_text || `ตัวเลือก ${option.option_key}`}
+                            className={`w-full h-full object-contain ${option.option_key === "B"
+                                ? "scale-120"
+                                : option.option_key === "C"
+                                    ? "scale-150"
+                                    : ""
+                                }`}
+                        />
+                    </button>
+                ))}
             </div>
 
             {state === "wrong" && (
-                <p className="text-red-500 font-bold text-sm">งบไม่พอ หรือไม่เหมาะกับการใช้งานนะ ลองคิดดูใหม่!</p>
+                <p className="text-red-500 font-bold text-sm text-center">
+                    งบไม่พอ หรือไม่เหมาะกับการใช้งานนะ
+                    ลองคิดดูใหม่!
+                </p>
             )}
         </div>
     );
@@ -264,9 +380,8 @@ function SurviveGame({ onWin }) {
             <div className="flex flex-col items-center w-full text-center">
                 <h3 className="text-xl font-black text-red-600 mb-2">เงินไม่พอ!</h3>
                 <p className="text-sm font-bold text-slate-700 mb-6">{failReason}</p>
-                <button onClick={reset} className="Minigame-button Minigame-button--red">
-                    <span className="button-highlight"></span>
-                    <span className="button-text">ลองใหม่</span>
+                <button onClick={reset} className="Minigame-button">
+                    <span className="button_top">ลองใหม่</span>
                 </button>
             </div>
         );
@@ -285,7 +400,7 @@ function SurviveGame({ onWin }) {
                 </div>
             </div>
 
-            <div className="w-full max-w-[320px] bg-white border-4 border-slate-300 rounded-xl p-4 text-center">
+            <div className="w-full max-w-[400px] bg-white border-4 border-slate-300 rounded-xl p-4 text-center">
                 <h4 className="font-black text-slate-800 mb-4 text-lg">เดือนที่ {step}</h4>
 
                 {step === 1 && (
@@ -332,99 +447,278 @@ function SurviveGame({ onWin }) {
 
 // ================= Mini Game 4: Savings =================
 function SavingsGame({ onWin }) {
+    const [gameData, setGameData] = useState(null);
     const [step, setStep] = useState(1);
     const [saved, setSaved] = useState(0);
-    const [status, setStatus] = useState("playing"); // playing, result
-    const goal = 48900;
+    const [status, setStatus] = useState("loading");
+    const [error, setError] = useState("");
 
-    const events = [
-        { id: 1, title: "ชานมไข่มุกเจ้าดัง", cost: 60 },
-        { id: 2, title: "สุ่มกาชาในเกม", cost: 50 },
-        { id: 3, title: "แวะซื้อขนมขบเคี้ยว", cost: 30 },
-    ];
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-    const currentEvent = events[step - 1];
+    useEffect(() => {
+        const fetchGame = async () => {
+            try {
+                setStatus("loading");
+                setError("");
 
-    const handleChoice = (isBuy) => {
-        const savedToday = isBuy ? (100 - currentEvent.cost) : 100;
-        setSaved(prev => prev + savedToday);
+                const response = await fetch(`${API_URL}/api/hintMinigame/4`);
 
-        if (step >= events.length) {
+                if (!response.ok) {
+                    throw new Error("ไม่สามารถโหลดข้อมูลมินิเกมได้");
+                }
+
+                const data = await response.json();
+
+                if (!data?.scenarios?.length) {
+                    throw new Error("ไม่พบข้อมูลสถานการณ์ของมินิเกม");
+                }
+
+                setGameData(data);
+                setStep(1);
+                setSaved(0);
+                setStatus("playing");
+            } catch (err) {
+                console.error("Error fetching Savings mini-game:", err);
+                setError(err.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
+                setStatus("error");
+            }
+        };
+
+        fetchGame();
+    }, [API_URL]);
+
+    const scenarios = gameData?.scenarios || [];
+    const goal = gameData?.target_value ?? 600;
+    const totalDays = scenarios.length;
+    const dailySaving = totalDays > 0 ? Math.floor(goal / totalDays) : 100;
+    const currentScenario = scenarios[step - 1];
+
+    const handleChoice = (option) => {
+        if (status !== "playing" || !option) return;
+
+        if (!option.is_correct) {
+            setStatus("fail");
+            return;
+        }
+
+        const newSaved = Math.min(saved + dailySaving, goal);
+        setSaved(newSaved);
+
+        if (step >= totalDays) {
             setStatus("result");
         } else {
-            setStep(prev => prev + 1);
+            setStep((prev) => prev + 1);
         }
     };
 
-    if (status === "result") {
-        const avg = saved / 3;
-        const daysNeeded = Math.ceil(goal / avg);
+    const handleRestart = () => {
+        setStep(1);
+        setSaved(0);
+        setStatus("playing");
+    };
 
+    if (status === "loading") {
         return (
-            <div className="flex flex-col items-center w-full text-center">
-                <h3 className="text-lg font-black text-[#3D2B1F] mb-2">สรุปผลการออม (จำลอง 3 วัน)</h3>
-                <p className="text-sm font-bold text-slate-700 mb-2">คุณออมเงินเฉลี่ยได้ <span className="text-blue-600 font-black text-xl">{Math.floor(avg)} ฿/วัน</span></p>
-                <div className="w-full bg-slate-100 p-3 rounded-xl border-2 border-slate-200 mb-4">
-                    <p className="text-sm text-slate-600 mb-1">เป้าหมาย {goal.toLocaleString()} ฿</p>
-                    <p className="font-bold text-rose-600">ต้องใช้เวลาเก็บถึง <span className="text-2xl">{daysNeeded.toLocaleString()}</span> วัน!</p>
-                </div>
-                {avg < 80 ? (
-                    <>
-                        <p className="text-xs font-bold text-rose-500 mb-4">การใช้จ่ายเล็กน้อยในแต่ละวัน ทำให้เป้าหมายไกลออกไปเยอะเลย!</p>
-                        <button onClick={() => { setStep(1); setSaved(0); setStatus("playing"); }}
-                            className="Minigame-button Minigame-button--red">
-                            <span className="button-highlight"></span>
-                            <span className="button-text">ลองวางแผนใหม่</span>
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        <p className="text-xs font-bold text-emerald-600 mb-4">ยอดเยี่ยม! คุณมีวินัยในการควบคุมรายจ่ายย่อยได้ดีมาก</p>
-                        <button onClick={onWin} className="Minigame-button Minigame-button--green">
-                            <span className="button-highlight"></span>
-                            <span className="button-text">ปลดล็อคคำใบ้</span>
-                        </button>
-                    </>
-                )}
+            <div className="flex flex-col items-center justify-center w-full text-center py-8">
+                <div className="text-4xl mb-3">⏳</div>
+                <p className="text-sm font-bold text-slate-600">
+                    กำลังโหลดข้อมูล...
+                </p>
             </div>
         );
     }
 
+    if (status === "error") {
+        return (
+            <div className="flex flex-col items-center w-full text-center py-4">
+                <div className="text-4xl mb-3">⚠️</div>
+
+                <h3 className="text-lg font-black text-red-600 mb-2">
+                    โหลดข้อมูลไม่สำเร็จ
+                </h3>
+
+                <p className="text-sm font-bold text-slate-600 mb-4">
+                    {error}
+                </p>
+
+                <button
+                    onClick={() => window.location.reload()}
+                    className="Minigame-button"
+                >
+                    <span className="button_top">
+                        🔄 ลองใหม่
+                    </span>
+                </button>
+            </div>
+        );
+    }
+
+    // ================= Result =================
+    if (status === "result") {
+        return (
+            <div className="flex flex-col items-center w-full text-center">
+                <div className="mb-4">
+                    <div className="text-5xl mb-2">🎉</div>
+
+                    <h3 className="text-lg font-black text-[#3D2B1F] mb-2">
+                        ภารกิจสำเร็จ!
+                    </h3>
+
+                    <p className="text-sm font-bold text-slate-700">
+                        คุณสามารถรักษาแผนการออมจนถึงเป้าหมายได้
+                    </p>
+                </div>
+
+                <div className="w-full max-w-[320px] bg-slate-100 p-4 rounded-xl border-2 border-slate-200 mb-4">
+                    <div className="flex justify-between text-sm font-bold mb-2">
+                        <span className="text-slate-600">
+                            เงินออม
+                        </span>
+
+                        <span className="text-blue-600">
+                            {saved.toLocaleString()} /{" "}
+                            {goal.toLocaleString()} ฿
+                        </span>
+                    </div>
+
+                    <div className="w-full bg-slate-200 h-4 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-blue-500 transition-all duration-500"
+                            style={{
+                                width: `${Math.min(
+                                    (saved / goal) * 100,
+                                    100
+                                )}%`,
+                            }}
+                        />
+                    </div>
+
+                    <p className="text-xs font-bold text-emerald-600 mt-2">
+                        เป้าหมายการออมสำเร็จ 100%
+                    </p>
+                </div>
+
+                <p className="text-sm font-bold text-emerald-600 mb-4">
+                    คุณมีวินัยในการวางแผนและควบคุมการใช้จ่ายได้ดี!
+                </p>
+
+                <button
+                    onClick={onWin}
+                    className="Minigame-button green"
+                >
+                    <span className="button_top">
+                        🔓 ปลดล็อกคำใบ้
+                    </span>
+                </button>
+            </div>
+        );
+    }
+
+    // ================= Fail =================
+    if (status === "fail") {
+        return (
+            <div className="flex flex-col items-center w-full text-center">
+                <div className="text-5xl mb-3">😥</div>
+
+                <h3 className="text-lg font-black text-[#3D2B1F] mb-2">
+                    แผนการออมไม่สำเร็จ
+                </h3>
+
+                <p className="text-sm font-bold text-rose-500 mb-2">
+                    การตัดสินใจครั้งนี้ทำให้คุณไม่สามารถรักษาแผนการออมได้
+                </p>
+
+                <p className="text-sm text-slate-600 mb-4">
+                    ลองวางแผนการใช้เงินใหม่อีกครั้ง
+                </p>
+
+                <button
+                    onClick={handleRestart}
+                    className="Minigame-button red"
+                >
+                    <span className="button_top">
+                        🔄 เริ่มภารกิจใหม่
+                    </span>
+                </button>
+            </div>
+        );
+    }
+
+    if (!currentScenario) {
+        return (
+            <div className="flex flex-col items-center w-full text-center py-6">
+                <p className="text-sm font-bold text-red-500">
+                    ไม่พบข้อมูลสถานการณ์
+                </p>
+            </div>
+        );
+    }
+
+    // ================= Playing =================
     return (
         <div className="flex flex-col items-center w-full">
             <div className="mb-4 text-center w-full max-w-[320px]">
-                <p className="text-sm font-bold text-slate-500">เป้าหมาย: <span className="text-slate-800 font-black">{goal.toLocaleString()} ฿</span></p>
-                <div className="w-full bg-slate-200 h-4 mt-2 rounded-full overflow-hidden relative border-2 border-slate-300">
-                    <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${Math.min((saved / 300) * 100, 100)}%` }} />
+                <p className="text-sm font-bold text-slate-500">
+                    🎯 เป้าหมาย:
+                    <span className="text-slate-800 font-black ml-1">
+                        ซื้อหูฟัง {goal.toLocaleString()} ฿
+                    </span>
+                </p>
+
+                <p className="text-sm font-bold text-slate-600 mt-1">
+                    ต้องออมวันละ {dailySaving.toLocaleString()} ฿ เป็นเวลา {totalDays} วัน
+                </p>
+
+                <div className="w-full bg-slate-200 h-4 mt-3 rounded-full overflow-hidden border-2 border-slate-300">
+                    <div
+                        className="h-full bg-blue-500 transition-all duration-500"
+                        style={{
+                            width: `${Math.min(
+                                (saved / goal) * 100,
+                                100
+                            )}%`,
+                        }}
+                    />
                 </div>
-                <p className="text-xs font-bold text-blue-600 mt-1">เงินออม: {saved} ฿ (จำลองจาก 300 ฿)</p>
+
+                <div className="flex justify-between mt-1">
+                    <p className="text-xs font-bold text-blue-600">
+                        เงินออม {saved.toLocaleString()} ฿
+                    </p>
+
+                    <p className="text-xs font-bold text-slate-500">
+                        เป้าหมาย {goal.toLocaleString()} ฿
+                    </p>
+                </div>
             </div>
 
             <div className="w-full max-w-[320px] bg-white border-4 border-slate-300 rounded-xl p-4 text-center">
-                <h4 className="font-black text-slate-800 mb-2">วันที่ {step}/3</h4>
-                <p className="text-md font-bold text-slate-500 mb-4">ได้เงินค่าขนม 100 ฿</p>
+                <h4 className="font-black text-slate-800 mb-3">
+                    วันที่ {currentScenario.month_no}
+                </h4>
 
-                <div className="bg-rose-50 p-3 rounded-xl border-2 border-rose-100 mb-4">
-                    <p className="text-md font-bold text-rose-700">{currentEvent.title}</p>
-                    <p className="font-black text-rose-600 text-lg">{currentEvent.cost} ฿</p>
+                <div className="bg-blue-50 p-3 rounded-xl border-2 border-blue-100 mb-4">
+                    <p className="text-sm font-bold text-slate-700 leading-relaxed">
+                        {currentScenario.scenario_text}
+                    </p>
                 </div>
 
-                <div className="flex gap-2 w-full">
-                    <button
-                        onClick={() => handleChoice(true)}
-                        className="flex-1 py-2 flex flex-col items-center bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-xl active:scale-95 transition-all border-2 border-blue-300"
-                    >
-                        <span className="text-sm mb-1">ซื้อเลย!</span>
-                        <span className="text-xs opacity-80">(ออม {100 - currentEvent.cost} ฿)</span>
-                    </button>
-                    <button
-                        onClick={() => handleChoice(false)}
-                        className="flex-1 py-2 flex flex-col items-center bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-xl active:scale-95 transition-all border-2 border-blue-300"
-                    >
-                        <span className="text-sm mb-1">อดใจไว้</span>
-                        <span className="text-xs opacity-80">(ออม 100 ฿)</span>
-                    </button>
+                <div className="flex flex-col gap-2 w-full">
+                    {currentScenario.options.map((option, index) => (
+                        <button
+                            key={option.id}
+                            onClick={() => handleChoice(option)}
+                            className="w-full py-3 px-3 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-xl active:scale-95 transition-all border-2 border-blue-300 text-sm"
+                        >
+                            {option.option_key || String.fromCharCode(65 + index)}.{" "}
+                            {option.option_text}
+                        </button>
+                    ))}
                 </div>
+
+                <p className="text-xs font-bold text-slate-400 mt-4">
+                    วันที่ {step} / {totalDays}
+                </p>
             </div>
         </div>
     );
@@ -432,88 +726,156 @@ function SavingsGame({ onWin }) {
 
 // ================= Mini Game 5: Needs or Wants =================
 function NeedsWantsGame({ onWin }) {
-    const [items, setItems] = useState([
-        {
-            id: 1,
-            name: "ข้าว",
-            image: Rice,
-            price: 50,
-            type: "need",
-            bucket: null,
-        },
-        {
-            id: 2,
-            name: "ค่าเดินทาง",
-            image: Car,
-            price: 40,
-            type: "need",
-            bucket: null,
-        },
-        {
-            id: 3,
-            name: "น้ำดื่ม",
-            image: Water,
-            price: 15,
-            type: "need",
-            bucket: null,
-        },
-        {
-            id: 4,
-            name: "เกม",
-            image: Game,
-            price: 60,
-            type: "want",
-            bucket: null,
-        },
-        {
-            id: 5,
-            name: "รองเท้า",
-            image: Shoes,
-            price: 2500,
-            type: "want",
-            bucket: null,
-        },
-    ]);
-    const [status, setStatus] = useState("playing");
+    const [gameData, setGameData] = useState(null);
+    const [items, setItems] = useState([]);
+    const [status, setStatus] = useState("loading");
+    const [error, setError] = useState("");
+
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+    useEffect(() => {
+        const fetchGame = async () => {
+            try {
+                setStatus("loading");
+                setError("");
+
+                const response = await fetch(`${API_URL}/api/hintMinigame/5`);
+
+                if (!response.ok) {
+                    throw new Error("ไม่สามารถโหลดข้อมูลมินิเกมได้");
+                }
+
+                const data = await response.json();
+
+                if (!data?.scenarios?.length) {
+                    throw new Error("ไม่พบข้อมูลสถานการณ์ของมินิเกม");
+                }
+
+                setGameData(data);
+
+                const dbItems = data.scenarios
+                    .filter((scenario) => scenario.item)
+                    .map((scenario) => ({
+                        id: scenario.item.items_id,
+                        name: scenario.item.name,
+                        image: scenario.item.image,
+                        price: scenario.options?.find(
+                            (option) => option.is_correct
+                        )?.amount ?? 0,
+                        type: scenario.options?.find(
+                            (option) => option.is_correct
+                        )?.option_key === "A" ? "need" : "want",
+                        bucket: null,
+                    }));
+
+                setItems(dbItems);
+                setStatus("playing");
+            } catch (err) {
+                console.error("Error fetching Needs/Wants mini-game:", err);
+                setError(err.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
+                setStatus("error");
+            }
+        };
+
+        fetchGame();
+    }, [API_URL]);
 
     const assignBucket = (id, bucket) => {
-        if (status === "wrong") return;
-        setItems(prev => prev.map(item => item.id === id ? { ...item, bucket } : item));
+        if (status === "wrong" || status !== "playing") return;
+
+        setItems((prev) =>
+            prev.map((item) =>
+                item.id === id ? { ...item, bucket } : item
+            )
+        );
     };
 
     const checkWin = () => {
-        const allAssigned = items.every(item => item.bucket !== null);
+        const allAssigned = items.every((item) => item.bucket !== null);
+
         if (!allAssigned) return;
 
-        const isCorrect = items.every(item => item.type === item.bucket);
+        const scenarios = gameData?.scenarios || [];
+
+        const isCorrect = items.every((item) => {
+            const scenario = scenarios.find(
+                (s) => s.item?.items_id === item.id
+            );
+
+            if (!scenario) return false;
+
+            const selectedOption = scenario.options?.find(
+                (option) => option.option_key ===
+                    (item.bucket === "need" ? "A" : "B")
+            );
+
+            return selectedOption?.is_correct === true;
+        });
+
         if (isCorrect) {
             setTimeout(onWin, 500);
         } else {
             setStatus("wrong");
+
             setTimeout(() => {
                 setStatus("playing");
-                setItems(prev => prev.map(item => ({ ...item, bucket: null })));
+                setItems((prev) =>
+                    prev.map((item) => ({ ...item, bucket: null }))
+                );
             }, 2000);
         }
     };
 
     useEffect(() => {
-        if (items.every(item => item.bucket !== null)) {
+        if (
+            status === "playing" &&
+            items.length > 0 &&
+            items.every((item) => item.bucket !== null)
+        ) {
             checkWin();
         }
-    }, [items]);
+    }, [items, status]);
 
-    const unassigned = items.filter(i => i.bucket === null);
-    const needs = items.filter(i => i.bucket === "need");
-    const wants = items.filter(i => i.bucket === "want");
-
+    const unassigned = items.filter((item) => item.bucket === null);
+    const needs = items.filter((item) => item.bucket === "need");
+    const wants = items.filter((item) => item.bucket === "want");
     const currentItem = unassigned[0];
+
+    if (status === "loading") {
+        return (
+            <div className="flex flex-col items-center justify-center w-full text-center py-8">
+                <div className="text-4xl mb-3">⏳</div>
+                <p className="text-sm font-bold text-slate-600">
+                    กำลังโหลดข้อมูล...
+                </p>
+            </div>
+        );
+    }
+
+    if (status === "error") {
+        return (
+            <div className="flex flex-col items-center w-full text-center py-6">
+                <div className="text-4xl mb-3">⚠️</div>
+                <p className="text-sm font-bold text-red-500 mb-3">
+                    {error}
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col items-center w-full">
             <div className="mb-4 text-center w-full max-w-[320px]">
-                <p className="text-sm font-bold text-slate-500">วันนี้มีเงินเหลือ <span className="text-blue-600 font-black">500 ฿</span></p>
-                <p className="text-md font-bold text-slate-800">แยกสิ่งที่ควรซื้อก่อน และสิ่งที่รอได้</p>
+                <p className="text-sm font-bold text-slate-500">
+                    วันนี้มีเงินเหลือ{" "}
+                    <span className="text-blue-600 font-black">
+                        500 ฿
+                    </span>
+                </p>
+
+                <p className="text-md font-bold text-slate-800">
+                    {gameData?.title || "แยกสิ่งที่ควรซื้อก่อน และสิ่งที่รอได้"}
+                </p>
             </div>
 
             {status === "wrong" && (
@@ -524,28 +886,26 @@ function NeedsWantsGame({ onWin }) {
 
             {currentItem ? (
                 <div className="w-full max-w-[320px] bg-white border-4 border-slate-300 rounded-xl p-4 text-center mb-4 transition-all">
-                    <p className="text-xs font-bold text-slate-500 mb-2">เลือกหมวดหมู่ให้ของชิ้นนี้</p>
+                    <p className="text-xs font-bold text-slate-500 mb-2">
+                        เลือกหมวดหมู่ให้ของชิ้นนี้
+                    </p>
+
                     <div className="flex flex-col items-center mb-4">
-                        {/* รูปสินค้า */}
                         <div className="w-28 h-28 flex items-center justify-center mb-2">
                             <img
                                 src={currentItem.image}
                                 alt={currentItem.name}
                                 className="
-                w-full
-                h-full
-                object-contain
-                drop-shadow-[0_4px_4px_rgba(0,0,0,0.2)]
-            "
+                                    w-full h-full object-contain
+                                    drop-shadow-[0_4px_4px_rgba(0,0,0,0.2)]
+                                "
                             />
                         </div>
 
-                        {/* ชื่อสินค้า */}
                         <span className="font-bold text-lg text-slate-700">
                             {currentItem.name}
                         </span>
 
-                        {/* ราคา */}
                         <span className="font-black text-rose-500 text-xl">
                             {currentItem.price.toLocaleString()} ฿
                         </span>
@@ -553,13 +913,14 @@ function NeedsWantsGame({ onWin }) {
 
                     <div className="flex gap-2 w-full">
                         <button
-                            onClick={() => assignBucket(currentItem.id, 'need')}
+                            onClick={() => assignBucket(currentItem.id, "need")}
                             className="flex-1 py-3 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 font-bold rounded-xl active:scale-95 transition-all border-2 border-yellow-300 shadow-sm"
                         >
                             ควรซื้อก่อน
                         </button>
+
                         <button
-                            onClick={() => assignBucket(currentItem.id, 'want')}
+                            onClick={() => assignBucket(currentItem.id, "want")}
                             className="flex-1 py-3 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-xl active:scale-95 transition-all border-2 border-blue-300 shadow-sm"
                         >
                             รอได้
@@ -574,15 +935,36 @@ function NeedsWantsGame({ onWin }) {
 
             <div className="flex w-full max-w-[320px] gap-2">
                 <div className="flex-1 bg-yellow-50 border-2 border-yellow-200 rounded-xl p-2 min-h-[100px]">
-                    <h5 className="text-center font-bold text-yellow-700 text-xs mb-2 border-b-2 border-yellow-200 pb-1">ควรซื้อก่อน</h5>
+                    <h5 className="text-center font-bold text-yellow-700 text-xs mb-2 border-b-2 border-yellow-200 pb-1">
+                        ควรซื้อก่อน
+                    </h5>
+
                     <div className="flex flex-wrap gap-1 justify-center">
-                        {needs.map(i => <span key={i.id} className="text-xs bg-white px-2 py-1 rounded-md border border-yellow-200 shadow-sm">{i.name}</span>)}
+                        {needs.map((item) => (
+                            <span
+                                key={item.id}
+                                className="text-xs bg-white px-2 py-1 rounded-md border border-yellow-200 shadow-sm"
+                            >
+                                {item.name}
+                            </span>
+                        ))}
                     </div>
                 </div>
+
                 <div className="flex-1 bg-blue-50 border-2 border-blue-200 rounded-xl p-2 min-h-[100px]">
-                    <h5 className="text-center font-bold text-blue-700 text-xs mb-2 border-b-2 border-blue-200 pb-1">รอได้</h5>
+                    <h5 className="text-center font-bold text-blue-700 text-xs mb-2 border-b-2 border-blue-200 pb-1">
+                        รอได้
+                    </h5>
+
                     <div className="flex flex-wrap gap-1 justify-center">
-                        {wants.map(i => <span key={i.id} className="text-xs bg-white px-2 py-1 rounded-md border border-blue-200 shadow-sm">{i.name}</span>)}
+                        {wants.map((item) => (
+                            <span
+                                key={item.id}
+                                className="text-xs bg-white px-2 py-1 rounded-md border border-blue-200 shadow-sm"
+                            >
+                                {item.name}
+                            </span>
+                        ))}
                     </div>
                 </div>
             </div>

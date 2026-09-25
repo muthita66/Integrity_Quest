@@ -1,5 +1,6 @@
-import { FaPlay, FaRotateRight } from "react-icons/fa6";
+import { FaPlay, FaRotateRight, FaVolumeHigh, FaVolumeXmark } from "react-icons/fa6";
 import { FaPause } from "react-icons/fa";
+import useGameMuted from "../../../hooks/useGameMuted";
 
 export default function PauseModal({
     isOpen,
@@ -7,6 +8,8 @@ export default function PauseModal({
     onRestart,
     onExit,
 }) {
+    const [muted, toggleMuted] = useGameMuted();
+
     if (!isOpen) return null;
 
     return (
@@ -64,6 +67,20 @@ export default function PauseModal({
 
                     <button
                         type="button"
+                        onClick={toggleMuted}
+                        aria-pressed={muted}
+                        className="button w-40 mx-auto"
+                    >
+                        <div className="outline"></div>
+
+                        <span className="relative z-10 flex items-center gap-3">
+                            {muted ? <FaVolumeXmark /> : <FaVolumeHigh />}
+                            {muted ? "เปิดเสียง" : "ปิดเสียง"}
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
                         onClick={onRestart}
                         className="button w-40 mx-auto"
                     >
@@ -78,8 +95,7 @@ export default function PauseModal({
                     <button
                         type="button"
                         onClick={onExit}
-                        className="
-                            button w-40 mx-auto"
+                        className="button w-40 mx-auto"
                     >
                         <div className="outline"></div>
 

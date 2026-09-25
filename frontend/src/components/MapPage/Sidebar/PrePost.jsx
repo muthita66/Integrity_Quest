@@ -1,15 +1,54 @@
+import { useState } from "react";
 import { FaLock, FaUnlock, FaUnlockAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
+// TODO: ถ้ามี env ของ backend URL อยู่แล้ว (เช่น VITE_API_URL) ให้ใช้ตัวนั้นแทน
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 function PrePost({ completedUnits = 0, totalUnits = 6 }) {
     const navigate = useNavigate();
+    const [checkingPreTest, setCheckingPreTest] = useState(false);
 
     const isPostTestUnlocked = completedUnits >= totalUnits;
+
+    const handlePreTestClick = async () => {
+        if (checkingPreTest) return; // กันกดรัวๆ ระหว่างเช็คสถานะ
+
+        try {
+            setCheckingPreTest(true);
+            const token = localStorage.getItem("token");
+
+            const res = await fetch(
+                `${API_BASE}/quiz-answers/status?type=pre_test`,
+                {
+                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+                }
+            );
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.completed) {
+                    alert("คุณทำ Pre-Test ไปแล้ว ไม่สามารถทำซ้ำได้");
+                    return; // ไม่ navigate เข้าหน้า pre-test
+                }
+            }
+
+            // ยังไม่เคยทำ (หรือเช็คสถานะไม่สำเร็จ) -> ให้เข้าไปทำตามปกติ
+            navigate("/pretest");
+        } catch (err) {
+            console.error("เช็คสถานะ pre-test ไม่สำเร็จ:", err);
+            // เช็คสถานะพังก็ยังปล่อยให้เข้าไปทำได้ (backend จะกันซ้ำอีกชั้นตอน submit อยู่แล้ว)
+            navigate("/pretest");
+        } finally {
+            setCheckingPreTest(false);
+        }
+    };
 
     return (
         <div className="panel">
             <button
-                onClick={() => navigate("/pretest")}
+                onClick={handlePreTestClick}
+                disabled={checkingPreTest}
                 style={{
                     width: "100%",
                     background: "#e8efd3",
@@ -23,7 +62,8 @@ function PrePost({ completedUnits = 0, totalUnits = 6 }) {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "8px",
-                    cursor: "pointer",
+                    cursor: checkingPreTest ? "not-allowed" : "pointer",
+                    opacity: checkingPreTest ? 0.7 : 1,
                     marginBottom: "10px",
                 }}
             >

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
 import bgScene1 from "../../../../assets/unit3/level1/intro/bgScene1.png"
@@ -13,8 +14,13 @@ import SceneMission from "./SceneMission";
 import IntroDialog from "./IntroDialog";
 
 export default function Level1IntroPage() {
+    const navigate = useNavigate();
     const [currentScene, setCurrentScene] = useState(0);
     const [direction, setDirection] = useState(1);
+
+    // Scene Data จาก Database
+    const [sceneData, setSceneData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const scenes = [
         SceneOne,
@@ -24,32 +30,40 @@ export default function Level1IntroPage() {
         SceneMission,
     ];
 
-    const sceneData = [
-        {
-            speaker: "ตะวัน (เหรัญญิก)",
-            title: "ห้องชมรมหลังเลิกเรียน",
-            text: "ใกล้ถึงเวลาส่งรายงานงบประมาณประจำเดือนแล้ว แต่โต๊ะทำงานของฉันกลับเต็มไปด้วยเอกสารที่กระจัดกระจาย",
-            showBack: false,
-        },
-        {
-            speaker: "ตะวัน (เหรัญญิก)",
-            title: "เกิดเรื่องแล้ว!",
-            text: "แย่แล้ว! ใบเสร็จและเอกสารการเงินบางส่วนหายไป ถ้าหาไม่ครบ เราจะตรวจสอบรายจ่ายของชมรมไม่ได้",
-            showBack: true,
-        },
-        {
-            speaker: "ตะวัน (เหรัญญิก)",
-            title: "เอกสารการเงินมีความสำคัญ",
-            text: "หากไม่มีใบเสร็จหรือหลักฐานประกอบ รายงานงบประมาณอาจไม่ถูกต้อง และไม่สามารถตรวจสอบที่มาของรายจ่ายได้",
-            showBack: true,
-        },
-        {
-            speaker: "ตะวัน (เหรัญญิก)",
-            title: "ช่วยค้นหาเอกสารให้ครบ",
-            text: "ช่วยฉันค้นหาเฉพาะเอกสารการเงินจริง ได้แก่ ใบเสร็จรับเงิน ใบกำกับภาษี และใบสำคัญรับเงิน อย่าหยิบเอกสารที่ไม่เกี่ยวข้องมาปะปนนะ",
-            showBack: true,
-        }
-    ];
+    // fetch Scene Data จาก Database
+    useEffect(() => {
+        const fetchScenes = async () => {
+            try {
+                setLoading(true);
+
+                const response = await fetch(
+                    "http://localhost:5000/api/introDialog/level/8"
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "ไม่สามารถดึงข้อมูล Scene ของ Unit 3 Level 1 ได้"
+                    );
+                }
+
+                const data = await response.json();
+
+                console.log("Unit 3 Level 1 Scene Data:", data);
+
+                setSceneData(data);
+
+            } catch (error) {
+                console.error(
+                    "Error fetching Unit 3 Level 1 scenes:",
+                    error
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchScenes();
+    }, []);
 
     const CurrentSceneComponent = scenes[currentScene];
 
@@ -57,6 +71,8 @@ export default function Level1IntroPage() {
         if (currentScene < scenes.length - 1) {
             setDirection(1);
             setCurrentScene((prev) => prev + 1);
+        } else {
+            navigate("/unit3/level1/game");
         }
     };
 
@@ -73,7 +89,7 @@ export default function Level1IntroPage() {
     };
 
     return (
-        <main className="relative min-h-screen overflow-hidden bg-black font-sara">
+        <main className="relative min-h-screen overflow-hidden bg-black">
 
             <button
                 type="button"
@@ -98,30 +114,37 @@ export default function Level1IntroPage() {
 
                 <div className="w-full">
 
-                    <CurrentSceneComponent
-                        onNext={handleNext}
-                        onBack={handleBack}
-                        currentScene={currentScene}
-                        totalScenes={scenes.length}
-                    />
-
-                    {currentScene < 4 && (
-                        <div className="relative z-10 mt-100">
-                            <IntroDialog
-                                speaker={sceneData[currentScene].speaker}
-                                title={sceneData[currentScene].title}
-                                text={sceneData[currentScene].text}
-                                onNext={handleNext}
-                                onBack={handleBack}
-                                showBack={sceneData[currentScene].showBack}
-                                nextText={sceneData[currentScene].nextText || "ต่อไป"}
-                                currentScene={currentScene}
-                                totalScenes={4}
-                            />
-                        </div>
+                    {!loading && sceneData.length > 0 && (
+                        <CurrentSceneComponent
+                            scene={sceneData[currentScene]}
+                            onNext={handleNext}
+                            onBack={handleBack}
+                            handleSkip={handleSkip}
+                            currentScene={currentScene}
+                            totalScenes={scenes.length}
+                        />
                     )}
+
                 </div>
             </section>
+
+            {/* Dialog positioned relative to main */}
+            {currentScene < 4 && !loading && sceneData.length > 0 && (
+                <div className="absolute bottom-10 left-0 w-full z-30">
+                    <IntroDialog
+                        speaker={sceneData[currentScene]?.introDialog?.[0]?.speaker}
+                        title={sceneData[currentScene]?.introDialog?.[0]?.title}
+                        text={sceneData[currentScene]?.introDialog?.[0]?.text}
+                        lesson={sceneData[currentScene]?.introDialog?.[0]?.lesson}
+                        onNext={handleNext}
+                        onBack={handleBack}
+                        showBack={currentScene > 0}
+                        nextText="ต่อไป"
+                        currentScene={currentScene}
+                        totalScenes={4}
+                    />
+                </div>
+            )}
         </main>
     );
 }

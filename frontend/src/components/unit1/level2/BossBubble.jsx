@@ -10,6 +10,8 @@ import useGameSound from "./hooks/useGameSound";
 
 
 export default function BossBubble({
+    levelId,
+    playId,
     onFinish,
     onFail,
 }) {
@@ -27,6 +29,8 @@ export default function BossBubble({
         handleAnswer,
         handleFail,
     } = useBossGame({
+        levelId,
+        playId,
         onFinish,
         onFail,
         playPopSound,

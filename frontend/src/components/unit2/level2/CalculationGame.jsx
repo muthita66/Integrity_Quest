@@ -1,24 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import bgGameImg from "../../../assets/unit2/Level2/intro/bgmarket.jpg";
 import bgGame from "../../../assets/unit2/Level2/bgLevel2.png";
-
-import Coffee from "../../../assets/unit2/Level2/coffee.jpg";
-import Rice from "../../../assets/unit2/Level2/rice.png";
-import Bag from "../../../assets/unit2/Level2/bag.png";
-import LuxuryBags from "../../../assets/unit2/Level2/luxuryBag.png";
-import Ticket from "../../../assets/unit2/Level2/ticket2.png";
-import Bill from "../../../assets/unit2/Level2/bill.png";
-import Smartphone from "../../../assets/unit2/Level2/smartphone.png";
-import Money from "../../../assets/unit2/Level2/money.png";
-import Sneakers from "../../../assets/unit2/Level2/sneakers.png";
-import Sneakers2 from "../../../assets/unit2/Level2/sneakers2.png";
+import bgMusic from "../../../assets/sounds/Unit2/bg_Level2.mp3";
+import useBackgroundMusic from "../../../hooks/useBackgroundMusic";
+import useGameMuted from "../../../hooks/useGameMuted";
 
 import ResultPage from "./ResultPage";
 import TimeoutModal from "./TimeoutModal";
 import PauseModal from "./PauseModal";
 
-import { MdTableRows } from "react-icons/md";
-import { LuAlarmClock } from "react-icons/lu";
 import { FaPause } from "react-icons/fa";
 import ExitDialog from "../level1/components/ExitDialog";
 
@@ -27,75 +16,14 @@ import ProductComparison from "./components/ProductComparison";
 import QuestionPanel from "./components/QuestionPanel";
 import HintMiniGameModal from "./HintMiniGameModal";
 
-const QUESTIONS = [
-    {
-        id: 1,
-        title: "Level 2: Calculation Puzzle (1/5)",
-        question: "ถ้าซื้อกาแฟ 1 แก้ว จะซื้อข้าวได้กี่จาน?",
-        items: [
-            { name: "กาแฟหรู", price: 150, src: Coffee, alt: "กาแฟหรู" },
-            { name: "ข้าวราดแกง", price: 50, src: Rice, alt: "ข้าวราดแกง" },
-        ],
-        correctAnswer: "3",
-        hint: "ลองเปรียบเทียบราคากาแฟกับราคาข้าว แล้วดูว่าราคาข้าวรวมกันกี่จานจึงจะเท่ากับกาแฟ 1 แก้ว",
-        buttonText: "SUBMIT",
-    },
-    {
-        id: 2,
-        title: "Level 2: Calculation Puzzle (2/5)",
-        question: "เจนควรเลือกซื้อกระเป๋าใบใดที่คุ้มค่าที่สุด? (พิมพ์ราคาสินค้าชิ้นนั้น)",
-        items: [
-            { name: "กระเป๋าแบรนด์เนม", price: 32000, src: LuxuryBags, alt: "กระเป๋าแบรนด์เนม" },
-            { name: "กระเป๋าใช้งาน", price: 450, src: Bag, alt: "กระเป๋าใช้งาน" },
-        ],
-        correctAnswer: "450",
-        hint: "ลองเปรียบเทียบประโยชน์ที่ได้รับกับเงินที่ต้องจ่ายของกระเป๋าทั้งสองใบ",
-        buttonText: "SUBMIT",
-    },
-    {
-        id: 3,
-        title: "Level 2: Calculation Puzzle (3/5)",
-        question: "ราคาตั๋วคอนเสิร์ต 1 ใบ สามารถเปลี่ยนเป็นค่าน้ำไฟได้กี่เดือน?",
-        items: [
-            { name: "ตั๋วคอนเสิร์ต", price: 4500, src: Ticket, alt: "ตั๋วคอนเสิร์ต" },
-            { name: "ค่าน้ำไฟ / เดือน", price: 900, src: Bill, alt: "ค่าน้ำไฟ" },
-        ],
-        correctAnswer: "5",
-        hint: "ถ้าแบ่งเงิน 4,500 บาทออกเป็นส่วนละ 900 บาท จะได้ทั้งหมดกี่ส่วน?",
-        buttonText: "SUBMIT",
-    },
-    {
-        id: 4,
-        title: "Level 2: Calculation Puzzle (4/5)",
-        question:
-            "ถ้าอยากได้มือถือรุ่นใหม่ราคา 48,900 บาท แต่ได้เงินค่าขนมวันละ 100 บาท ต้องออมเงินกี่วันถึงจะซื้อได้โดยไม่ขอเงินพ่อแม่เพิ่ม?",
-        items: [
-            { name: "มือถือรุ่นใหม่", price: 48900, src: Smartphone, alt: "มือถือรุ่นใหม่" },
-            { name: "เงินออม / วัน", price: 100, src: Money, alt: "เงินออม" },
-        ],
-        correctAnswer: "489",
-        hint: "นำราคามือถือ หารด้วย เงินที่ออมได้ในแต่ละวันจ้า (โดยต้องออมวันละ 100 บาท)",
-        buttonText: "SUBMIT",
-    },
-    {
-        id: 5,
-        title: "Level 2: Calculation Puzzle (5/5)",
-        question: "ป๊อปมีรองเท้าอยู่แล้ว 3 คู่ แต่ซื้อคู่ใหม่ตามเพื่อน การซื้อครั้งนี้เป็นประเภทใด? (1 = ของจำเป็น, 2 = ของที่อยากได้)",
-        items: [
-            { name: "รองเท้าคู่ใหม่", price: 2500, src: Sneakers, alt: "รองเท้าคู่ใหม่" },
-            { name: "รองเท้าเดิม 3 คู่", price: 0, src: Sneakers2, alt: "รองเท้าเดิม 3 คู่" },
-        ],
-        correctAnswer: "2",
-        hint: "ลองคิดดูว่า รองเท้าคู่ใหม่เป็นสิ่งที่จำเป็นต้องมีเพิ่ม หรือเป็นเพียงสิ่งที่อยากได้มากขึ้น",
-        buttonText: "FINISH",
-    },
-];
-
 export default function CalculationGame() {
     const [isStarted, setIsStarted] = useState(true);
     const [currentStep, setCurrentStep] = useState(0);
 
-    const [hp, setHp] = useState(0);
+    const [questions, setQuestions] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     const [userInput, setUserInput] = useState("");
     const [feedback, setFeedback] = useState(null);
     const [timeLeft, setTimeLeft] = useState(20);
@@ -104,16 +32,194 @@ export default function CalculationGame() {
     const [showExitDialog, setShowExitDialog] = useState(false);
     const [hasMistakeOnCurrent, setHasMistakeOnCurrent] = useState(false);
     const [showHintModal, setShowHintModal] = useState(false);
-    const [firstTryCorrect, setFirstTryCorrect] = useState(0);
+    const [playId, setPlayId] = useState(null);
+    /*
+     * ผลจริงจาก Backend (completeGame ของ level_id=6) — เดิมหน้า
+     * Result รับ passed/firstTryCorrect ที่ Frontend คำนวณเอง (hp >= 15,
+     * ไม่เคยถูกตรวจสอบกับ DB เลย) ตอนนี้เก็บ response ดิบจาก backend
+     * ไว้ใช้ส่งต่อให้หน้า Result แทน (hp/passed/firstTryCorrect ที่เคย
+     * คำนวณเองฝั่งนี้ตัดออกไปด้วย เพราะไม่มีใครใช้แล้ว)
+     */
+    const [result, setResult] = useState(null);
 
     const timerRef = useRef(null);
-    const currentQ = QUESTIONS[currentStep];
-    const passed = hp >= 15; // กำหนดเกณฑ์ผ่านคือ 15 HP ขึ้นไป (ตอบถูกครั้งแรก 3 ข้อ)
+    const hasStartedRef = useRef(false);
+
+    const currentQ = questions[currentStep];
+
+    // ==========================================
+    // เพลงพื้นหลัง เบา ๆ เล่นวนระหว่างเล่น
+    // พอจบเกม (หน้า Result) หรือหมดเวลา (TimeoutModal) เพลงจะหยุด
+    // แล้วเริ่มใหม่ตั้งแต่ต้นเมื่อกดเล่นอีกครั้ง
+    // ==========================================
+    const [muted] = useGameMuted();
+    const isMusicStopped = isFinished || feedback === "timeout";
+
+    const musicRef = useBackgroundMusic(bgMusic, {
+        volume: 0.15,
+        muted: muted || isMusicStopped,
+    });
 
     useEffect(() => {
-        if (timerRef.current) clearInterval(timerRef.current);
+        const audio = musicRef.current;
+        if (!audio || !isMusicStopped) return;
 
-        if (isStarted && !isPaused && !showHintModal && feedback === null && !isFinished) {
+        audio.pause();
+        audio.currentTime = 0;
+    }, [isMusicStopped, musicRef]);
+
+    const startGame = async () => {
+        try {
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                throw new Error("ไม่พบ Token กรุณาเข้าสู่ระบบใหม่");
+            }
+
+            const response = await fetch(
+                "http://localhost:5000/api/game-play/start",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        level_id: 6,
+                    }),
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    result.message || "ไม่สามารถเริ่มเกมได้"
+                );
+            }
+
+            setPlayId(result.data.play_id);
+        } catch (error) {
+            console.error("Error starting game:", error);
+            setError(error.message);
+        }
+    };
+
+    useEffect(() => {
+        if (hasStartedRef.current) return;
+        hasStartedRef.current = true;
+
+        const fetchGameData = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
+
+                const [questionsResponse, hintsResponse] =
+                    await Promise.all([
+                        fetch(
+                            "http://localhost:5000/api/comparisonQuestion/level/6"
+                        ),
+                        fetch(
+                            "http://localhost:5000/api/levelHint/level/6/hints"
+                        ),
+                    ]);
+
+                if (!questionsResponse.ok) {
+                    throw new Error(
+                        "Failed to fetch comparison questions"
+                    );
+                }
+
+                if (!hintsResponse.ok) {
+                    throw new Error("Failed to fetch level hints");
+                }
+
+                const questionsData = await questionsResponse.json();
+                const hintsData = await hintsResponse.json();
+
+                const formattedQuestions = questionsData.map((item) => {
+                    const currentHint = hintsData.find(
+                        (hint) =>
+                            hint.comparison_question_id === item.id
+                    );
+
+                    return {
+                        id: item.id,
+
+                        title: `Level 2: Calculation Puzzle (${item.question_order}/5)`,
+
+                        question: item.question_text,
+
+                        items: [
+                            {
+                                name: item
+                                    .items_comparison_questions_left_item_idToitems
+                                    .name,
+
+                                price: item.left_price,
+
+                                src: item
+                                    .items_comparison_questions_left_item_idToitems
+                                    .image,
+
+                                alt: item
+                                    .items_comparison_questions_left_item_idToitems
+                                    .name,
+                            },
+                            {
+                                name: item
+                                    .items_comparison_questions_right_item_idToitems
+                                    .name,
+
+                                price: item.right_price,
+
+                                src: item
+                                    .items_comparison_questions_right_item_idToitems
+                                    .image,
+
+                                alt: item
+                                    .items_comparison_questions_right_item_idToitems
+                                    .name,
+                            },
+                        ],
+
+                        correctAnswer: String(item.correct_answer),
+
+                        hint: currentHint?.description || "",
+
+                        buttonText:
+                            item.question_order === questionsData.length
+                                ? "FINISH"
+                                : "SUBMIT",
+                    };
+                });
+
+                setQuestions(formattedQuestions);
+
+                await startGame();
+            } catch (error) {
+                console.error("Error fetching game data:", error);
+                setError(error.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchGameData();
+    }, []);
+
+    useEffect(() => {
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+        }
+
+        if (
+            isStarted &&
+            !isPaused &&
+            !showHintModal &&
+            feedback === null &&
+            !isFinished
+        ) {
             timerRef.current = setInterval(() => {
                 setTimeLeft((prev) => {
                     if (prev <= 1) {
@@ -121,53 +227,178 @@ export default function CalculationGame() {
                         setFeedback("timeout");
                         return 0;
                     }
+
                     return prev - 1;
                 });
             }, 1000);
         }
 
         return () => clearInterval(timerRef.current);
-    }, [isStarted, currentStep, feedback, isFinished, isPaused, showHintModal]);
+    }, [
+        isStarted,
+        currentStep,
+        feedback,
+        isFinished,
+        isPaused,
+        showHintModal,
+    ]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!userInput || feedback !== null) return;
+        if (!userInput || feedback !== null || !playId) {
+            return;
+        }
 
-        if (userInput.trim() === currentQ.correctAnswer) {
+        const userAnswer = Number(userInput.trim());
+        const isCorrect =
+            userInput.trim() === currentQ.correctAnswer;
+
+        if (isCorrect) {
             clearInterval(timerRef.current);
             setFeedback("correct");
 
-            if (!hasMistakeOnCurrent) {
-                setHp((prev) => prev + 5);
-                setFirstTryCorrect((prev) => prev + 1);
-            }
+            try {
+                const token = localStorage.getItem("token");
 
-            setTimeout(() => {
-                if (currentStep < QUESTIONS.length - 1) {
-                    setCurrentStep((prev) => prev + 1);
-                    setUserInput("");
-                    setTimeLeft(20);
-                    setFeedback(null);
-                    setIsPaused(false);
-                    setHasMistakeOnCurrent(false);
-                } else {
-                    setIsFinished(true);
+                if (!token) {
+                    throw new Error(
+                        "ไม่พบ Token กรุณาเข้าสู่ระบบใหม่"
+                    );
                 }
-            }, 1500);
-        } else {
-            setFeedback("wrong");
-            setHasMistakeOnCurrent(true);
 
-            setTimeout(() => {
+                const response = await fetch(
+                    "http://localhost:5000/api/game-play/comparison",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                            play_id: playId,
+                            comparison_question_id: currentQ.id,
+                            user_answer: userAnswer,
+                        }),
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        result.message || "ไม่สามารถบันทึกคำตอบได้"
+                    );
+                }
+
+                setTimeout(async () => {
+                    if (currentStep < questions.length - 1) {
+                        setCurrentStep((prev) => prev + 1);
+                        setUserInput("");
+                        setTimeLeft(20);
+                        setFeedback(null);
+                        setIsPaused(false);
+                        setHasMistakeOnCurrent(false);
+                    } else {
+                        try {
+                            const completeResponse = await fetch(
+                                "http://localhost:5000/api/game-play/complete",
+                                {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        Authorization: `Bearer ${token}`,
+                                    },
+                                    body: JSON.stringify({
+                                        play_id: playId,
+                                    }),
+                                }
+                            );
+
+                            const completeResult =
+                                await completeResponse.json();
+
+                            if (!completeResponse.ok) {
+                                throw new Error(
+                                    completeResult.message ||
+                                    "ไม่สามารถจบเกมได้"
+                                );
+                            }
+
+                            setResult(completeResult.data);
+                            setIsFinished(true);
+                        } catch (completeError) {
+                            console.error(
+                                "Error completing game:",
+                                completeError
+                            );
+                            setFeedback(null);
+                            setError(completeError.message);
+                        }
+                    }
+                }, 1500);
+            } catch (error) {
+                console.error(
+                    "Error saving comparison answer:",
+                    error
+                );
                 setFeedback(null);
-            }, 1500);
+                setError(error.message);
+            }
+        } else {
+            // บันทึกคำตอบที่ผิดด้วย
+            try {
+                const token = localStorage.getItem("token");
+
+                if (!token) {
+                    throw new Error(
+                        "ไม่พบ Token กรุณาเข้าสู่ระบบใหม่"
+                    );
+                }
+
+                const response = await fetch(
+                    "http://localhost:5000/api/game-play/comparison",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                            play_id: playId,
+                            comparison_question_id: currentQ.id,
+                            user_answer: userAnswer,
+                        }),
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        result.message || "ไม่สามารถบันทึกคำตอบได้"
+                    );
+                }
+
+                setFeedback("wrong");
+                setHasMistakeOnCurrent(true);
+
+                setTimeout(() => {
+                    setFeedback(null);
+                }, 1500);
+            } catch (error) {
+                console.error(
+                    "Error saving comparison answer:",
+                    error
+                );
+                setFeedback(null);
+                setError(error.message);
+            }
         }
     };
 
-    const resetGame = () => {
+    const resetGame = async () => {
         setCurrentStep(0);
-        setHp(0);
         setUserInput("");
         setTimeLeft(20);
         setFeedback(null);
@@ -175,15 +406,42 @@ export default function CalculationGame() {
         setIsStarted(true);
         setIsPaused(false);
         setHasMistakeOnCurrent(false);
-        setFirstTryCorrect(0);
+        setError(null);
+        setPlayId(null);
+        setResult(null);
+
+        await startGame();
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <p className="text-xl font-bold">
+                    กำลังโหลดข้อมูลเกม...
+                </p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <p className="text-xl font-bold text-red-500">
+                    ไม่สามารถโหลดข้อมูลเกมได้
+                </p>
+            </div>
+        );
+    }
+
+    if (!currentQ) {
+        return null;
+    }
 
     if (isFinished) {
         return (
             <ResultPage
-                passed={passed}
+                result={result}
                 resetGame={resetGame}
-                firstTryCorrect={firstTryCorrect}
             />
         );
     }
@@ -192,10 +450,11 @@ export default function CalculationGame() {
         <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4 font-sara">
             {/* Background */}
             <img
-                src={bgGameImg}
+                src={bgGame}
                 alt=""
                 className="absolute inset-0 z-0 h-full w-full object-cover"
             />
+
             {/* Overlay ฉากหลัง */}
             <div className="pointer-events-none absolute inset-0 z-0 bg-white/30" />
 
@@ -210,7 +469,6 @@ export default function CalculationGame() {
 
                 {/* Header แถบบน */}
                 <div className="absolute top-4 left-0 right-0 z-30 flex w-full items-start justify-between px-6 pointer-events-none">
-
                     {/* นาฬิกา - ซ้ายสุด */}
                     <div className="pointer-events-auto">
                         <div className="min-w-[140px] text-white">
@@ -225,10 +483,10 @@ export default function CalculationGame() {
                         </div>
                     </div>
 
+                    {/* จุดแสดงจำนวนข้อ */}
                     <div className="pointer-events-auto absolute left-1/2 top-0 -translate-x-1/2">
                         <div className="flex items-center gap-3">
-
-                            {QUESTIONS.map((_, index) => {
+                            {questions.map((_, index) => {
                                 const isCompleted = index < currentStep;
                                 const isCurrent = index === currentStep;
 
@@ -236,23 +494,22 @@ export default function CalculationGame() {
                                     <div
                                         key={index}
                                         className={`
-                            rounded-full
-                            transition-all
-                            duration-300
-                            ${isCompleted || isCurrent
+                                            rounded-full
+                                            transition-all
+                                            duration-300
+                                            ${isCompleted || isCurrent
                                                 ? "h-3 w-3 bg-yellow-400 shadow-[0_0_10px_rgba(249,115,22,0.8)]"
                                                 : "h-3 w-3 bg-gray-400"
                                             }
-                            ${isCurrent
+                                            ${isCurrent
                                                 ? "scale-125 ring-4 ring-yellow-400/40"
                                                 : ""
                                             }
-                        `}
+                                        `}
                                         title={`ข้อที่ ${index + 1}`}
                                     />
                                 );
                             })}
-
                         </div>
                     </div>
 
@@ -269,7 +526,6 @@ export default function CalculationGame() {
                             </button>
                         )}
                     </div>
-
                 </div>
 
                 {/* เนื้อหาภายในกรอบ */}
@@ -304,15 +560,18 @@ export default function CalculationGame() {
                 questionId={currentQ.id}
                 hint={currentQ.hint}
             />
+
             {feedback === "timeout" && (
                 <TimeoutModal resetGame={resetGame} />
             )}
+
             <PauseModal
                 isOpen={isPaused}
                 onResume={() => setIsPaused(false)}
                 onRestart={resetGame}
                 onExit={() => setShowExitDialog(true)}
             />
+
             <ExitDialog
                 open={showExitDialog}
                 onClose={() => setShowExitDialog(false)}

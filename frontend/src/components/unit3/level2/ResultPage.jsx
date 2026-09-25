@@ -1,6 +1,36 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import bgLevel2 from "../../../assets/unit3/level2/bgLevel2.png";
+import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
+import gameOverSound from "../../../assets/sounds/BackgroundGame/GameOver.mp3";
+import useGameMuted from "../../../hooks/useGameMuted";
+
+const API_URL = "http://localhost:5000";
+const LEVEL_ID = 9;
+
+// ข้อความ fallback เผื่อยังไม่ได้ insert แถวใน level_result_messages
+// หรือดึงข้อมูลไม่สำเร็จ — หน้ายังใช้งานได้ปกติ ไม่ค้างจอเปล่า
+const FALLBACK_MESSAGES = {
+    PASS: {
+        heading: "แยกเงินได้ถูกต้องตามหลักความโปร่งใส",
+        message: "คุณแยกเงินส่วนตัวกับเงินชมรมได้ถูกต้องทั้งหมด",
+        highlight_text:
+            "เงินส่วนตัวและเงินกองกลางต้องแยกกันชัดเจน เพื่อความโปร่งใสและตรวจสอบได้",
+    },
+    FAIL_WRONG: {
+        heading: "พบการปะปนเงินส่วนตัวกับเงินกองกลาง",
+        message: "คุณแยกรายการเงินผิดบัญชี ต้องเริ่มภารกิจใหม่",
+        highlight_text:
+            "เงินส่วนตัวและเงินกองกลางต้องแยกกันชัดเจน เพื่อความโปร่งใสและตรวจสอบได้",
+    },
+    FAIL_TIMEOUT: {
+        heading: "พบการปะปนเงินส่วนตัวกับเงินกองกลาง",
+        message: "หมดเวลา คุณต้องเริ่มภารกิจใหม่",
+        highlight_text:
+            "เงินส่วนตัวและเงินกองกลางต้องแยกกันชัดเจน เพื่อความโปร่งใสและตรวจสอบได้",
+    },
+};
 
 export default function MoneyResultPage() {
     const navigate = useNavigate();
@@ -9,8 +39,121 @@ export default function MoneyResultPage() {
     const win = state?.win ?? false;
     const score = state?.score ?? 0;
     const wrong = state?.wrong ?? 0;
-    const reason = state?.reason ?? "";
+    const resultStatus =
+        state?.resultStatus ??
+        (win ? "PASS" : "FAIL_WRONG");
     const total = 11;
+
+    // เสียงผลลัพธ์ เล่นครั้งเดียวตอนเปิดหน้า ไม่วน
+    // ผ่าน → Bonus / ไม่ผ่าน (ผิด หรือหมดเวลา) → GameOver
+    const [muted] = useGameMuted();
+
+    useEffect(() => {
+        if (muted) return;
+
+        const audio = new Audio(win ? bonusSound : gameOverSound);
+        audio.volume = 0.6;
+        audio.play().catch(() => { });
+
+        // ออกจากหน้านี้แล้วหยุดเสียงทันที
+        return () => {
+            audio.pause();
+            audio.src = "";
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // ข้อความบรรยายผล (heading / reason / บทเรียนที่ได้รับ) มาจาก
+    // level_result_messages ผ่าน /api/level-result/9/:status ทั้งหมด
+    // ไม่ hardcode ในไฟล์นี้อีกต่อไป — เริ่มด้วย fallback ของ state.reason
+    // (ถ้ามี) หรือ FALLBACK_MESSAGES ระหว่างรอโหลดจาก DB
+    const [resultText, setResultText] = useState({
+        heading:
+            FALLBACK_MESSAGES[resultStatus]?.heading ?? "",
+        message:
+            state?.reason ??
+            FALLBACK_MESSAGES[resultStatus]?.message ??
+            "",
+        highlight_text:
+            FALLBACK_MESSAGES[resultStatus]?.highlight_text ?? "",
+    });
+
+    useEffect(() => {
+        let isCancelled = false;
+
+        const fetchResultText = async () => {
+            try {
+                const token =
+                    localStorage.getItem("token");
+
+                const response = await fetch(
+                    `${API_URL}/api/level-result/${LEVEL_ID}/${resultStatus}`,
+                    {
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                            ...(token
+                                ? {
+                                    Authorization: `Bearer ${token}`,
+                                }
+                                : {}),
+                        },
+                    }
+                );
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const result = await response.json();
+                const data = result.data;
+
+                if (!data || isCancelled) {
+                    return;
+                }
+
+                setResultText({
+                    heading:
+                        data.heading ||
+                        FALLBACK_MESSAGES[resultStatus]
+                            ?.heading ||
+                        "",
+                    message:
+                        data.message ||
+                        state?.reason ||
+                        FALLBACK_MESSAGES[resultStatus]
+                            ?.message ||
+                        "",
+                    highlight_text:
+                        data.highlight_text ||
+                        FALLBACK_MESSAGES[resultStatus]
+                            ?.highlight_text ||
+                        "",
+                });
+            } catch (error) {
+                console.error(
+                    "Get Money Game Result Message Error:",
+                    error
+                );
+            }
+        };
+
+        fetchResultText();
+
+        return () => {
+            isCancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [resultStatus]);
+
+    // IP ทั้งหมดคำนวณที่ backend (moneyGameController.completeMoneyGame)
+    // จากเวลาจริงใน DB — หน้านี้แค่แสดงผลตรง ๆ ไม่คำนวณเอง
+    const baseIP = state?.baseIP ?? 0;
+    const speedBonusIP = state?.speedBonusIP ?? 0;
+    const isFast = state?.isFast ?? false;
+    const elapsedSeconds = state?.elapsedSeconds ?? null;
+    const earnedIP = state?.earnedIP ?? 0;
+    const totalIntegrityPoints = state?.totalIntegrityPoints ?? null;
 
     const caseNo = `M2-${String(score).padStart(2, "0")}${String(wrong).padStart(2, "0")}`;
     const today = new Date().toLocaleDateString("th-TH", {
@@ -20,7 +163,7 @@ export default function MoneyResultPage() {
     });
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4 py-10 sarabun-medium">
+        <div className="relative flex min-h-screen items-center justify-center overflow-y-auto p-4 sarabun-medium">
             <style>{`
                 @keyframes mrp-stamp-slam {
                     0%   { opacity: 0; transform: translate(-50%, -50%) rotate(-18deg) scale(2.4); }
@@ -80,9 +223,9 @@ export default function MoneyResultPage() {
                     {/* double-rule frame, like an official form border */}
                     <div className="pointer-events-none absolute inset-[10px] border border-[#B8863B]/40" />
 
-                    <div className="relative px-7 py-8 sm:px-10 sm:py-10 sarabun-bold">
+                    <div className="relative px-7 py-6 sm:px-10 sm:py-7 sarabun-bold">
                         {/* Letterhead */}
-                        <div className="mrp-rise-1 flex items-start justify-between gap-4 border-b-2 border-[#1E2A44]/80 pb-4">
+                        <div className="mrp-rise-1 flex items-start justify-between gap-4 border-b-2 border-[#1E2A44]/80 pb-3">
                             <div>
                                 <p className="mrp-display text-[11px] font-semibold tracking-[0.25em] text-[#B8863B]">
                                     รายงานผลการตรวจสอบ
@@ -98,7 +241,7 @@ export default function MoneyResultPage() {
                         </div>
 
                         {/* Body */}
-                        <div className="mrp-ledger-lines relative mt-6 min-h-[150px] pb-2">
+                        <div className="mrp-ledger-lines relative mt-4 min-h-[80px] pb-2">
                             {/* Stamp */}
                             <div
                                 className="mrp-stamp pointer-events-none absolute right-2 top-2 z-10 sm:right-6"
@@ -112,18 +255,16 @@ export default function MoneyResultPage() {
                                     className={`mrp-display text-xl font-bold sm:text-2xl ${win ? "text-[#2E6B4F]" : "text-[#9C2F2F]"
                                         }`}
                                 >
-                                    {win
-                                        ? "แยกเงินได้ถูกต้องตามหลักความโปร่งใส"
-                                        : "พบการปะปนเงินส่วนตัวกับเงินกองกลาง"}
+                                    {resultText.heading}
                                 </p>
                                 <p className="mt-3 text-[15px] leading-relaxed text-[#1E2A44]/85">
-                                    {reason}
+                                    {resultText.message}
                                 </p>
                             </div>
                         </div>
 
                         {/* Score row, as counted coins out of 11 */}
-                        <div className="mrp-rise-2 mt-6 rounded border border-[#1E2A44]/15 bg-white/60 px-5 py-4">
+                        <div className="mrp-rise-2 mt-3 rounded border border-[#1E2A44]/15 bg-white/60 px-5 py-3">
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <p className="mrp-display text-sm font-semibold tracking-wide text-[#1E2A44]">
                                     คะแนนรวม
@@ -154,22 +295,60 @@ export default function MoneyResultPage() {
                             </div>
                         </div>
 
+                        {/* IP breakdown — เฉพาะตอนผ่านด่านเท่านั้น */}
+                        {win && (
+                            <div className="mrp-rise-2 mt-3 rounded border border-[#1E2A44]/15 bg-white/60 px-5 py-3">
+                                <p className="mrp-display text-sm font-semibold tracking-wide text-[#1E2A44]">
+                                    IP ที่ได้รับ
+                                </p>
+                                <div className="mt-2 space-y-1.5 text-sm text-[#1E2A44]/85">
+                                    <div className="flex items-center justify-between">
+                                        <span>ผ่านภารกิจ</span>
+                                        <span className="font-semibold">+{baseIP} IP</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span>
+                                            ทำภารกิจภายใน 30 วินาที
+                                            {elapsedSeconds !== null
+                                                ? ` (ใช้เวลา ${elapsedSeconds} วินาที)`
+                                                : ""}
+                                        </span>
+                                        <span
+                                            className={`font-semibold ${isFast ? "" : "text-[#1E2A44]/40"
+                                                }`}
+                                        >
+                                            {isFast
+                                                ? `+${speedBonusIP} IP`
+                                                : "ไม่ได้รับ"}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="mt-2 flex items-center justify-between border-t border-[#1E2A44]/15 pt-2">
+                                    <span className="mrp-display text-sm font-semibold text-[#1E2A44]">
+                                        ได้ IP ทั้งหมด
+                                    </span>
+                                    <span className="mrp-display text-lg font-bold text-[#2E6B4F]">
+                                        +{earnedIP}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Lesson note, pinned like an attached memo */}
-                        <div className="mrp-rise-3 relative mt-6 rounded-sm bg-[#FCEEA5]/90 px-5 py-4 shadow-[2px_3px_10px_rgba(0,0,0,0.15)]">
+                        <div className="mrp-rise-3 relative mt-3 rounded-sm bg-[#FCEEA5]/90 px-5 py-2.5 shadow-[2px_3px_10px_rgba(0,0,0,0.15)]">
                             <div className="absolute -top-2 left-6 h-4 w-8 rotate-[-4deg] rounded-sm bg-[#D9CBA3]/80" />
                             <p className="mrp-display text-xs font-semibold tracking-[0.2em] text-[#7A5A12]">
                                 หมายเหตุ · บทเรียนที่ได้รับ
                             </p>
-                            <p className="mt-1.5 text-[15px] font-medium leading-relaxed text-[#4A3B10]">
-                                เงินส่วนตัวและเงินกองกลางต้องแยกกันชัดเจน
-                                เพื่อความโปร่งใสและตรวจสอบได้
+                            <p className="mt-1 text-[15px] font-medium leading-relaxed text-[#4A3B10]">
+                                {resultText.highlight_text}
                             </p>
                         </div>
 
                         {/* Actions */}
-                        <div className="mrp-rise-3 mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                        <div className="mrp-rise-3 mt-4 flex flex-col gap-3 sm:flex-row sm:justify-center">
                             <button
-                                onClick={() => navigate("/")}
+                                onClick={() => navigate("/map")}
                                 className="result-button result-button-yellow"
                             >
                                 <span className="result-button-top">กลับหน้าหลัก</span>

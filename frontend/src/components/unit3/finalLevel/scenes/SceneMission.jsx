@@ -1,178 +1,191 @@
-import { motion } from "framer-motion";
+import { FaPlay, FaHome } from "react-icons/fa";
+import { IoMdSkipForward } from "react-icons/io";
+import { TbDeviceGamepadFilled } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 
-import { IoIosCheckmarkCircle } from "react-icons/io";
-import { ImCross } from "react-icons/im";
-import { TbDeviceGamepadFilled } from "react-icons/tb";
-import { MdTimer } from "react-icons/md";
+import "../../../../styles/unit1/Level1/button.css";
+import bgGameLevel2 from "../../../../assets/unit3/level2/bgGameLevel2.png";
 
-import bgGameLevel2 from "../../../../assets/unit3/level2/bgGameLevel2.png"
-
-export default function SceneMission({ onBack }) {
+export default function SceneMission({
+    scene,
+    onNext,
+    onBack,
+    handleSkip,
+    currentScene,
+    totalScenes,
+}) {
     const navigate = useNavigate();
+    const mission = scene?.sceneMission?.[0];
+    const rules = mission?.sceneMissionRules || [];
+    const getRuleStyle = (ruleId) => {
+        switch (ruleId) {
+            case 9:
+                return "bg-green-50 border-green-200 text-green-700"; // เป้าหมาย
+            case 4:
+                return "bg-yellow-50 border-yellow-200 text-yellow-700"; // โบนัส
+            case 10:
+                return "bg-red-50 border-red-200 text-red-700"; // ระวัง
+            default:
+                return "bg-white/70 border-white/70 text-gray-700";
+        }
+    };
 
-    const handleStartGame = () => {
-        navigate("/unit3/final");
+    const getRuleImageSrc = (imagePath) => {
+        if (!imagePath) return null;
+
+        if (/^https?:\/\//i.test(imagePath)) return imagePath;
+
+        const relativePath = imagePath.replace(/^\/?image\//, "");
+        const encodedPath = relativePath
+            .split("/")
+            .map((pathSegment) => encodeURIComponent(pathSegment))
+            .join("/");
+
+        return `/image/${encodedPath}`;
     };
 
     return (
-        <div className="relative mx-auto w-full min-h-screen flex flex-col justify-center">
+        <div className="relative w-full h-screen overflow-hidden">
             {/* Background */}
-            <div className="fixed inset-0 -z-10 w-full h-full">
-                <div className="absolute inset-0" style={{ backgroundImage: `url(${bgGameLevel2})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }} />
-                {/* Dark Overlay */}
-                <div className="absolute inset-0 bg-black/60" />
-            </div>
+            <img
+                src={bgGameLevel2}
+                alt="Mission"
+                className="absolute inset-0 w-full h-full object-cover object-center"
+            />
 
-            <div className="relative z-10 px-8 pt-3 pb-8 md:px-14 h-full flex flex-col justify-center gap-6">
-                {/* Title */}
-                <motion.div
-                    initial={{ opacity: 0, y: -35 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="mx-auto max-w-2xl w-full rounded-[28px] border-4 border-yellow-950 bg-yellow-100 px-8 py-4 mt-1 text-center shadow-2xl"
-                >
-                    <h2 className="text-xl font-black text-black md:text-3xl">
-                        ภารกิจ : "เหรัญญิกจำเป็น"
-                    </h2>
+            <div className="absolute inset-0 bg-black/40" />
 
-                    <p className="mt-1 text-base font-bold text-black">
-                        "ในฐานะเหรัญญิกจำเป็น คุณต้องบริหารงบค่ายอาสา <br />เลือกซื้อสิ่งจำเป็น ใช้เงินอย่างคุ้มค่า และเก็บหลักฐานให้ถูกต้อง"
-                    </p>
-                </motion.div>
+            {/* Skip Button */}
+            <button
+                type="button"
+                onClick={handleSkip}
+                className={`
+                    absolute top-4 right-20 z-20
+                    rounded-full border-2 border-white/80
+                    bg-black/40 p-2
+                    text-white shadow-lg
+                    backdrop-blur-sm
+                    transition-all duration-300
+                    hover:scale-105 hover:bg-black/60
+                    active:scale-95
+                    ${currentScene < totalScenes - 1 ? "" : "invisible"}
+                `}
+            >
+                <IoMdSkipForward className="text-2xl" />
+            </button>
 
-                {/* Rules */}
-                {/* Mission Brief */}
-                <div
-                    className="
-                        grid grid-cols-1 md:grid-cols-2 gap-5 items-start
-                        rounded-2xl
-                        border-4 border-yellow-950
-                        bg-[#FFFDF0]
-                        p-5
-                        shadow-inner
-                        mt-4 mb-4
-                    ">
-                    {/* ฝั่งซ้าย */}
-                    <div className="space-y-4">
-                        {/* เป้าหมาย */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.25 }}
-                            className="
-                                flex items-start gap-4
-                                rounded-xl border-2 border-green-300
-                                bg-white p-4
-                            ">
-                            <IoIosCheckmarkCircle className="text-4xl text-green-500 shrink-0" />
-                            <div>
-                                <h4 className="font-black text-green-700 text-lg">เป้าหมาย</h4>
-                                <ul className="list-disc pl-5 text-sm space-y-1">
-                                    <li>ซื้อของจำเป็นให้ครบ</li>
-                                    <li>ใช้งบประมาณไม่เกิน 10,000 บาท</li>
-                                    <li>เหลือเงินสำรองอย่างน้อย 1,000 บาท</li>
-                                    <li>ตรวจสอบและเก็บใบเสร็จให้ครบ</li>
-                                </ul>
-                            </div>
-                        </motion.div>
+            {/* Home Button */}
+            <button
+                type="button"
+                onClick={() => navigate('/map')}
+                className={`
+                    absolute top-4 right-4 z-20
+                    rounded-full border-2 border-white/80
+                    bg-black/40 p-2
+                    text-white shadow-lg
+                    backdrop-blur-sm
+                    transition-all duration-300
+                    hover:scale-105 hover:bg-black/60
+                    active:scale-95
+                `}
+            >
+                <FaHome className="text-2xl" />
+            </button>
 
-                        {/* โบนัส */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.35 }}
-                            className="
-                                flex items-start gap-4
-                                rounded-xl border-2 border-yellow-400
-                                bg-white p-4
-                            ">
-                            <MdTimer className="text-4xl text-yellow-500 shrink-0" />
-                            <div>
-                                <h4 className="font-black text-yellow-700 text-lg">โบนัส</h4>
-                                <p className="text-sm">ทำภารกิจให้เสร็จภายใน 1 นาที 50 วินาที เพื่อรับโบนัสพิเศษ</p>
-                            </div>
-                        </motion.div>
+            {/* Game Instruction Box */}
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 w-[90%] max-w-4xl">
+                <div className="
+                    rounded-3xl
+                    border border-white/70
+                    bg-white/60
+                    px-8 py-5
+                    shadow-2xl
+                    backdrop-blur-md
+                ">
+                    {/* Header */}
+                    <div className="text-center mb-5">
+                        <h2 className="text-2xl md:text-3xl font-bold text-black sarabun-bold">
+                            {mission?.title || "ภารกิจ : \"เหรัญญิกจำเป็น\""}
+                        </h2>
+                        <p className="mt-0 text-base md:text-lg text-black sarabun-bold">
+                            {mission?.subtitle || "ในฐานะเหรัญญิกจำเป็น คุณต้องบริหารงบค่าย เลือกซื้อสิ่งจำเป็น ใช้เงินอย่างคุ้มค่า และเก็บหลักฐานให้ถูกต้อง"}
+                        </p>
                     </div>
 
-                    {/* ฝั่งขวา */}
-                    <div className="space-y-4">
-                        {/* ระวัง */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.45 }}
-                            className="
-                                flex items-start gap-4
-                                rounded-xl border-2 border-red-300
-                                bg-white p-4
-                            ">
-                            <ImCross className="text-3xl text-red-500 shrink-0" />
-                            <div>
-                                <h4 className="font-black text-red-700 text-lg">ระวัง</h4>
-                                <ul className="list-disc pl-5 text-sm space-y-1">
-                                    <li>ซื้อของฟุ่มเฟือยมากเกินไป</li>
-                                    <li>ใช้งบเกินในแต่ละหมวด</li>
-                                    <li>เงินสำรองต่ำกว่า 1,000 บาท</li>
-                                    <li>ใบเสร็จผิดปกติหรือไม่ครบ</li>
-                                </ul>
-                            </div>
-                        </motion.div>
+                    {/* Description - คำแนะนำ */}
+                    <div className="rounded-2xl bg-blue-50 border border-blue-200 px-5 py-4 mb-5 flex items-center gap-4">
+                        <TbDeviceGamepadFilled className="text-5xl text-blue-500 shrink-0" />
+                        <div>
+                            <h4 className="font-bold text-blue-700 text-lg sarabun-bold">{mission?.text ? "คำอธิบาย" : "คำแนะนำ"}</h4>
+                            <p className="text-gray-700 text-sm md:text-base sarabun-bold whitespace-pre-line">
+                                {mission?.text || "วางแผนก่อนซื้อทุกครั้ง เพราะทุกการใช้เงินส่งผลต่อความสำเร็จของค่ายอาสา"}
+                            </p>
+                        </div>
+                    </div>
 
-                        {/* คำแนะนำ */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.55 }}
-                            className="
-                                flex items-start gap-4
-                                rounded-xl border-2 border-blue-300
-                                bg-white p-4
-                            ">
-                            <TbDeviceGamepadFilled className="text-4xl text-blue-500 shrink-0" />
-                            <div>
-                                <h4 className="font-black text-blue-700 text-lg">คำแนะนำ</h4>
-                                <p className="text-sm">วางแผนก่อนซื้อทุกครั้ง เพราะทุกการใช้เงินส่งผลต่อความสำเร็จของค่ายอาสา</p>
+                    {/* Rules */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                        {rules.map((rule) => {
+                            const imageSrc = getRuleImageSrc(rule.image_path);
+
+                            return (
+                                <div
+                                    key={rule.id}
+                                    className={`rounded-2xl border px-4 py-2 text-center ${getRuleStyle(rule.rule_id)}`}>
+                                {imageSrc && (
+                                    <div className="mb-1 mx-auto flex justify-center">
+                                        <img
+                                            src={imageSrc}
+                                            alt={rule.title || "Rule"}
+                                            className="h-16 w-16 object-contain"
+                                            onError={() => console.error("Unable to load rule image:", imageSrc)}
+                                        />
+                                    </div>
+                                )}
+
+                                <p className="font-bold text-gray-800 sarabun-bold">
+                                    {rule.title || ""}
+                                </p>
+
+                                <p className="text-sm text-gray-600 mt-1 sarabun-light">
+                                    {rule.description || ""}
+                                </p>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Start Button & Back */}
+                    <div className="flex w-full justify-center gap-6 items-center">
+                        <button
+                            type="button"
+                            onClick={onBack}
+                            className="circle-play-button yellow"
+                        >
+                            <div className="circle-play-button__outer">
+                                <div className="circle-play-button__shadow"></div>
+                                <div className="circle-play-button__main">
+                                    <FaPlay className="circle-play-button__icon scale-x-[-1]" size={26} />
+                                </div>
                             </div>
-                        </motion.div>
+                        </button>
+
+                        <button
+                            type="button"
+                            className="circle-play-button green"
+                            onClick={onNext}
+                            aria-label="เริ่มภารกิจ"
+                        >
+                            <div className="circle-play-button__outer">
+                                <div className="circle-play-button__shadow"></div>
+                                <div className="circle-play-button__main">
+                                    <FaPlay className="circle-play-button__icon" size={26} />
+                                </div>
+                            </div>
+                        </button>
                     </div>
                 </div>
-
-                {/* Buttons */}
-                <motion.div
-                    initial={{
-                        opacity: 0,
-                        y: 30,
-                    }}
-                    animate={{
-                        opacity: 1,
-                        y: 0,
-                    }}
-                    transition={{
-                        delay: 0.85,
-                        duration: 0.45,
-                        ease: "easeOut",
-                    }}
-                    className="mt-1 flex items-center justify-between sarabun-bold shrink-0"
-                >
-                    <button
-                        type="button"
-                        onClick={onBack}
-                        className="button-with-icon-introScenes button-gray icon-left"
-                    >
-                        <span className="icon">◀</span>
-                        <span className="text">ย้อนกลับ</span>
-                    </button>
-
-                    <button
-                        onClick={handleStartGame}
-                        className="button-with-icon-introScenes button-green icon-right"
-                    >
-                        <span className="text">เริ่มเกม</span>
-                        <span className="icon">▶</span>
-                    </button>
-                </motion.div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }

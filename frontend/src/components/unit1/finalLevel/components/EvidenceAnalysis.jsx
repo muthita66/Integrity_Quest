@@ -4,22 +4,50 @@ import {
     ChevronRight,
     FolderOpen,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaPause } from "react-icons/fa";
+import StopDialog from "./StopDialog";
 
 export default function EvidenceAnalysis({
     currentCase,
     picks,
     checked,
     evidenceResult,
+    failReason,
     retryCount,
     onTogglePick,
     onSubmitAnalysis,
     onContinue,
     onRetryAnalysis,
+    onTimerExpired,
+    onRestart,
 }) {
-    const MAX_RETRIES = 3;
-    const retriesLeft = MAX_RETRIES - retryCount;
+    const navigate = useNavigate();
 
+    // ปุ่มสต๊อป: เปิด dialog แล้วหยุดนับเวลาไว้ก่อน
+    const [isPaused, setIsPaused] = useState(false);
+    const pausedRef = useRef(false);
+
+    const openStopDialog = () => {
+        pausedRef.current = true;
+        setIsPaused(true);
+    };
+
+    const handleResume = () => {
+        pausedRef.current = false;
+        setIsPaused(false);
+    };
+
+    const handleRestart = () => {
+        pausedRef.current = false;
+        setIsPaused(false);
+        if (onRestart) onRestart();
+        else window.location.reload();
+    };
+
+    const MAX_RETRIES = 3;
+    const retriesLeft = MAX_RETRIES - retryCount - 1;
     const shuffledEvidence = useMemo(() => {
         const arr = [...currentCase.evidence];
         for (let i = arr.length - 1; i > 0; i--) {
@@ -29,10 +57,139 @@ export default function EvidenceAnalysis({
         return arr;
     }, [currentCase.id]);
 
+    // Countdown timer
+    const TIMER_SECONDS = 20;
+    const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
+    const intervalRef = useRef(null);
+
+    // Reset timer when a new case loads or when retry resets checked
+    useEffect(() => {
+        setTimeLeft(TIMER_SECONDS);
+    }, [currentCase.id, checked === false && retryCount]);
+
+    // Run timer only while waiting for user to pick (!checked)
+    useEffect(() => {
+        if (checked) {
+            clearInterval(intervalRef.current);
+            return;
+        }
+        setTimeLeft(TIMER_SECONDS);
+        intervalRef.current = setInterval(() => {
+            setTimeLeft((prev) => {
+                // หยุดชั่วคราว: ไม่ลดเวลา
+                if (pausedRef.current) return prev;
+
+                if (prev <= 1) {
+                    clearInterval(intervalRef.current);
+                    // แจ้ง parent ว่าเวลาหมด (parent จะแสดง popup)
+                    if (onTimerExpired) onTimerExpired();
+                    else onSubmitAnalysis();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(intervalRef.current);
+    }, [currentCase.id, checked]);
+
+    const timerUrgent = timeLeft <= 5;
+    const timerPct = (timeLeft / TIMER_SECONDS) * 100;
+    const timerColor = timeLeft > 10 ? "#4CAF50" : timeLeft > 5 ? "#FFA726" : "#E53935";
+
     return (
         <div
             className="cid-paper border-4 border-black p-6 pb-8 cid-pop h-full flex flex-col"
         >
+            {/* Countdown timer badge (top-right, left of Home button*/}
+            {!checked && (
+                <div
+                    className="absolute z-30"
+                    style={{ top: "10px", right: "10px" }}
+                    title={`เหลือเวลา ${timeLeft} วินาที`}
+                >
+                    <div
+                        className="flex items-center gap-1.5 px-2.5 py-1"
+                        style={{
+                            backdropFilter: "none",
+                            transition: "color 0.4s",
+                            animation: timerUrgent
+                                ? "timerPulse 0.6s ease-in-out infinite alternate"
+                                : "none",
+                        }}
+                    >
+                        {/* Circular progress */}
+                        <svg width="22" height="22" viewBox="0 0 22 22" className="shrink-0">
+                            <circle
+                                cx="11"
+                                cy="11"
+                                r="9"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.2)"
+                                strokeWidth="2.5"
+                            />
+                            <circle
+                                cx="11"
+                                cy="11"
+                                r="9"
+                                fill="none"
+                                stroke={timerColor}
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeDasharray={`${2 * Math.PI * 9}`}
+                                strokeDashoffset={`${2 * Math.PI * 9 * (1 - timerPct / 100)}`}
+                                transform="rotate(-90 11 11)"
+                                style={{
+                                    transition: "stroke-dashoffset 0.9s linear, stroke 0.4s",
+                                }}
+                            />
+                        </svg>
+
+                        {/* Number */}
+                        <span
+                            className="font-black tabular-nums"
+                            style={{
+                                color: timerColor,
+                                fontSize: "13px",
+                                lineHeight: 1,
+                                minWidth: "18px",
+                                textAlign: "center",
+                                transition: "color 0.4s",
+                            }}
+                        >
+                            {timeLeft}
+                        </span>
+
+                        {/* ปุ่มสต๊อป (ขวาของเวลา) */}
+                        <button
+                            type="button"
+                            onClick={openStopDialog}
+                            aria-label="หยุดเวลา"
+                            title="หยุดเวลา"
+                            className="
+                                ml-1 flex h-7 w-7 items-center justify-center
+                                rounded-full border-2 border-[#2B2118]
+                                bg-yellow-300 text-[#2B2118]
+                                shadow-sm cursor-pointer
+                                transition-transform duration-200
+                                hover:scale-110 active:scale-95
+                            "
+                        >
+                            <FaPause size={11} />
+                        </button>
+                    </div>
+
+                    <style>{`
+    @keyframes timerPulse {
+        from {
+            transform: scale(1);
+        }
+        to {
+            transform: scale(1.07);
+        }
+    }
+`}</style>
+                </div>
+            )}
             <div className="mb-2 flex items-center gap-2">
                 <FolderOpen size={20} color="#4A3B22" />
 
@@ -108,14 +265,23 @@ export default function EvidenceAnalysis({
 
                         /*
                          * หลักฐานที่ไม่เกี่ยวข้องแต่เลือกมา
-                         * ไม่ถือว่าผิด จึงใช้สีปกติ
+                         * ต้อง Retry (ดู failReason === "overpick")
+                         * แต่ยัง highlight เป็นสีเตือนแทนสีปกติ เพื่อ
+                         * ให้เห็นชัดว่าเป็นตัวที่ทำให้ไม่ผ่าน
                          */
                         if (
                             !evidence.relevant &&
                             isPicked
                         ) {
-                            borderColor = "#8B7355";
-                            backgroundColor = "#EDE1C4";
+                            borderColor = "#A32638";
+                            backgroundColor = "#F5E2E2";
+
+                            badge = (
+                                <AlertTriangle
+                                    size={16}
+                                    color="#A32638"
+                                />
+                            );
                         }
                     }
 
@@ -185,14 +351,14 @@ export default function EvidenceAnalysis({
                                         <p
                                             className="
                                                 mt-1 text-xs
-                                                font-medium
+                                                font-semibold
                                             "
                                             style={{
-                                                color: "#6B5A3E",
+                                                color: "#A32638",
                                             }}
                                         >
-                                            หลักฐานชิ้นนี้ไม่เกี่ยวข้องโดยตรง
-                                            แต่ไม่ส่งผลต่อการผ่าน
+                                            หลักฐานชิ้นนี้ไม่เกี่ยวข้องกับคดี
+                                            การเลือกมาด้วยทำให้การวิเคราะห์ไม่ผ่าน
                                         </p>
                                     )}
                             </div>
@@ -236,7 +402,9 @@ export default function EvidenceAnalysis({
                                 ? "คุณเลือกหลักฐานสำคัญที่เกี่ยวข้องกับคดีได้ครบถ้วน"
                                 : retriesLeft <= 0
                                     ? "คุณใช้โอกาสวิเคราะห์หลักฐานครบ 3 ครั้งแล้ว"
-                                    : `คุณยังเลือกหลักฐานสำคัญไม่ครบ เหลือโอกาสอีก ${retriesLeft} ครั้ง`}
+                                    : failReason === "overpick"
+                                        ? `คุณเลือกหลักฐานที่ไม่เกี่ยวข้องกับคดีปะปนมาด้วย เหลือโอกาสอีก ${retriesLeft} ครั้ง`
+                                        : `คุณยังเลือกหลักฐานสำคัญไม่ครบ เหลือโอกาสอีก ${retriesLeft} ครั้ง`}
                         </p>
                     </div>
 
@@ -263,6 +431,13 @@ export default function EvidenceAnalysis({
                     ) : null}
                 </div>
             )}
+
+            <StopDialog
+                isOpen={isPaused}
+                onResume={handleResume}
+                onRestart={handleRestart}
+                onExit={() => navigate("/map")}
+            />
         </div>
     );
 }

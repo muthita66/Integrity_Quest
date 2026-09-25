@@ -1,24 +1,29 @@
 import { IoMdSkipForward } from "react-icons/io";
-import { FaLightbulb } from "react-icons/fa6";
+import { FaLightbulb } from "react-icons/fa";
 import IntroDialog from "./IntroDialog";
 import SceneTwoImg from "../../../../assets/unit1/level1/intro/scene2.png";
 
 export default function SceneTwo({
+    scene,
     onNext,
     onBack,
     handleSkip,
     currentScene,
     totalScenes,
 }) {
+    const dialog = scene?.introDialog?.[0];
+
     return (
         <div className="relative w-full h-screen overflow-hidden">
-            {/* Illustration */}
+
+            {/* Background */}
             <img
                 src={SceneTwoImg}
                 alt="Scene Two"
-                className="absolute inset-0 w-full h-full object-cover object-center"
+                className="absolute inset-0 w-full h-full object-cover object-top"
             />
 
+            {/* Skip Button */}
             <button
                 type="button"
                 onClick={handleSkip}
@@ -38,38 +43,22 @@ export default function SceneTwo({
             </button>
 
             {/* Dialog */}
-            <div className="absolute bottom-10 left-0 w-full z-10">
-                <IntroDialog
-                    speaker="ศูนย์ผู้พิทักษ์ความซื่อสัตย์"
-                    title="เรียนรู้จากประสบการณ์"
-                    text={
-                        <>
-                            <span>
-                                ทุกการตัดสินใจล้วนเกิดจากประสบการณ์
-                                และสิ่งที่เราเคยพบเจอ
-                            </span>
-                            <br />
+            {dialog && (
+                <div className="absolute bottom-10 left-0 w-full z-10">
+                    <IntroDialog
+                        speaker={dialog.speaker}
+                        title={dialog.title}
+                        text={dialog.text}
+                        lesson={dialog.lesson}
+                        onNext={onNext}
+                        onBack={onBack}
+                        showBack={currentScene > 0}
+                        currentScene={currentScene}
+                        totalScenes={totalScenes}
+                    />
+                </div>
+            )}
 
-                            <span>
-                                ลองนึกถึงประสบการณ์ของคุณ แล้วเรียนรู้จากสิ่งที่เกิดขึ้น
-                            </span>
-                            <br />
-
-                            <span className="mt-2 flex items-start gap-2 text-yellow-300">
-                                <FaLightbulb className="mt-1 shrink-0" />
-                                <span>
-                                    <span className="font-bold">เรียนรู้:</span>{" "}
-                                    ประสบการณ์ช่วยให้เราเข้าใจการตัดสินใจของตนเอง
-                                </span>
-                            </span>
-                        </>
-                    }
-                    onNext={onNext}
-                    onBack={onBack}
-                    currentScene={currentScene}
-                    totalScenes={totalScenes}
-                />
-            </div>
         </div>
     );
 }

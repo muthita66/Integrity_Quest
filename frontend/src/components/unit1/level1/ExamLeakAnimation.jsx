@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useSound } from "../../../hooks/useSound";
 import keyboardSfx from "../../../assets/sounds/keyboard.mp3";
 import uiSoundSfx from "../../../assets/sounds/ui_sounds.mp3";
-import Notification from "../../../assets/sounds/notification.mp3"
+import Notification from "../../../assets/sounds/notification.mp3";
 
 import QuizImg from "../../../assets/unit1/level1/QuizImg.png";
 import phone from "../../../assets/unit1/level1/exam1.png";
@@ -22,56 +22,101 @@ export default function ExamLeakAnimation({
     const [step, setStep] = useState(1);
     const [typedQuestion, setTypedQuestion] = useState("");
     const [skipped, setSkipped] = useState(false);
+
     const timersRef = useRef([]);
 
+    const { play: playKeyboard, stop: stopKeyboard } = useSound(
+        keyboardSfx,
+        {
+            volume: 0.5,
+            loop: true,
+        }
+    );
+
+    const { play: playUI } = useSound(
+        uiSoundSfx,
+        {
+            volume: 0.7,
+        }
+    );
+
+    const { play: playNotification } = useSound(
+        Notification,
+        {
+            volume: 0.8,
+        }
+    );
+    const questionText = question?.question_text || "";
     const handleSkip = () => {
         timersRef.current.forEach(clearTimeout);
         timersRef.current = [];
+
         setSkipped(true);
-        setTypedQuestion(question.question);
+
+        setTypedQuestion(questionText);
+
         stopKeyboard();
+
         setStep(7);
     };
 
-    const { play: playKeyboard, stop: stopKeyboard } = useSound(keyboardSfx, { volume: 0.5, loop: true });
-    const { play: playUI } = useSound(uiSoundSfx, { volume: 0.7 });
-    const { play: playNotification } = useSound(Notification, { volume: 0.8 });
-
     useEffect(() => {
+        if (!question) return;
+
         setStep(1);
         setTypedQuestion("");
         setSkipped(false);
 
         timersRef.current = [
-            setTimeout(() => setStep(2), 500),
-            setTimeout(() => setStep(3), 2500),
-            setTimeout(() => setStep(4), 4500),
+
+            setTimeout(() => {
+                setStep(2);
+            }, 500),
+
+            setTimeout(() => {
+                setStep(3);
+            }, 2500),
+
+            setTimeout(() => {
+                setStep(4);
+            }, 4500),
+
             setTimeout(() => {
                 setStep(5);
+
                 playKeyboard();
                 stopKeyboard();
             }, 6000),
-            setTimeout(() => setStep(6), 7200),
+
+            setTimeout(() => {
+                setStep(6);
+            }, 7200),
         ];
 
-        return () => timersRef.current.forEach(clearTimeout);
-    }, [question.question]);
+        return () => {
+            timersRef.current.forEach(clearTimeout);
+            timersRef.current = [];
+        };
+    }, [question?.question_id]);
 
     useEffect(() => {
         if (step !== 6) return;
         if (skipped) return;
-
+        if (!questionText) return;
         let i = 0;
+        setTypedQuestion("");
         playKeyboard();
-
         const typing = setInterval(() => {
             setTypedQuestion(
-                question.question.slice(0, i + 1)
+                questionText.slice(
+                    0,
+                    i + 1
+                )
             );
 
             i++;
 
-            if (i >= question.question.length) {
+            if (i >= questionText.length) {
                 clearInterval(typing);
                 stopKeyboard();
                 setStep(7);
@@ -82,42 +127,48 @@ export default function ExamLeakAnimation({
             clearInterval(typing);
             stopKeyboard();
         };
-    }, [step, question.question]);
+    }, [
+        step,
+        skipped,
+        questionText,
+    ]);
 
     return (
-        <AnimationLayout onSkip={handleSkip} showSkip={step < 7}>
-
-            {/* Background base dark */}
+        <AnimationLayout
+            onSkip={handleSkip}
+            showSkip={step < 7}
+        >
             <div className="absolute inset-0 bg-slate-900" />
-
-            {/* exam1 zoom-in */}
             {step >= 2 && (
                 <motion.img
                     src={phone}
                     alt=""
                     className="absolute inset-0 w-full h-full object-cover"
-                    initial={{ scale: 1.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 2.9, ease: "easeOut" }}
-                    onAnimationComplete={() => playNotification()}
+                    initial={{
+                        scale: 1.5,
+                        opacity: 0,
+                    }}
+                    animate={{
+                        scale: 1,
+                        opacity: 1,
+                    }}
+                    transition={{
+                        duration: 2.9,
+                        ease: "easeOut",
+                    }}
+                    onAnimationComplete={() =>
+                        playNotification()
+                    }
                 />
             )}
 
             <div className="absolute inset-0 bg-black/40" />
 
-            {/* Friend */}
             {step >= 3 && (
                 <motion.img
                     src={friend}
                     alt=""
-                    className="
-                        absolute
-                        left-[40%]
-                        bottom-[42%]
-                        w-32
-                        md:w-44
-                        z-30
-                    "
+                    className="absolute left-[40%] bottom-[42%] w-32 md:w-44 z-30"
                     initial={{
                         x: -250,
                         opacity: 0,
@@ -132,7 +183,6 @@ export default function ExamLeakAnimation({
                 />
             )}
 
-            {/* Speech */}
             {step >= 4 && (
                 <motion.div
                     initial={{
@@ -141,24 +191,11 @@ export default function ExamLeakAnimation({
                     animate={{
                         opacity: 1,
                     }}
-                    className="
-                        absolute
-                        left-[20%]
-                        top-[12%]
-                        bg-white
-                        text-black
-                        px-5
-                        py-3
-                        rounded-2xl
-                        shadow-xl
-                        z-40
-                    "
-                >
+                    className="absolute left-[20%] top-[12%] bg-white text-black px-5 py-3 rounded-2xl shadow-xl z-40">
                     เฮ้ย! ข้อสอบหลุดนี่นา
                 </motion.div>
             )}
 
-            {/* Guardian */}
             {step >= 6 && (
                 <motion.img
                     src={QuizImg}
@@ -178,20 +215,20 @@ export default function ExamLeakAnimation({
                 />
             )}
 
-            {/* Choices */}
+            <QuestionBox
+                show={step >= 6}
+                text={typedQuestion}
+                isTyping={
+                    step === 6 &&
+                    typedQuestion.length < questionText.length
+                }
+            />
             <ChoiceButtons
                 show={step >= 7}
                 question={question}
                 handleAnswer={handleAnswer}
                 reaction={reaction}
                 playUI={playUI}
-            />
-
-            {/* Question */}
-            <QuestionBox
-                show={step >= 6}
-                text={typedQuestion}
-                isTyping={true}
             />
         </AnimationLayout>
     );

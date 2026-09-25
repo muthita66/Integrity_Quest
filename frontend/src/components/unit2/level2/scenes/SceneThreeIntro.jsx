@@ -4,12 +4,15 @@ import { FaLightbulb } from "react-icons/fa";
 import sceneThree from "../../../../assets/unit2/Level2/intro/sceneThree.png";
 
 export default function SceneThreeIntro({
+    scene,
     onNext,
     onBack,
     handleSkip,
     currentScene,
     totalScenes,
 }) {
+    // ข้อมูล Dialog จาก Database
+    const dialog = scene?.introDialog?.[0];
     return (
         <div className="relative w-full h-screen overflow-hidden">
             {/* Illustration */}
@@ -39,33 +42,19 @@ export default function SceneThreeIntro({
 
             {/* Dialog */}
             <div className="absolute bottom-10 left-0 w-full z-10">
-                <IntroDialog
-                    speaker="ผู้วางแผนการเงิน"
-                    title="ลงมือวางแผน"
-                    text={
-                        <>
-                            <span>
-                                ถึงเวลานำความรู้มาใช้จริง คำนวณรายรับ–รายจ่าย และวางแผนเงินให้เพียงพอ
-                            </span>
-                            <br />
-                            <span>หน้าที่ของคุณคือคำนวณและตัดสินใจว่าจะใช้เงินอย่างไร ทุกการเลือกจะส่งผลต่อเงินคงเหลือ</span>
-                            <br />
-
-                            <span className="mt-2 flex items-start gap-2 text-yellow-300">
-                                <FaLightbulb className="mt-1 shrink-0" />
-                                <span>
-                                    <span className="font-bold">ลงมือปฏิบัติ:</span>{" "}
-                                    ทดลองวางแผนและตัดสินใจด้วยตนเอง
-                                </span>
-                            </span>
-                        </>
-                    }
-                    onNext={onNext}
-                    onBack={onBack}
-                    showBack={true}
-                    currentScene={currentScene}
-                    totalScenes={totalScenes}
-                />
+                {dialog && (
+                    <IntroDialog
+                        speaker={dialog.speaker}
+                        title={dialog.title}
+                        text={dialog.text}
+                        lesson={dialog.lesson}
+                        onNext={onNext}
+                        onBack={onBack}
+                        showBack={true}
+                        currentScene={currentScene}
+                        totalScenes={totalScenes}
+                    />
+                )}
             </div>
         </div>
     );

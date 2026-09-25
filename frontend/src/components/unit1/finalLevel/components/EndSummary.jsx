@@ -1,16 +1,24 @@
-import {
-    Award,
-    CheckCircle2,
-    Sparkles,
-    XCircle,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CASES } from "../data/cases";
-import { useEffect, useRef } from "react";
 import Star from "../../../../assets/unit1/finalLevel/star.png";
-import BgGame from "../../../../assets/unit1/finalLevel/bgGame1.png"
 
-// ── Fireworks canvas ───────────────────────────────────────────────
+import bonusSound from "../../../../assets/sounds/BackgroundGame/Bonus.mp3";
+import goodSound from "../../../../assets/sounds/BackgroundGame/Good.mp3";
+import useGameMuted from "../../../../hooks/useGameMuted";
+
+const LEVEL_ID = 3;
+
+// เสียงตาม Rank
+// ปรมาจารย์ / มือฉมัง → Bonus
+// เริ่มต้น / ฝึกหัด    → Good
+const RANK_SOUNDS = {
+    MASTER: bonusSound,
+    EXPERT: bonusSound,
+    NOVICE: goodSound,
+    TRAINEE: goodSound,
+};
+
+// Fireworks canvas
 function FireworksCanvas() {
     const canvasRef = useRef(null);
 
@@ -129,85 +137,119 @@ function FireworksCanvas() {
     );
 }
 
-// ── Rank stamp label ───────────────────────────────────────────────
 const RANK_STYLES = {
-    "นักสืบการเงินระดับปรมาจารย์": { border: "#B8863B", color: "#8A6D3B" },
-    "นักสืบการเงินมือฉมัง": { border: "#2F6B4F", color: "#2F6B4F" },
-    "นักสืบเริ่มต้น": { border: "#A32638", color: "#A32638" },
+    MASTER: { border: "#B8863B", color: "#8A6D3B" },
+    EXPERT: { border: "#2F6B4F", color: "#2F6B4F" },
+    NOVICE: { border: "#A32638", color: "#A32638" },
+    TRAINEE: { border: "#7A2E2E", color: "#7A2E2E" },
     default: { border: "#A32638", color: "#A32638" },
 };
 
-// ── Stars per rank ─────────────────────────────────────────────────
 const RANK_STARS = {
-    "นักสืบการเงินระดับปรมาจารย์": 3,
-    "นักสืบการเงินมือฉมัง": 2,
-    "นักสืบเริ่มต้น": 1,
+    MASTER: 3,
+    EXPERT: 2,
+    NOVICE: 1,
+    TRAINEE: 1,
 };
 
-const RANK_REFLECTIONS = {
-    "นักสืบการเงินระดับปรมาจารย์": {
-        reflection: "คุณสามารถวิเคราะห์หลักฐานและตัดสินใจได้อย่างรอบคอบตั้งแต่ครั้งแรก แสดงให้เห็นถึงการใช้เหตุผลบนพื้นฐานของข้อเท็จจริง และยึดมั่นในหลักความโปร่งใสในการจัดการทางการเงิน",
-        development: "รักษานิสัยการตรวจสอบข้อมูลและหลักฐานอย่างรอบคอบ พร้อมเป็นแบบอย่างในการส่งเสริมความซื่อสัตย์และความรับผิดชอบในการใช้ทรัพยากรส่วนรวม"
-    },
-    "นักสืบการเงินมือฉมัง": {
-        reflection: "คุณสามารถเรียนรู้จากข้อสังเกตและปรับการตัดสินใจได้อย่างเหมาะสม แม้บางสถานการณ์จะต้องทบทวนหลักฐานเพิ่มเติม แต่คุณไม่ด่วนสรุปและพร้อมแก้ไขเมื่อพบข้อมูลใหม่",
-        development: "ลองสังเกตรายละเอียดของหลักฐานให้มากขึ้น และเปรียบเทียบข้อมูลจากหลายแหล่งก่อนตัดสินใจ เพื่อเพิ่มความแม่นยำในการวิเคราะห์"
-    },
-    "นักสืบเริ่มต้น": {
-        reflection: "คุณได้เรียนรู้ว่าการตัดสินใจที่ถูกต้องต้องอาศัยการตรวจสอบข้อมูลและหลักฐานอย่างรอบคอบ ทุกความผิดพลาดคือโอกาสในการพัฒนาทักษะการวิเคราะห์และการตัดสินใจ",
-        development: "ก่อนสรุปผลในแต่ละสถานการณ์ ลองพิจารณาหลักฐานให้ครบถ้วน เปรียบเทียบข้อมูลจากหลายแหล่ง และใช้เหตุผลประกอบการตัดสินใจมากขึ้น"
-    }
-};
-
-const CASE_LESSONS = [
-    {
-        case: "CASE-01",
-        title: "เงินทุกบาทควรตรวจสอบได้",
-        desc: "การตัดสินใจควรอ้างอิงจากหลักฐานที่ตรวจสอบได้ ไม่ใช่คำบอกเล่าเพียงอย่างเดียว"
-    },
-    {
-        case: "CASE-02",
-        title: "ใบเสร็จคือหลักฐานสำคัญ",
-        desc: "ก่อนอนุมัติการเบิกจ่าย ควรตรวจสอบรายละเอียดให้ครบถ้วนทุกครั้ง"
-    },
-    {
-        case: "CASE-03",
-        title: "ความซื่อสัตย์เริ่มจากเรื่องเล็ก ๆ",
-        desc: "การคืนเงินทอนให้ถูกต้องและบันทึกข้อมูลอย่างครบถ้วนช่วยสร้างความไว้วางใจ"
-    },
-    {
-        case: "CASE-04",
-        title: "เปรียบเทียบข้อมูลจากหลายหลักฐาน",
-        desc: "การตรวจสอบความสอดคล้องของข้อมูลช่วยป้องกันการเบิกจ่ายที่ไม่ถูกต้อง"
-    },
-    {
-        case: "CASE-05",
-        title: "ใช้งบประมาณให้ตรงวัตถุประสงค์",
-        desc: "การใช้เงินตามวัตถุประสงค์ที่กำหนดไว้ เป็นพื้นฐานของความรับผิดชอบและความโปร่งใส"
-    }
-];
-
-// ── Main component ─────────────────────────────────────────────────
-export default function EndSummary({
-    passCount,
-    evidencePassCount,
-    totalScore,
-    results,
-    evidenceResults,
-    rank,
-    onRestart,
-}) {
+// Main component
+export default function EndSummary({ finalLevelResult, cases, onRestart }) {
     const navigate = useNavigate();
 
+    const rank = finalLevelResult?.rank;
     const stampStyle = RANK_STYLES[rank] ?? RANK_STYLES.default;
+    const [resultText, setResultText] = useState(null);
+    const [messageError, setMessageError] = useState(false);
 
-    // คำนวณเปอร์เซ็นต์รวม (จากคำถามและหลักฐาน)
-    const maxScore = CASES.length * 2;
-    const currentScore = passCount + evidencePassCount;
-    const percentage = Math.round((currentScore / maxScore) * 100);
+    useEffect(() => {
+        if (!rank) return;
+
+        const fetchResultMessage = async () => {
+            try {
+                setMessageError(false);
+
+                const response = await fetch(
+                    `http://localhost:5000/api/level-result/${LEVEL_ID}/${rank}`
+                );
+
+                if (!response.ok) {
+                    throw new Error("โหลดข้อความผลลัพธ์ไม่สำเร็จ");
+                }
+
+                const data = await response.json();
+
+                setResultText(data.data);
+            } catch (error) {
+                console.error("Fetch Result Message Error:", error);
+                setMessageError(true);
+            }
+        };
+
+        fetchResultMessage();
+    }, [rank]);
+
+    // เล่นเสียงผลลัพธ์ครั้งเดียวตอนหน้าสรุปแสดงขึ้นมา ไม่วน
+    const [muted] = useGameMuted();
+    const soundPlayedRef = useRef(false);
+
+    useEffect(() => {
+        if (!resultText || soundPlayedRef.current) return;
+        soundPlayedRef.current = true;
+
+        const src = RANK_SOUNDS[rank];
+        if (muted || !src) return;
+
+        const audio = new Audio(src);
+        audio.volume = 0.6;
+        audio.play().catch(() => { });
+    }, [resultText, rank, muted]);
+
+    if (!finalLevelResult || !resultText) {
+        return (
+            <div className="cid-paper h-full p-4 border-4 border-black text-center flex flex-col items-center justify-center">
+                <p className="text-xl sarabun-bold" style={{ color: "#2B2118" }}>
+                    {messageError
+                        ? "ไม่สามารถโหลดข้อมูลผลลัพธ์ได้"
+                        : "กำลังโหลดผลลัพธ์..."}
+                </p>
+            </div>
+        );
+    }
+
+    const {
+        case_answer_ip: caseAnswerIP,
+        bonus_ip: bonusIP,
+        earned_ip: earnedIP,
+        max_case_ip: maxCaseIP,
+        total_integrity_points: totalIntegrityPoints,
+    } = finalLevelResult;
+
+    const caseLessons = (cases || []).filter(
+        (item) => item.lessonTitle || item.lessonDescription
+    );
 
     return (
         <>
+            <style>
+                {`
+                @keyframes scrapbookPop {
+                    0% {
+                        opacity: 0;
+                        transform: scale(1.5) rotate(-15deg);
+                        filter: brightness(1.2);
+                    }
+                    60% {
+                        opacity: 1;
+                        transform: scale(0.9) rotate(5deg);
+                        filter: brightness(1);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: scale(1) rotate(0deg);
+                    }
+                }
+                `}
+            </style>
             {/* Fireworks overlay */}
             <FireworksCanvas />
 
@@ -221,11 +263,20 @@ export default function EndSummary({
                     สรุปผลการสืบคดี
                 </h2>
 
-                {/* ── Summary Stats ── */}
+                {/* ── IP ที่ได้ ── */}
                 <div className="flex justify-center gap-4 shrink-0 mb-1">
                     <div className="bg-[#F3E9D2] px-4 py-2 flex flex-col items-center min-w[100px]">
-                        <p className="text-sm font-semibold" style={{ color: "#8A6D3B" }}>Integrity Score</p>
-                        <p className="cid-display text-2xl font-black" style={{ color: "#2F6B4F" }}>{percentage}%</p>
+                        <p className="text-sm font-semibold" style={{ color: "#8A6D3B" }}>
+                            Integrity Points ที่ได้
+                        </p>
+                        <p className="cid-display text-2xl font-black" style={{ color: "#2F6B4F" }}>
+                            +{earnedIP} IP
+                        </p>
+                        {bonusIP > 0 && (
+                            <p className="text-xs font-semibold" style={{ color: "#B8863B" }}>
+                                (คำตอบ {caseAnswerIP} + โบนัส Rank {bonusIP})
+                            </p>
+                        )}
                     </div>
                 </div>
 
@@ -239,7 +290,7 @@ export default function EndSummary({
                         }}
                     >
                         <p className="text-base font-black tracking-widest">
-                            {rank}
+                            {resultText.title}
                         </p>
                     </div>
 
@@ -262,17 +313,29 @@ export default function EndSummary({
                 </div>
 
                 {/* ── Reflection & Lessons ── */}
-                <div className="flex flex-col gap-2 mb-2 text-left flex-1 min-h-0">
-                    {/* Reflection */}
-                    <div className="bg-[#F3E9D2] border border-[#C9BB98] rounded-xl p-3 shrink-0 shadow-sm">
+                <div className="flex flex-col gap-2 mb-2 text-left flex-1 min-h-0 relative mt-6">
+                    {/* Character Image (จาก DB ตาม Rank — ไม่ import รูปตรง ๆ อีกต่อไป) */}
+                    {resultText.character_image && (
+                        <img
+                            src={resultText.character_image}
+                            alt="Character"
+                            className="absolute -top-54 right-2 w-64 h-64 object-contain z-10 drop-shadow-md pointer-events-none"
+                            style={{
+                                animation: "scrapbookPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both"
+                            }}
+                        />
+                    )}
+
+                    {/* Reflection (จาก DB) */}
+                    <div className="bg-[#F3E9D2] border border-[#C9BB98] rounded-xl p-3 shrink-0 shadow-sm relative">
                         <h3 className="cid-display text-base font-bold mb-1 text-[#8A6D3B]">การสะท้อนผลการเรียนรู้</h3>
                         <p className="text-sm text-[#5A4B30] mb-3 leading-relaxed font-medium">
-                            {RANK_REFLECTIONS[rank]?.reflection}
+                            {resultText.description}
                         </p>
 
                         <h3 className="cid-display text-base font-bold mb-1 text-[#8A6D3B]">สิ่งที่ควรพัฒนาต่อ</h3>
                         <p className="text-sm text-[#5A4B30] leading-relaxed font-medium">
-                            {RANK_REFLECTIONS[rank]?.development}
+                            {resultText.message}
                         </p>
                     </div>
 
@@ -283,13 +346,13 @@ export default function EndSummary({
                         </h3>
                         <div className="overflow-y-auto custom-scrollbar pr-2 flex-1 min-h-0">
                             <div className="flex flex-col gap-2">
-                                {CASE_LESSONS.map((lesson, idx) => (
-                                    <div key={idx} className="border-b border-[#D9C9A1] pb-2 last:border-0 last:pb-0 shrink-0">
+                                {caseLessons.map((item) => (
+                                    <div key={item.id} className="border-b border-[#D9C9A1] pb-2 last:border-0 last:pb-0 shrink-0">
                                         <p className="text-sm font-bold text-[#2B2118] mb-1">
-                                            {lesson.case}: <span className="text-[#8A6D3B]"> {lesson.title}</span>
+                                            {item.code}: <span className="text-[#8A6D3B]"> {item.lessonTitle}</span>
                                         </p>
                                         <p className="text-xs text-[#5A4B30] leading-relaxed font-medium">
-                                            {lesson.desc}
+                                            {item.lessonDescription}
                                         </p>
                                     </div>
                                 ))}
@@ -302,10 +365,20 @@ export default function EndSummary({
                     <button
                         type="button"
                         onClick={() => navigate("/map")}
-                        className="result-button result-button-yellow"
+                        className="result-button result-button-amber"
                     >
                         <span className="result-button-top">กลับหน้าหลัก</span>
                     </button>
+
+                    {rank !== "MASTER" && (
+                        <button
+                            type="button"
+                            onClick={onRestart}
+                            className="result-button result-button-red"
+                        >
+                            <span className="result-button-top">เล่นอีกครั้ง</span>
+                        </button>
+                    )}
 
                     <button
                         type="button"

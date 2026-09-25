@@ -4,60 +4,10 @@ import {
     useRef,
     useState,
 } from "react";
+import { useNavigate } from "react-router-dom";
 
 const ANSWER_DELAY = 500;
 const FINISH_DELAY = 1500;
-
-const bossQuestions = [
-    {
-        id: 1,
-        question:
-            "ทุกคนในห้องก็ลอกการบ้านกัน ถ้าเราลอกด้วยก็คงไม่เป็นไร?",
-        choices: [
-            {
-                text: "เห็นด้วย",
-                value: "A",
-            },
-            {
-                text: "ไม่เห็นด้วย",
-                value: "B",
-            },
-        ],
-        correct: "B",
-    },
-    {
-        id: 2,
-        question:
-            "การยืมงานเพื่อนส่งก่อน แล้วค่อยแก้ทีหลัง ถือว่าไม่ผิดเพราะไม่ได้คัดลอกทั้งหมด?",
-        choices: [
-            {
-                text: "เห็นด้วย",
-                value: "A",
-            },
-            {
-                text: "ไม่เห็นด้วย",
-                value: "B",
-            },
-        ],
-        correct: "B",
-    },
-    {
-        id: 3,
-        question:
-            "ความซื่อสัตย์ควรยึดถือ แม้ไม่มีใครเห็นหรือจับได้?",
-        choices: [
-            {
-                text: "เห็นด้วย",
-                value: "A",
-            },
-            {
-                text: "ไม่เห็นด้วย",
-                value: "B",
-            },
-        ],
-        correct: "A",
-    },
-];
 
 const generateBossParticles = () => {
     return Array.from(
@@ -65,144 +15,269 @@ const generateBossParticles = () => {
         (_, index) => ({
             id: `${Date.now()}-${index}-${Math.random()}`,
             size: Math.random() * 30 + 15,
-            offsetX:
-                (Math.random() - 0.5) * 300,
-            offsetY:
-                (Math.random() - 0.5) * 200,
-            duration:
-                Math.random() * 0.8 + 0.6,
+            offsetX: (Math.random() - 0.5) * 300,
+            offsetY: (Math.random() - 0.5) * 200,
+            duration: Math.random() * 0.8 + 0.6,
         })
     );
 };
 
 export default function useBossGame({
+    levelId,
+    playId,
     onFinish,
     onFail,
     playPopSound,
 }) {
-    const [currentQuestionIndex, setCurrentQuestionIndex] =
-        useState(0);
+    const navigate = useNavigate();
 
-    const [flashStatus, setFlashStatus] =
-        useState(null);
-
-    const [isDefeated, setIsDefeated] =
-        useState(false);
-
-    const [particles, setParticles] =
-        useState([]);
-
-    const [showFailPopup, setShowFailPopup] =
-        useState(false);
-
+    const [bossQuestions, setBossQuestions] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [flashStatus, setFlashStatus] = useState(null);
+    const [isDefeated, setIsDefeated] = useState(false);
+    const [particles, setParticles] = useState([]);
+    const [showFailPopup, setShowFailPopup] = useState(false);
     const timeoutIdsRef = useRef([]);
 
-    const currentQuestion =
-        bossQuestions[currentQuestionIndex];
-
-    const clearSavedTimeouts = useCallback(() => {
-        timeoutIdsRef.current.forEach(
-            (timeoutId) => {
-                window.clearTimeout(timeoutId);
+    // ==========================================
+    // Fetch Boss Questions
+    // ==========================================
+    const fetchBossQuestions = useCallback(async () => {
+        if (!levelId) return;
+        try {
+            setIsLoading(true);
+            setError(null);
+            const response = await fetch(
+                `http://localhost:5000/api/question/level/${levelId}`
+            );
+            if (!response.ok) {
+                throw new Error(`ไม่สามารถโหลดคำถามได้ (${response.status})`);
             }
-        );
+            const data = await response.json();
+            console.log("Boss Questions:", data);
+            const questionData = Array.isArray(data) ? data : data.questions || [];
+            const formattedQuestions = questionData.map((question) => {
+                // Prisma relation จาก backend ใช้ชื่อ `choice`
+                const choices = question.choices || question.choice || [];
+                const formattedChoices = choices.map((choice) => ({
+                    text: choice.choice_text,
+                    value: choice.choice_key,
+                }));
+                const correctChoice = choices.find((c) => c.is_correct === true);
+                return {
+                    id: question.question_id,
+                    question: question.question_text,
+                    choices: formattedChoices,
+                    // เก็บ rawChoices ไว้เพื่อใช้ choice_id ตอนส่ง API
+                    rawChoices: choices.map((c) => ({
+                        choice_id: c.choice_id,
+                        choice_key: c.choice_key,
+                    })),
+                    correct: correctChoice?.choice_key,
+                };
+            });
+            setBossQuestions(formattedQuestions);
+            setCurrentQuestionIndex(0);
+        } catch (err) {
+            console.error("โหลด Boss Questions ไม่สำเร็จ:", err);
+            setError(err.message || "ไม่สามารถโหลดคำถามได้");
+        } finally {
+            setIsLoading(false);
+        }
+    }, [levelId]);
 
+    useEffect(() => {
+        fetchBossQuestions();
+    }, [fetchBossQuestions]);
+
+    const currentQuestion = bossQuestions[currentQuestionIndex];
+
+    // ==========================================
+    // Timeout helpers
+    // ==========================================
+    const clearSavedTimeouts = useCallback(() => {
+        timeoutIdsRef.current.forEach((id) => window.clearTimeout(id));
         timeoutIdsRef.current = [];
     }, []);
 
-    const addTimeout = useCallback(
-        (callback, delay) => {
-            const timeoutId = window.setTimeout(
-                () => {
-                    callback();
+    const addTimeout = useCallback((callback, delay) => {
+        const id = window.setTimeout(() => {
+            callback();
+            timeoutIdsRef.current = timeoutIdsRef.current.filter((s) => s !== id);
+        }, delay);
+        timeoutIdsRef.current.push(id);
+        return id;
+    }, []);
 
-                    timeoutIdsRef.current =
-                        timeoutIdsRef.current.filter(
-                            (savedId) =>
-                                savedId !== timeoutId
-                        );
-                },
-                delay
+    // ==========================================
+    // บันทึกคำตอบ Boss → game_play_answers
+    // ==========================================
+    const saveAnswer = useCallback(async (questionId, choiceId) => {
+        if (!playId) {
+            console.warn("saveAnswer: ไม่มี playId — ข้ามการบันทึก");
+            return;
+        }
+        const token = localStorage.getItem("token");
+        if (!token) {
+            console.warn("saveAnswer: ไม่มี token");
+            return;
+        }
+        try {
+            const res = await fetch(
+                "http://localhost:5000/api/game-play/answer",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        play_id: playId,
+                        question_id: questionId,
+                        choice_id: choiceId,
+                    }),
+                }
             );
+            const result = await res.json();
+            console.log("บันทึกคำตอบ Boss:", result);
+            if (!res.ok) {
+                console.error("saveAnswer API error:", result.message);
+            }
+        } catch (err) {
+            console.error("saveAnswer error:", err);
+        }
+    }, [playId]);
 
-            timeoutIdsRef.current.push(timeoutId);
+    // ==========================================
+    // Boss defeated → COMPLETED ใน game_play_history
+    // ==========================================
+    const completeGame = useCallback(async () => {
+        if (!playId) {
+            console.warn("completeGame: ไม่มี playId");
+            onFinish?.();
+            return;
+        }
+        const token = localStorage.getItem("token");
+        if (!token) {
+            console.warn("completeGame: ไม่มี token");
+            onFinish?.();
+            return;
+        }
+        try {
+            const res = await fetch(
+                "http://localhost:5000/api/game-play/complete",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ play_id: playId }),
+                }
+            );
+            const result = await res.json();
+            console.log("จบเกม Level 2:", result);
 
-            return timeoutId;
-        },
-        []
-    );
-
-    const handleAnswer = useCallback(
-        (choiceValue) => {
-            if (
-                flashStatus ||
-                isDefeated ||
-                showFailPopup
-            ) {
+            if (!res.ok) {
+                console.error("completeGame API error:", result.message);
+                setError(
+                    result.message || "ไม่สามารถจบเกมได้"
+                );
+                // ไม่ navigate ไปหน้า Result ถ้า backend ปฏิเสธ
+                // (เช่นยังตอบ Boss ไม่ครบ / ยังไม่ผ่านด่าน Bubble)
                 return;
             }
 
-            playPopSound();
-
-            const isCorrect =
-                choiceValue ===
-                currentQuestion.correct;
-
-            setFlashStatus(
-                isCorrect ? "correct" : "wrong"
+            // ----------------------------------------------
+            // เก็บผลลัพธ์ทั้งก้อน (status, earned_ip, bonus_ip,
+            // wrong_count, total_integrity_points, ...) ไว้ให้
+            // หน้า Result อ่านต่อ แล้วค่อย navigate ไป
+            // ----------------------------------------------
+            localStorage.setItem(
+                "level2Result",
+                JSON.stringify(result.data)
             );
 
-            addTimeout(() => {
-                setFlashStatus(null);
+            navigate("/unit1/level2/result");
+        } catch (err) {
+            console.error("completeGame error:", err);
+            setError(
+                err.message || "ไม่สามารถจบเกมได้"
+            );
+        } finally {
+            onFinish?.();
+        }
+    }, [playId, onFinish, navigate]);
 
-                if (!isCorrect) {
-                    setShowFailPopup(true);
-                    return;
-                }
+    // ==========================================
+    // Handle Answer
+    // ==========================================
+    const handleAnswer = useCallback((choiceValue) => {
+        if (flashStatus || isDefeated || showFailPopup) return;
+        if (!currentQuestion) return;
 
-                const isLastQuestion =
-                    currentQuestionIndex >=
-                    bossQuestions.length - 1;
+        playPopSound();
 
-                if (isLastQuestion) {
-                    setIsDefeated(true);
-                    setParticles(
-                        generateBossParticles()
-                    );
+        const isCorrect = choiceValue === currentQuestion.correct;
+        setFlashStatus(isCorrect ? "correct" : "wrong");
 
-                    addTimeout(() => {
-                        onFinish?.();
-                    }, FINISH_DELAY);
+        // หา choice_id จาก choice_key เพื่อส่ง API
+        const matchedChoice = currentQuestion.rawChoices?.find(
+            (c) => c.choice_key === choiceValue
+        );
+        if (matchedChoice) {
+            saveAnswer(currentQuestion.id, matchedChoice.choice_id);
+        }
 
-                    return;
-                }
+        addTimeout(() => {
+            setFlashStatus(null);
 
-                setCurrentQuestionIndex(
-                    (previousIndex) =>
-                        previousIndex + 1
-                );
-            }, ANSWER_DELAY);
-        },
-        [
-            addTimeout,
-            currentQuestion,
-            currentQuestionIndex,
-            flashStatus,
-            isDefeated,
-            onFinish,
-            playPopSound,
-            showFailPopup,
-        ]
-    );
+            if (!isCorrect) {
+                setShowFailPopup(true);
+                return;
+            }
 
+            const isLast = currentQuestionIndex >= bossQuestions.length - 1;
+
+            if (isLast) {
+                setIsDefeated(true);
+                setParticles(generateBossParticles());
+                // เรียก completeGame → status: PERFECT/PASS → เก็บผล
+                // ลง localStorage แล้ว navigate ไปหน้า Result
+                addTimeout(() => { completeGame(); }, FINISH_DELAY);
+                return;
+            }
+
+            setCurrentQuestionIndex((prev) => prev + 1);
+        }, ANSWER_DELAY);
+    }, [
+        addTimeout,
+        bossQuestions,
+        completeGame,
+        currentQuestion,
+        currentQuestionIndex,
+        flashStatus,
+        isDefeated,
+        playPopSound,
+        saveAnswer,
+        showFailPopup,
+    ]);
+
+    // ==========================================
+    // Handle Fail (ตอบผิด → Restart)
+    // ==========================================
     const handleFail = useCallback(() => {
         setShowFailPopup(false);
         onFail?.();
     }, [onFail]);
 
+    // ==========================================
+    // Reset Boss Game
+    // ==========================================
     const resetBossGame = useCallback(() => {
         clearSavedTimeouts();
-
         setCurrentQuestionIndex(0);
         setFlashStatus(null);
         setIsDefeated(false);
@@ -211,23 +286,22 @@ export default function useBossGame({
     }, [clearSavedTimeouts]);
 
     useEffect(() => {
-        return () => {
-            clearSavedTimeouts();
-        };
+        return () => { clearSavedTimeouts(); };
     }, [clearSavedTimeouts]);
 
     return {
         currentQuestion,
         currentQuestionIndex,
         totalQuestions: bossQuestions.length,
-
         flashStatus,
         isDefeated,
         particles,
         showFailPopup,
-
+        isLoading,
+        error,
         handleAnswer,
         handleFail,
         resetBossGame,
+        fetchBossQuestions,
     };
 }

@@ -1,23 +1,25 @@
 import { IoMdSkipForward } from "react-icons/io";
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { FaLightbulb } from "react-icons/fa6";
 import IntroDialog from "../../intro/IntroDialog";
 import sceneThree from "../../../../assets/unit2/level1/intro/sceneThree.png";
 
 export default function SceneThree({
+    scene,
     onNext,
     onBack,
     handleSkip,
     currentScene,
     totalScenes,
 }) {
+    // ข้อมูล Dialog จาก Database
+    const dialog = scene?.introDialog?.[0];
     return (
         <div className="relative w-full h-screen overflow-hidden">
             {/* Illustration */}
             <img
                 src={sceneThree}
                 alt="Scene Three"
-                className="absolute inset-0 w-full h-full object-cover object-top"
+                className="absolute inset-0 w-full h-full object-cover object-center"
             />
 
             <button
@@ -40,16 +42,19 @@ export default function SceneThree({
 
             {/* Dialog */}
             <div className="absolute bottom-10 left-0 w-full z-20">
-                <IntroDialog
-                    speaker="ไกด์การเงิน"
-                    title="ตลาดมหาวิทยาลัย"
-                    text="คุณเริ่มภารกิจสำรวจตลาดเพื่อรวบรวมข้อมูลสินค้าและวิเคราะห์ความจำเป็นกับความต้องการ ก่อนตัดสินใจเลือกซื้ออย่างมีเหตุผล"
-                    onNext={onNext}
-                    onBack={onBack}
-                    showBack={true}
-                    currentScene={currentScene}
-                    totalScenes={totalScenes}
-                />
+                {dialog && (
+                    <IntroDialog
+                        speaker={dialog.speaker}
+                        title={dialog.title}
+                        text={dialog.text}
+                        lesson={dialog.lesson}
+                        onNext={onNext}
+                        onBack={onBack}
+                        showBack={true}
+                        currentScene={currentScene}
+                        totalScenes={totalScenes}
+                    />
+                )}
             </div>
         </div>
     );

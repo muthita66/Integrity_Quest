@@ -1,24 +1,19 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import ConfettiExplosion from "react-confetti-explosion";
 
-import Vegetable from "../../../assets/unit2/Level1/vegetable.png";
-import Ticket from "../../../assets/unit2/Level1/ticket.png";
-import Bill from "../../../assets/unit2/Level1/utility-bill.png";
-import LuxuryBags from "../../../assets/unit2/Level1/shopping-bag.png";
-import Coffee from "../../../assets/unit2/Level1/coffee.png";
-import Car from "../../../assets/unit2/Level1/car.png";
-import Medicine from "../../../assets/unit2/Level1/medicine.png";
-import SmartPhone from "../../../assets/unit2/Level1/smartphone.png";
-import House from "../../../assets/unit2/Level1/house.png";
-import Shirt from "../../../assets/unit2/Level1/shirt.png";
-import bgGame from "../../../assets/unit2/Level1/bgGame.png";
+import bgGame from "../../../assets/unit2/Level1/bgmarket.png";
 
 import GoalCelebration from "../../../assets/unit2/Level1/result/GoalCelebration.png";
 import SadExpression from "../../../assets/unit2/Level1/result/SadExpression.png";
 
-const MAX_SCORE = 10;
+import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
+import gameOverSound from "../../../assets/sounds/BackgroundGame/GameOver.mp3";
+import useGameMuted from "../../../hooks/useGameMuted";
+
+const API_URL = "http://localhost:5000";
+const LEVEL_ID = 5;
 
 // ละอองแสงลอย — ตำแหน่งคงที่ไม่ re-render ใหม่ (จาก MirrorResultPage)
 const PARTICLES = [
@@ -57,19 +52,6 @@ function useCountUp(target, { duration = 900, start = false, delay = 0 } = {}) {
 
     return value;
 }
-
-const FALLBACK_ITEMS = [
-    { id: 1, src: Vegetable, alt: "Vegetable", name: "Vegetable", type: "need", userType: "need" },
-    { id: 2, src: Ticket, alt: "Ticket", name: "Ticket", type: "want", userType: "want" },
-    { id: 3, src: Bill, alt: "Bill", name: "Bill", type: "need", userType: "need" },
-    { id: 4, src: LuxuryBags, alt: "LuxuryBags", name: "LuxuryBags", type: "want", userType: "want" },
-    { id: 5, src: Coffee, alt: "Coffee", name: "Coffee", type: "want", userType: "need" },
-    { id: 6, src: Car, alt: "Car", name: "Car", type: "need", userType: "need" },
-    { id: 7, src: Medicine, alt: "Medicine", name: "Medicine", type: "need", userType: "need" },
-    { id: 8, src: SmartPhone, alt: "SmartPhone", name: "SmartPhone", type: "want", userType: "want" },
-    { id: 9, src: House, alt: "House", name: "House", type: "need", userType: "need" },
-    { id: 10, src: Shirt, alt: "Shirt", name: "Shirt", type: "need", userType: "want" },
-];
 
 const listVariants = {
     hidden: {},
@@ -165,24 +147,95 @@ export default function Unit2Level1ResultPage() {
     const { state } = useLocation();
     const prefersReducedMotion = useReducedMotion();
 
-    const pass = state?.pass ?? false;
-    const rawItems = state?.items ?? FALLBACK_ITEMS;
-    const items = rawItems.map((item) => ({
-        ...item,
-        correct: item.type === item.userType,
-    }));
-    const score = state?.score ?? items.filter((i) => i.correct).length;
-    const correctCount = items.filter((i) => i.correct).length;
-    const wrongCount = items.length - correctCount;
+    /*
+     * ผลจริงจาก Backend (completeGame ของ level_id=5) — ไม่มีการ
+     * คำนวณ pass/score/items ที่ Frontend อีกต่อไป เดิมหน้านี้รับค่า
+     * ที่ Frontend คำนวณเองผ่าน router state (ไม่เคยตรวจกับ DB) และ
+     * มี FALLBACK_ITEMS/ข้อความ hardcode ไว้เผื่อไม่มี state เลย ซึ่ง
+     * ทำให้ดูผลลัพธ์ปลอมได้ถ้าเข้าหน้านี้ตรง ๆ — ตอนนี้ถ้าไม่มีผลจริง
+     * ส่งมา ให้ถือว่าเข้าหน้านี้มาไม่ถูกทาง พากลับไปเล่นใหม่แทน
+     */
+    const result = state?.result;
 
-    const verdictWord = pass ? "ผ่านแล้ว" : "ยังไม่ผ่าน";
+    useEffect(() => {
+        if (!result) {
+            navigate("/unit2/level1", { replace: true });
+        }
+    }, [result, navigate]);
+
+    const pass = result?.is_pass ?? false;
+    const status = result?.status;
+    const items = result?.items ?? [];
+    const score = result?.score ?? 0;
+    const maxScore = result?.max_score ?? items.length;
+    const earnedIP = result?.earned_ip ?? 0;
+    const baseIP = result?.base_ip ?? 0;
+    const bonusIP = result?.bonus_ip ?? 0;
+    const totalIntegrityPoints = result?.total_integrity_points ?? 0;
+
+    /*
+     * ข้อความ verdict/feedback — ดึงจาก DB (level_result_messages,
+     * level_id=5, status PASS/FAIL) เหมือนแนวทางที่ใช้กับ Level 2/3
+     * เดิมข้อความเหล่านี้ hardcode ไว้ในไฟล์นี้ตรง ๆ
+     */
+    const [resultText, setResultText] = useState(null);
+    const [messageError, setMessageError] = useState(false);
+
+    useEffect(() => {
+        if (!status) return;
+
+        const fetchResultMessage = async () => {
+            try {
+                setMessageError(false);
+
+                const response = await fetch(
+                    `${API_URL}/api/level-result/${LEVEL_ID}/${status}`
+                );
+
+                if (!response.ok) {
+                    throw new Error("โหลดข้อความผลลัพธ์ไม่สำเร็จ");
+                }
+
+                const data = await response.json();
+                setResultText(data.data);
+            } catch (error) {
+                console.error("Fetch Result Message Error:", error);
+                setMessageError(true);
+            }
+        };
+
+        fetchResultMessage();
+    }, [status]);
+
+    const verdictWord = resultText?.verdict_label ?? (pass ? "ผ่านแล้ว" : "ยังไม่ผ่าน");
     const sealColor = pass ? "#3F5A34" : "#7A2E2E";
 
-    // ตัวละคร
+    /*
+     * รูปตัวละคร — ยังเป็นไฟล์ local 2 รูปตายตัวตามผล PASS/FAIL
+     * (ไม่ใช่เนื้อหาที่ทีม content ต้องแก้บ่อยเหมือนข้อความ จึงยังไม่
+     * ย้ายเข้า DB รอบนี้ ต่างจาก character_image ของ FinalLevel ที่มี
+     * ถึง 4 แบบตาม Rank และเก็บเป็น asset สาธารณะอยู่แล้ว)
+     */
     const characterImg = pass ? GoalCelebration : SadExpression;
     const charGlowColor = pass
         ? "rgba(238, 233, 124, 0.6)"
         : "rgba(220,80,80,0.55)";
+
+    // เสียงผลลัพธ์ เล่นครั้งเดียวตอนหน้าผลลัพธ์แสดงขึ้นมา ไม่วน
+    // ผ่าน → Bonus / ไม่ผ่าน → GameOver
+    const [muted] = useGameMuted();
+    const soundPlayedRef = useRef(false);
+
+    useEffect(() => {
+        if (!result || !resultText || soundPlayedRef.current) return;
+        soundPlayedRef.current = true;
+
+        if (muted) return;
+
+        const audio = new Audio(pass ? bonusSound : gameOverSound);
+        audio.volume = 0.1;
+        audio.play().catch(() => { });
+    }, [result, resultText, pass, muted]);
 
     const [showExplosion, setShowExplosion] = useState(true);
     useEffect(() => {
@@ -202,6 +255,21 @@ export default function Unit2Level1ResultPage() {
     const handleRetry = () => navigate("/unit2/level1");
     const handleNext = () => navigate("/unit2/level2/intro");
     const handleBackMap = () => navigate("/map");
+
+    if (!result || !resultText) {
+        return (
+            <div
+                className="min-h-screen flex items-center justify-center bg-cover bg-center sarabun-bold"
+                style={{ backgroundImage: `url(${bgGame})` }}
+            >
+                <p className="text-xl text-white drop-shadow">
+                    {messageError
+                        ? "ไม่สามารถโหลดข้อมูลผลลัพธ์ได้"
+                        : "กำลังโหลดผลลัพธ์..."}
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div
@@ -311,17 +379,17 @@ export default function Unit2Level1ResultPage() {
                     {/* เนื้อหา */}
                     <div className="relative z-10 flex flex-col items-center px-10 pt-10 pb-10 sarabun-bold">
                         <p className="text-sm mb-1" style={{ color: "#5a4326" }}>
-                            บันทึกการตัดสินใจใช้สอย
+                            บันทึกการตัดสินใจ
                         </p>
 
                         <h1
-                            className="text-2xl md:text-3xl font-black mb-3 text-center"
+                            className="text-xl md:text-2xl font-black mb-3 text-center"
                             style={{
                                 color: "#000000",
                                 textShadow: "0 1px 0 rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.12)",
                             }}
                         >
-                            {pass ? "จำแนก 'ความจำเป็น' และ 'ความต้องการ' สำเร็จ" : "ทบทวนการตัดสินใจ"}
+                            {resultText.title}
                         </h1>
 
                         {/* รายการสินค้าแบบลิสต์บนกระดาษ */}
@@ -336,37 +404,37 @@ export default function Unit2Level1ResultPage() {
                             >
                                 {items.map((item) => (
                                     <motion.li
-                                        key={item.id}
+                                        key={item.item_id}
                                         variants={lineVariants}
                                         className="flex items-center justify-between gap-3 px-3 py-1.5 rounded-md"
                                         style={{
-                                            background: item.correct
+                                            background: item.is_correct
                                                 ? "rgba(63,90,52,0.08)"
                                                 : "rgba(122,46,46,0.08)",
                                         }}
                                     >
                                         <span className="flex items-center gap-2 min-w-0">
                                             <img
-                                                src={item.src}
-                                                alt={item.alt}
+                                                src={item.image}
+                                                alt={item.name}
                                                 className="w-6 h-6 object-contain shrink-0"
                                                 style={{
-                                                    filter: item.correct
+                                                    filter: item.is_correct
                                                         ? "none"
                                                         : "grayscale(70%)",
-                                                    opacity: item.correct ? 1 : 0.55,
+                                                    opacity: item.is_correct ? 1 : 0.55,
                                                 }}
                                             />
 
                                             <span
                                                 className="shrink-0 text-sm font-bold"
                                                 style={{
-                                                    color: item.correct
+                                                    color: item.is_correct
                                                         ? "#3F5A34"
                                                         : "#7A2E2E",
                                                 }}
                                             >
-                                                {item.correct ? "✓" : "✕"}
+                                                {item.is_correct ? "✓" : "✕"}
                                             </span>
 
                                             <span
@@ -381,7 +449,7 @@ export default function Unit2Level1ResultPage() {
                                             className="text-xs uppercase tracking-wide shrink-0 font-bold"
                                             style={{ color: "#6b5636" }}
                                         >
-                                            {item.type}
+                                            {item.correct_type_label || item.correct_type}
                                         </span>
                                     </motion.li>
                                 ))}
@@ -397,31 +465,54 @@ export default function Unit2Level1ResultPage() {
 
                         </div>
 
-                        {/* สรุปคะแนน */}
+                        {/* สรุปคะแนน + IP */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: scoreDelay - 0.1 }}
                             className="w-full max-w-md mb-4"
                         >
-                            <div className="    flex items-center justify-between text-lg font-black" style={{ color: "#3B2A1E" }}>
+                            <div className="flex items-center justify-between text-sm font-black" style={{ color: "#3B2A1E" }}>
                                 <span className="uppercase tracking-wide">คะแนนรวม</span>
-                                <span className="tabular-nums">{animatedScore} / {MAX_SCORE}</span>
+                                <span className="tabular-nums">{animatedScore} / {maxScore}</span>
                             </div>
-                            <p className="text-sm font-light">คุณได้เรียนรู้ผ่านการลงมือจำแนกสิ่งของ และทบทวนเหตุผลในการตัดสินใจว่าอะไรคือ “ความจำเป็น” และอะไรคือ “ความต้องการ”</p>
+
+                            {pass && (
+                                <div className="flex items-center justify-between text-base font-bold mt-1" style={{ color: "#2F6B4F" }}>
+                                    <span>Integrity Points</span>
+                                    <span className="tabular-nums">
+                                        +{earnedIP} IP
+                                        {bonusIP > 0 && (
+                                            <span className="ml-1 text-xs font-semibold" style={{ color: "#8A6D3B" }}>
+                                                (พื้นฐาน {baseIP} + โบนัสรอบแรก {bonusIP})
+                                            </span>
+                                        )}
+                                    </span>
+                                </div>
+                            )}
+
+                            <p className="text-sm font-light mt-2">
+                                {resultText.description}
+                            </p>
                         </motion.div>
 
                         <div className="flex flex-row gap-3 mt-1 justify-center items-center w-full">
-                            <button onClick={handleBackMap} className="box-button-result ">
-                                <div className="button-box-result"><span>กลับหน้าหลัก</span></div>
+                            <button onClick={handleBackMap} className="button-finish-game gray">
+                                <span className="button-finish-game-top">กลับหน้าหลัก</span>
+                                <span className="button-finish-game-bottom"></span>
+                                <span className="button-finish-game-base"></span>
                             </button>
                             {pass ? (
-                                <button onClick={handleNext} className="box-button-result button-green">
-                                    <div className="button-box-result"><span>ไปด่านต่อไป</span></div>
+                                <button onClick={handleNext} className="button-finish-game green">
+                                    <span className="button-finish-game-top">ไปด่านต่อไป</span>
+                                    <span className="button-finish-game-bottom"></span>
+                                    <span className="button-finish-game-base"></span>
                                 </button>
                             ) : (
-                                <button onClick={handleRetry} className="box-button-result">
-                                    <div className="button-box-result"><span>ลองใหม่อีกครั้ง</span></div>
+                                <button onClick={handleRetry} className="button-finish-game red">
+                                    <span className="button-finish-game-top">ลองใหม่อีกครั้ง</span>
+                                    <span className="button-finish-game-bottom"></span>
+                                    <span className="button-finish-game-base"></span>
                                 </button>
                             )}
                         </div>

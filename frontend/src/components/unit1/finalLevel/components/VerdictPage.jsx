@@ -11,17 +11,19 @@ export default function VerdictPage({
     onNext,
     onRestart,
 }) {
-    /*
-     * เมื่อตอบคำถามผิด → หลักฐานถือว่าไม่ผ่านด้วย
-     * (ไม่ว่าจะเลือกหลักฐานถูกต้องก่อนหน้าแค่ไหน)
-     */
+
+    //เมื่อตอบคำถามผิด → หลักฐานถือว่าไม่ผ่านด้วย (ไม่ว่าจะเลือกหลักฐานถูกต้องก่อนหน้าแค่ไหน)
     const displayEvidenceOk = isCorrect && evidenceResult;
+
+    const explainText = isCorrect
+        ? currentCase.correctExplain
+        : currentCase.wrongExplain;
 
     return (
         <div
             className="cid-paper border-4 border-black h-full p-6 border flex flex-col items-center justify-center gap-4"
         >
-            {/* ── stamp ── */}
+            {/* stamp */}
             <div
                 className="inline-block px-6 py-3 rounded-lg border-4 mb-4 cid-stamp-anim"
                 style={{
@@ -34,20 +36,20 @@ export default function VerdictPage({
                 </p>
             </div>
 
-            {/* ── คำอธิบาย ── */}
-            <div
-                className="rounded-lg p-4 mb-3 text-left"
-                style={{ backgroundColor: "#EDE1C4" }}
-            >
-                <p
-                    className="text-base leading-relaxed"
-                    style={{ color: "#3A2E1B" }}
+            {/* คำอธิบาย */}
+            {explainText && (
+                <div
+                    className="rounded-lg p-4 mb-3 text-left"
+                    style={{ backgroundColor: "#EDE1C4" }}
                 >
-                    {isCorrect
-                        ? currentCase.correctExplain
-                        : currentCase.wrongExplain}
-                </p>
-            </div>
+                    <p
+                        className="text-base leading-relaxed"
+                        style={{ color: "#3A2E1B" }}
+                    >
+                        {explainText}
+                    </p>
+                </div>
+            )}
 
             {/* ── ผลหลักฐาน ── */}
             <div
