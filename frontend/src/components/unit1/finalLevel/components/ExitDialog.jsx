@@ -6,6 +6,7 @@ export default function ExitDialog({
     onResume,
     onRestart,
     onExit,
+    hideResume,
 }) {
     if (!isOpen) return null;
 
@@ -49,18 +50,20 @@ export default function ExitDialog({
                 </p>
 
                 <div className="flex flex-col gap-3">
-                    <button
-                        type="button"
-                        onClick={onResume}
-                        className="button w-40 mx-auto"
-                    >
-                        <div className="outline"></div>
+                    {!hideResume && (
+                        <button
+                            type="button"
+                            onClick={onResume}
+                            className="button w-40 mx-auto"
+                        >
+                            <div className="outline"></div>
 
-                        <span className="relative z-10 flex items-center gap-3">
-                            <FaPlay />
-                            เล่นต่อ
-                        </span>
-                    </button>
+                            <span className="relative z-10 flex items-center gap-3">
+                                <FaPlay />
+                                เล่นต่อ
+                            </span>
+                        </button>
+                    )}
 
                     <button
                         type="button"

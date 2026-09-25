@@ -4,6 +4,7 @@ export default function FormSelect({
     onChange,
     children,
     className = "",
+    focusClass = "focus:border-blue-500 focus:ring-blue-100",
 }) {
     return (
         <select
@@ -11,20 +12,13 @@ export default function FormSelect({
             value={value}
             onChange={onChange}
             className={`
-        w-full
-        bg-white
-        rounded-xl
-        px-4
-        py-3
-        border
-        border-gray-300
-        font-semibold
-        focus:outline-none
-        focus:ring-2
-        focus:ring-blue-400
-        transition
-        ${className}
-      `}
+                w-full rounded-lg border border-gray-300 bg-white
+                px-3.5 py-3 text-sm
+                ${value ? "text-gray-800" : "text-gray-400"}
+                transition focus:outline-none focus:ring-4
+                ${focusClass}
+                ${className}
+            `}
         >
             {children}
         </select>

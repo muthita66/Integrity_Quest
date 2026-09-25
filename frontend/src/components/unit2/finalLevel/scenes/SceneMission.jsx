@@ -1,7 +1,57 @@
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { FaPlay, FaCheckCircle, FaHome } from "react-icons/fa";
+import { IoMdSkipForward } from "react-icons/io";
+import { MdTimer, MdWarning } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
+
+import "../../../../styles/unit1/Level1/button.css";
 import SceneMissionBg from "../../../../assets/unit2/FinalLevel/intro/sceneMission.png";
 
-export default function SceneMission({ onBack, startMission }) {
+export default function SceneMission({
+    scene,
+    onNext,
+    onBack,
+    handleSkip,
+    currentScene,
+    totalScenes,
+}) {
+    const navigate = useNavigate();
+
+    // self-fetch เมื่อถูก render โดยตรงจาก Route (ไม่มี scene prop)
+    const [fetchedScene, setFetchedScene] = useState(null);
+
+    useEffect(() => {
+        if (!scene) {
+            fetch("http://localhost:5000/api/introDialog/level/7")
+                .then((res) => res.json())
+                .then((data) => {
+                    // หา scene ที่มี sceneMission (scene_type_id = 2)
+                    const missionScene = data.find(
+                        (s) => s.sceneMission && s.sceneMission.length > 0
+                    );
+                    if (missionScene) setFetchedScene(missionScene);
+                })
+                .catch((err) => console.error("Error fetching scene:", err));
+        }
+    }, [scene]);
+
+    const activeScene = scene || fetchedScene;
+    const mission = activeScene?.sceneMission?.[0];
+    const rules = mission?.sceneMissionRules || [];
+
+    // สีของแต่ละ rule_id
+    const getRuleStyle = (ruleId) => {
+        switch (ruleId) {
+            case 1:
+                return "bg-yellow-50 border-yellow-200";
+            case 2:
+                return "bg-green-50 border-green-200";
+            case 3:
+                return "bg-red-50 border-red-200";
+            default:
+                return "bg-gray-50 border-gray-200";
+        }
+    };
     return (
         <div className="relative w-full h-screen overflow-hidden">
             {/* Background */}
@@ -11,113 +61,135 @@ export default function SceneMission({ onBack, startMission }) {
                 className="absolute inset-0 w-full h-full object-cover object-top"
             />
 
-            {/* Mission content */}
-            <div className="relative z-10 flex flex-col items-center justify-end h-full px-5 pb-10 md:pb-14 sarabun-bold">
+            {/* Skip Button */}
+            <button
+                type="button"
+                onClick={handleSkip}
+                className={`
+                    absolute top-4 right-20 z-20
+                    rounded-full border-2 border-white/80
+                    bg-black/40 p-2
+                    text-white shadow-lg
+                    backdrop-blur-sm
+                    transition-all duration-300
+                    hover:scale-105 hover:bg-black/60
+                    active:scale-95
+                    ${currentScene < totalScenes - 1 ? "" : "invisible"}
+                `}
+            >
+                <IoMdSkipForward className="text-2xl" />
+            </button>
 
-                {/* Mission Card */}
-                <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="mx-auto w-full max-w-3xl rounded-[26px] border-4 border-black bg-yellow-50/90 px-8 py-6 text-center shadow-2xl"
-                >
-                    <motion.p
-                        initial={{ opacity: 0, letterSpacing: "0.05em" }}
-                        animate={{ opacity: 1, letterSpacing: "0.3em" }}
-                        transition={{ duration: 0.6, delay: 0.1 }}
-                        className="text-amber-600 font-black text-sm tracking-[0.3em] mb-1"
-                    >
-                        FINAL LEVEL
-                    </motion.p>
-                    <h2 className="text-2xl font-black text-black md:text-4xl">
-                        วันแห่งการตัดสินใจ
-                    </h2>
+            {/* Home Button */}
+            <button
+                type="button"
+                onClick={() => navigate('/map')}
+                className={`
+                    absolute top-4 right-4 z-20
+                    rounded-full border-2 border-white/80
+                    bg-black/40 p-2
+                    text-white shadow-lg
+                    backdrop-blur-sm
+                    transition-all duration-300
+                    hover:scale-105 hover:bg-black/60
+                    active:scale-95
+                `}
+            >
+                <FaHome className="text-2xl" />
+            </button>
 
-                    <p className="mt-1 text-base font-bold text-black md:text-lg">
-                        ตอบคำถามให้ถูกต้อง และบริหารเงินให้ไม่หมดก่อนจบวัน
-                    </p>
+            {/* Game Instruction Box */}
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 w-[90%] max-w-4xl">
+                <div className="rounded-3xl border border-white/70 bg-white/55 px-8 py-5 shadow-2xl backdrop-blur-md">
+                    {/* Header */}
+                    <div className="text-center mb-5">
+                        <h2 className="text-2xl md:text-3xl font-bold text-black sarabun-bold">
+                            {mission?.title || "ภารกิจ : วันแห่งการตัดสินใจ"}
+                        </h2>
 
-                    {/* Rules */}
-                    <div className="mx-auto mt-4 grid w-full grid-cols-1 gap-3 md:grid-cols-3">
-
-                        {/* เวลา */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.15 }}
-                            className="flex flex-col items-center rounded-2xl border-4 border-yellow-400 bg-yellow-300 p-2 text-center text-black shadow-lg"
-                        >
-                            <h3 className="text-base font-black text-black">
-                                เวลา
-                            </h3>
-                            <p className="text-sm font-bold">
-                                30 วินาที / ข้อ
-                            </p>
-                        </motion.div>
-
-                        {/* เป้าหมาย */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="flex flex-col items-center rounded-2xl border-4 border-green-500 bg-green-400 p-2 text-center text-black shadow-lg"
-                        >
-                            <h3 className="text-base font-black text-black">
-                                เป้าหมาย
-                            </h3>
-                            <p className="text-sm font-bold leading-tight">
-                                ตอบให้ถูก 8/10 ข้อ และเงินห้ามหมด
-                            </p>
-                        </motion.div>
-
-                        {/* ข้อควรระวัง */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.45 }}
-                            className="flex flex-col items-center rounded-2xl border-4 border-red-500 bg-red-400 p-2 text-center text-black shadow-lg"
-                        >
-                            <h3 className="text-base font-black text-black">
-                                ข้อควรระวัง
-                            </h3>
-                            <p className="text-sm font-bold leading-tight">
-                                คิดถึงความจำเป็นและเงินคงเหลือ
-                            </p>
-                        </motion.div>
-
+                        <p className="mt-0 text-base md:text-lg text-black sarabun-bold">
+                            {mission?.subtitle || "ตอบคำถามให้ถูกต้อง และบริหารเงินให้ไม่หมดก่อนจบวัน"}
+                        </p>
                     </div>
 
-                    {/* Buttons - อยู่ในกรอบ */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                            delay: 0.65,
-                            duration: 0.45,
-                            ease: "easeOut",
-                        }}
-                        className="mt-5 flex w-full items-center justify-center gap-4"
-                    >
+                    {/* Description */}
+                    <div className="rounded-2xl bg-purple-50 px-5 py-4 mb-5">
+                        <p className="text-center text-gray-700 text-sm md:text-md leading-relaxed sarabun-bold">
+                            {mission?.text || ""}
+                        </p>
+                    </div>
+
+                    {/* Rules */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                        {rules.map((rule) => (
+                            <div
+                                key={rule.id}
+                                className={`rounded-2xl border px-4 py-2 text-center ${getRuleStyle(rule.rule_id)}`}>
+                                {rule.image_path && (
+                                    <div className="mb-1 mx-auto flex justify-center">
+                                        <img
+                                            src={`/image/${rule.image_path}`}
+                                            alt={rule.title || "Rule"}
+                                            className="w-12 h-12 object-contain" />
+                                    </div>
+                                )}
+
+                                <p className="font-bold text-gray-800 sarabun-bold">
+                                    {rule.title || ""}
+                                </p>
+
+                                <p className="text-sm text-gray-600 mt-1 sarabun-light whitespace-pre-line">
+                                    {rule.description || ""}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Start Button & Back */}
+                    <div className="flex w-full justify-center gap-6 items-center">
                         <button
                             type="button"
-                            onClick={onBack}
-                            className="button-with-icon-introScenes button-gray icon-left"
+                            onClick={() => {
+                                if (onBack) onBack();
+                                else navigate('/unit2/final/start');
+                            }}
+                            className="circle-play-button yellow"
                         >
-                            <span className="icon">◀</span>
-                            <span className="text">ย้อนกลับ</span>
+                            <div className="circle-play-button__outer">
+                                <div className="circle-play-button__shadow"></div>
+                                <div className="circle-play-button__main">
+                                    <FaPlay
+                                        className="circle-play-button__icon scale-x-[-1]"
+                                        size={26}
+                                    />
+                                </div>
+                            </div>
                         </button>
 
                         <button
                             type="button"
-                            onClick={startMission}
-                            className="button-with-icon-introScenes button-green icon-right"
+                            className="circle-play-button blue"
+                            onClick={() => {
+                                if (onNext) onNext();
+                                else navigate('/unit2/final');
+                            }}
+                            aria-label="เริ่มภารกิจ"
                         >
-                            <span className="text">เริ่มเกม</span>
-                            <span className="icon">▶</span>
-                        </button>
-                    </motion.div>
-                </motion.div>
+                            <div className="circle-play-button__outer">
+                                {/* เงาด้านหลัง */}
+                                <div className="circle-play-button__shadow"></div>
 
+                                {/* วงกลมหลัก */}
+                                <div className="circle-play-button__main">
+                                    <FaPlay
+                                        className="circle-play-button__icon"
+                                        size={26}
+                                    />
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );

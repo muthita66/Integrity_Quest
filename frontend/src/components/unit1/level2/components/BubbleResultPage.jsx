@@ -1,16 +1,21 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import ConfettiExplosion from "react-confetti-explosion";
 
 import bgGame from "../../../../assets/unit1/level2/bgBubble.png";
-import LogoPass from "../../../../assets/unit1/level2/result/LogoPass.png";
-import LogoFailed from "../../../../assets/unit1/level2/result/LogoFailed.png";
-import ResultPass from "../../../../assets/unit1/level2/result/Pass.png";
-import ResultFailed from "../../../../assets/unit1/level2/result/Failed.png";
 import ButtonPass from "../../../../assets/unit1/button/buttonPass.png";
 import ButtonRetry from "../../../../assets/unit1/button/buttonFailed.png";
 import Button from "../../../../assets/unit1/button/button.png";
+
+import bonusSound from "../../../../assets/sounds/BackgroundGame/Bonus.mp3";
+import goodSound from "../../../../assets/sounds/BackgroundGame/Good.mp3";
+import useGameMuted from "../../../../hooks/useGameMuted";
+
+// character_image / mirror_image ที่เก็บใน DB เป็น path เต็มของไฟล์
+// ในโฟลเดอร์ public (เช่น "/image/unit1/Result/LevelTwo/ResultPass.png")
+// จึงใช้เป็น src ของ <img> ได้ตรง ๆ ไม่ต้อง import ผ่าน JS
+const LEVEL_ID = 2;
 
 // ละอองแสงลอย — ตำแหน่งคงที่
 const PARTICLES = [
@@ -24,16 +29,84 @@ const PARTICLES = [
     { left: "90%", top: "70%", size: 5, delay: "2.1s", dur: "7.5s", opacity: 0.6 },
 ];
 
+const getToken = () => {
+    return localStorage.getItem("token");
+};
+
 export default function BubbleResultPage() {
     const navigate = useNavigate();
 
-    const score = Number(localStorage.getItem("bubbleScore")) || 0;
-    const status = localStorage.getItem("bubbleStatus") || "lose";
+    // ----------------------------------------------------------
+    // ผลลัพธ์ของรอบนี้ (ค่าที่เปลี่ยนทุกครั้งที่เล่น)
+    // เก็บมาจาก completeGame() ตอนจบเกม — ดูจุดที่ setItem ใน
+    // useBossGame.js (key: "level2Result")
+    // ----------------------------------------------------------
+    const [playResult, setPlayResult] = useState(() => {
+        try {
+            const raw = localStorage.getItem("level2Result");
+            return raw ? JSON.parse(raw) : null;
+        } catch (err) {
+            console.error("อ่าน level2Result ไม่สำเร็จ:", err);
+            return null;
+        }
+    });
 
-    const isPerfect = status === "win";
-    const shouldRetry = status === "lose";
+    // status จาก backend เป็น "PERFECT" หรือ "PASS" เสมอ
+    // (Level 2 จบเกมได้แค่ 2 สถานะนี้ ไม่มี FAIL ค้าง)
+    const status = playResult?.status || "PASS";
+    const isPerfect = status === "PERFECT";
+    const shouldRetry = false; // หน้านี้มาถึงได้ก็ต่อเมื่อจบเกมสำเร็จแล้วเท่านั้น
 
-    const characterImg = isPerfect ? ResultPass : ResultFailed;
+    // ----------------------------------------------------------
+    // ข้อความ Static จาก DB (level_result_messages) — ไม่ hardcode
+    // เนื้อหาซ้ำในไฟล์นี้ ถ้ายังไม่มาก็โชว์ loading จนกว่าจะมาถึง
+    // ----------------------------------------------------------
+    const [resultText, setResultText] = useState(null);
+    const [messageError, setMessageError] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const fetchResultMessage = async () => {
+            try {
+                const token = getToken();
+
+                const response = await fetch(
+                    `http://localhost:5000/api/level-result/${LEVEL_ID}/${status}`,
+                    {
+                        headers: token
+                            ? { Authorization: `Bearer ${token}` }
+                            : {},
+                    }
+                );
+
+                if (!response.ok) {
+                    if (!cancelled) setMessageError(true);
+                    return;
+                }
+
+                const result = await response.json();
+
+                if (!cancelled && result?.data) {
+                    setResultText(result.data);
+                }
+            } catch (err) {
+                console.error(
+                    "ดึงข้อความ Result ไม่สำเร็จ:",
+                    err
+                );
+                if (!cancelled) setMessageError(true);
+            }
+        };
+
+        fetchResultMessage();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [status]);
+
+    const characterImg = resultText?.character_image;
 
     const charGlowColor = shouldRetry
         ? "rgba(220,80,80,0.55)"
@@ -48,8 +121,7 @@ export default function BubbleResultPage() {
     }, [isPerfect]);
 
     const handleReplay = () => {
-        localStorage.removeItem("bubbleScore");
-        localStorage.removeItem("bubbleStatus");
+        localStorage.removeItem("level2Result");
         localStorage.removeItem("bonusHP");
         navigate("/unit1/level2");
     };
@@ -58,7 +130,6 @@ export default function BubbleResultPage() {
         navigate("/map");
     };
 
-    const verdictWord = shouldRetry ? "ไม่ผ่าน" : "ผ่าน";
     const sealColor = shouldRetry ? "#7A2E2E" : "#3F5A34";
 
     const [showExplosion, setShowExplosion] = useState(true);
@@ -66,6 +137,59 @@ export default function BubbleResultPage() {
         const timer = setTimeout(() => setShowExplosion(false), 2200);
         return () => clearTimeout(timer);
     }, []);
+
+    // ----------------------------------------------------------
+    // IP ที่ได้รอบนี้
+    // ----------------------------------------------------------
+    const bubbleIP = playResult?.bubble_ip ?? 0;
+    const bonusIP = playResult?.bonus_ip ?? 0;
+    const earnedIP = playResult?.earned_ip ?? bubbleIP + bonusIP;
+    const totalIP = playResult?.total_integrity_points ?? null;
+
+    // ----------------------------------------------------------
+    // เสียงผลลัพธ์ เล่นครั้งเดียวตอนเปิดหน้า ไม่วน
+    // - ผ่านรอบแรก ได้โบนัส +3  → Bonus
+    // - ผ่านธรรมดา ไม่มีโบนัส   → Good
+    // (กรณีผิดจะเล่น GameOver ใน BossFailModal แทน)
+    // ----------------------------------------------------------
+    const [muted] = useGameMuted();
+    const soundPlayedRef = useRef(false);
+    const gotBonus = isPerfect && bonusIP > 0;
+
+    useEffect(() => {
+        // รอให้ข้อความจาก DB มาก่อน เสียงจะได้ดังพร้อมหน้าจอผลลัพธ์
+        if (!resultText || soundPlayedRef.current) return;
+        soundPlayedRef.current = true;
+
+        if (muted) return;
+
+        const audio = new Audio(gotBonus ? bonusSound : goodSound);
+        audio.volume = 0.6;
+        audio.play().catch(() => { });
+    }, [resultText, gotBonus, muted]);
+
+    // ----------------------------------------------------------
+    // ระหว่างรอ fetch ข้อความจาก DB — ไม่มี fallback text/image
+    // hardcode ในไฟล์นี้แล้ว ต้องรอข้อมูลจริงจาก DB เท่านั้น
+    // ----------------------------------------------------------
+    if (!resultText) {
+        return (
+            <div
+                className="h-screen w-screen flex items-center justify-center bg-cover bg-center"
+                style={{ backgroundImage: `url(${bgGame})` }}
+            >
+                <div className="bg-white/90 border-4 border-black rounded-2xl px-10 py-6 text-center shadow-[6px_6px_0px_black]">
+                    <p className="text-2xl sarabun-bold">
+                        {messageError
+                            ? "ไม่สามารถโหลดข้อมูลผลลัพธ์ได้"
+                            : "กำลังโหลดผลลัพธ์..."}
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    const verdictWord = resultText.verdict_label;
 
     return (
         <div
@@ -186,7 +310,11 @@ export default function BubbleResultPage() {
                     />
 
                     <div className="relative z-50 flex flex-col items-center px-12 pt-20 pb-10">
-                        <img src={isPerfect ? LogoPass : LogoFailed} alt="" className="w-50 h-50 object-contain absolute -top-20 left-1/2 -translate-x-1/2" />
+                        <img
+                            src={resultText.mirror_image}
+                            alt=""
+                            className="w-50 h-50 object-contain absolute -top-20 left-1/2 -translate-x-1/2"
+                        />
 
                         <h1
                             className="text-3xl md:text-4xl font-black mt-12 mb-3 text-center"
@@ -195,31 +323,45 @@ export default function BubbleResultPage() {
                                 textShadow: "0 1px 0 rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.12)",
                             }}
                         >
-                            {shouldRetry ? "ภารกิจไม่สำเร็จ!" : "ภารกิจสำเร็จ!"}
+                            {resultText.title}
                         </h1>
 
                         <div className="w-40 h-[3px] mb-5 rounded-full" style={{ background: "#8a6a3c", opacity: 0.5 }} />
 
                         <p
-                            className="text-lg font-semibold mb-6 text-center leading-relaxed"
+                            className="text-lg font-semibold mb-4 text-center leading-relaxed"
                             style={{ color: "#4a3826" }}
                         >
-                            {isPerfect ? (
-                                <>
-                                    คุณสามารถปกป้องแนวคิดที่ถูกต้อง และไม่หลงเชื่อต่อเหตุผลที่บิดเบือน <br />
-                                    <span className="font-extrabold text-xl" style={{ color: "#3F5A34" }}>
-                                        พลังแห่งความซื่อสัตย์ของคุณแข็งแกร่งขึ้น <br /> พร้อมสำหรับบททดสอบถัดไป
-                                    </span>
-                                </>
-                            ) : (
-                                <>
-                                    คุณยังแยกแยะเหตุผลที่บิดเบือนออกจากเหตุผลที่ถูกต้องได้ไม่ครบ<br />
-                                    <span className="font-extrabold text-xl" style={{ color: "#7A2E2E" }}>
-                                        ทบทวนแต่ละแนวคิดอย่างรอบคอบ <br />แล้วกลับมาพิสูจน์การตัดสินใจของคุณอีกครั้ง
-                                    </span>
-                                </>
-                            )}
+                            {resultText.description} <br />
+                            <span
+                                className="font-extrabold text-xl"
+                                style={{ color: isPerfect ? "#3F5A34" : "#8a6a3c" }}
+                            >
+                                {resultText.highlight_text}
+                            </span>
                         </p>
+
+                        {/* ----------------------------------------------------
+                            ป้าย IP ที่ได้รอบนี้
+                        ---------------------------------------------------- */}
+                        <div className="mb-5 flex items-center gap-2">
+                            <span className="text-2xl font-black"
+                                style={{ color: "#3F5A34" }}>
+                                +{earnedIP} IP
+                            </span>
+
+                            {isPerfect && bonusIP > 0 && (
+                                <span
+                                    className="text-sm font-bold px-2 py-0.5 rounded-full"
+                                    style={{
+                                        background: "#F3DB59",
+                                        color: "#5A4416",
+                                    }}
+                                >
+                                    โบนัสผ่านรอบแรก +{bonusIP}
+                                </span>
+                            )}
+                        </div>
 
                         <div
                             className="mb-7 px-6 py-1.5 select-none text-xl"
@@ -255,41 +397,23 @@ export default function BubbleResultPage() {
                                     </span>
                                 </button>
                             </div>
-                            {shouldRetry ? (
-                                <div className="plaque-button-wrapper">
-                                    <button
-                                        onClick={handleReplay}
-                                        className="plaque-button"
-                                    >
-                                        <img
-                                            src={ButtonRetry}
-                                            alt=""
-                                            className="plaque-image"
-                                        />
 
-                                        <span className="plaque-text-red">
-                                            เล่นอีกครั้ง
-                                        </span>
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="plaque-button-wrapper">
-                                    <button
-                                        onClick={() => navigate("/unit1/final")}
-                                        className="plaque-button"
-                                    >
-                                        <img
-                                            src={ButtonPass}
-                                            alt=""
-                                            className="plaque-image"
-                                        />
+                            <div className="plaque-button-wrapper">
+                                <button
+                                    onClick={() => navigate("/unit1/final")}
+                                    className="plaque-button"
+                                >
+                                    <img
+                                        src={ButtonPass}
+                                        alt=""
+                                        className="plaque-image"
+                                    />
 
-                                        <span className="plaque-text-green">
-                                            ภารกิจถัดไป
-                                        </span>
-                                    </button>
-                                </div>
-                            )}
+                                    <span className="plaque-text-green">
+                                        ภารกิจถัดไป
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </motion.div>

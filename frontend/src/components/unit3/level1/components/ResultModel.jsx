@@ -1,10 +1,31 @@
-import ResultFailed from "../../../../assets/unit3/level1/resultFailed.png";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import ResultFailed from "../../../../assets/unit3/level1/resultFailed.png";
+import gameOverSound from "../../../../assets/sounds/BackgroundGame/GameOver.mp3";
+import useGameMuted from "../../../../hooks/useGameMuted";
 
 export default function ResultModel({ gameStatus, restartGame }) {
-    if (gameStatus === "playing") return null;
-
+    // hook ทุกตัวต้องอยู่ก่อน return เสมอ (เดิม useNavigate อยู่หลัง return null)
     const navigate = useNavigate();
+    const [muted] = useGameMuted();
+
+    // ภารกิจไม่สำเร็จ → เล่นเสียง GameOver ครั้งเดียว ไม่วน
+    useEffect(() => {
+        if (gameStatus !== "lose" || muted) return;
+
+        const audio = new Audio(gameOverSound);
+        audio.volume = 0.6;
+        audio.play().catch(() => { });
+
+        // กดเริ่มภารกิจใหม่ / กลับหน้าหลัก แล้วหยุดเสียงทันที
+        return () => {
+            audio.pause();
+            audio.src = "";
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gameStatus]);
+
+    if (gameStatus === "playing") return null;
 
     return (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">

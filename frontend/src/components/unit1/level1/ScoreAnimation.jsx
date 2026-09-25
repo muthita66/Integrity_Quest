@@ -22,46 +22,88 @@ export default function ScoreAnimation({
     const [step, setStep] = useState(1);
     const [text, setText] = useState("");
     const [skipped, setSkipped] = useState(false);
+
     const timersRef = useRef([]);
+
+    const { play: playKeyboard, stop: stopKeyboard } = useSound(
+        keyboardSfx,
+        {
+            volume: 0.5,
+            loop: true,
+        }
+    );
+
+    const { play: playUI } = useSound(
+        uiSoundSfx,
+        {
+            volume: 0.7,
+        }
+    );
+
+    const questionText = question?.question_text || "";
 
     const handleSkip = () => {
         timersRef.current.forEach(clearTimeout);
         timersRef.current = [];
+
         setSkipped(true);
-        setText(question.question);
+
+        setText(questionText);
+
         stopKeyboard();
+
         setStep(7);
     };
 
-    const { play: playKeyboard, stop: stopKeyboard } = useSound(keyboardSfx, { volume: 0.5, loop: true });
-    const { play: playUI } = useSound(uiSoundSfx, { volume: 0.7 });
-
     useEffect(() => {
+        if (!question) return;
+
         setStep(1);
         setText("");
         setSkipped(false);
 
         timersRef.current = [
-            setTimeout(() => setStep(2), 2000),
-            setTimeout(() => setStep(3), 3500),
-            setTimeout(() => setStep(4), 4500),
-            setTimeout(() => setStep(5), 6500),
-            setTimeout(() => setStep(6), 8000),
+            setTimeout(() => {
+                setStep(2);
+            }, 2000),
+
+            setTimeout(() => {
+                setStep(3);
+            }, 3500),
+
+            setTimeout(() => {
+                setStep(4);
+            }, 4500),
+
+            setTimeout(() => {
+                setStep(5);
+            }, 6500),
+
+            setTimeout(() => {
+                setStep(6);
+            }, 8000),
         ];
 
-        return () => timersRef.current.forEach(clearTimeout);
-    }, [question.question]);
+        return () => {
+            timersRef.current.forEach(clearTimeout);
+            timersRef.current = [];
+        };
+    }, [question?.question_id]);
 
     useEffect(() => {
         if (step !== 6) return;
         if (skipped) return;
+        if (!questionText) return;
 
         let i = 0;
+
+        setText("");
+
         playKeyboard();
 
         const typing = setInterval(() => {
             setText(
-                question.question.slice(
+                questionText.slice(
                     0,
                     i + 1
                 )
@@ -69,9 +111,7 @@ export default function ScoreAnimation({
 
             i++;
 
-            if (
-                i >= question.question.length
-            ) {
+            if (i >= questionText.length) {
                 clearInterval(typing);
                 stopKeyboard();
                 setStep(7);
@@ -82,12 +122,16 @@ export default function ScoreAnimation({
             clearInterval(typing);
             stopKeyboard();
         };
-    }, [step, question.question]);
+    }, [
+        step,
+        skipped,
+        questionText,
+    ]);
 
     return (
-        <AnimationLayout onSkip={handleSkip} showSkip={step < 7}>
-
-            {/* Background */}
+        <AnimationLayout
+            onSkip={handleSkip}
+            showSkip={step < 7}>
             <motion.img
                 src={
                     step >= 2
@@ -95,13 +139,7 @@ export default function ScoreAnimation({
                         : score1
                 }
                 alt=""
-                className="
-                    absolute
-                    inset-0
-                    w-full
-                    h-full
-                    object-cover
-                "
+                className="absolute inset-0 w-full h-full object-cover"
                 initial={{
                     opacity: 0,
                 }}
@@ -113,22 +151,13 @@ export default function ScoreAnimation({
                 }}
             />
 
-            {/* Dark Overlay */}
-            <div className="absolute inset-0 bg-black/20" />
-
-            {/* Friend */}
+            <div
+                className="absolute inset-0 bg-black/20" />
             {step >= 3 && (
                 <motion.img
                     src={friend}
                     alt=""
-                    className="
-                        absolute
-                        right-5
-                        bottom-0
-                        w-72
-                        md:w-75
-                        z-30
-                    "
+                    className="absolute right-5 bottom-0 w-72 md:w-75 z-30"
                     initial={{
                         x: -300,
                     }}
@@ -141,7 +170,6 @@ export default function ScoreAnimation({
                 />
             )}
 
-            {/* Friend Bubble */}
             {step >= 4 && (
                 <motion.div
                     initial={{
@@ -150,32 +178,14 @@ export default function ScoreAnimation({
                     animate={{
                         opacity: 1,
                     }}
-                    className="
-                        absolute
-                        right-[22%]
-                        top-[18%]
-                        bg-white
-                        text-black
-                        px-5
-                        py-3
-                        rounded-2xl
-                        shadow-xl
-                        z-40
-                    "
-                >
+                    className="absolute right-[22%] top-[18%] bg-white text-black px-5 py-3 rounded-2xl shadow-xl z-40">
                     เฮ้ย!เธอได้เยอะกว่าที่ทำได้นี่นา
                 </motion.div>
             )}
 
-            {/* Zoom Effect */}
             {step >= 5 && (
                 <motion.div
-                    className="
-                        absolute
-                        inset-0
-                        bg-black/30
-                        z-20
-                    "
+                    className="absolute inset-0 bg-black/30 z-20"
                     initial={{
                         opacity: 0,
                     }}
@@ -185,7 +195,6 @@ export default function ScoreAnimation({
                 />
             )}
 
-            {/* Guardian */}
             {step >= 6 && (
                 <motion.img
                     src={QuizImg}
@@ -204,8 +213,14 @@ export default function ScoreAnimation({
                     }}
                 />
             )}
-
-            {/* Choices */}
+            <QuestionBox
+                show={step >= 6}
+                text={text}
+                isTyping={
+                    step === 6 &&
+                    text.length < questionText.length
+                }
+            />
             <ChoiceButtons
                 show={step >= 7}
                 question={question}
@@ -214,12 +229,6 @@ export default function ScoreAnimation({
                 playUI={playUI}
             />
 
-            {/* Question Box */}
-            <QuestionBox
-                show={step >= 6}
-                text={text}
-                isTyping={true}
-            />
         </AnimationLayout>
     );
 }

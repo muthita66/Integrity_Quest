@@ -114,12 +114,27 @@ export default function FinalLevel() {
 
       <div className="absolute inset-0 bg-black/50" />
 
-      {/* Game-over popup (evidence limit or wrong verdict) */}
+      {/* Game-over popup (evidence limit or timeout) */}
       <GameOverPopup
         popup={game.gameOverPopup}
         onRestart={game.restartFailedCase}
         onDismiss={game.dismissGameOverPopup}
       />
+
+      {/*
+        แจ้ง error ที่เกิดจากการเรียก backend (เช่น completeGame
+        ล้มเหลวเพราะ Case ยังไม่ผ่านครบ) — เดิม game.error ไม่เคยถูก
+        render ที่ไหนเลย ทำให้กดปุ่มแล้ว "เงียบ" ไม่มีอะไรขึ้นเวลา
+        fetch ไม่สำเร็จ
+      */}
+      {game.error && game.stage !== "intro" && (
+        <div
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-[10001] max-w-lg w-[90%] rounded-xl border-4 border-black px-4 py-3 text-center shadow-lg"
+          style={{ backgroundColor: "#F5E2E2", color: "#A32638" }}
+        >
+          <p className="text-sm sarabun-bold">{game.error}</p>
+        </div>
+      )}
 
       {/* Intro — เต็มหน้าจอ ไม่จำกัดความกว้าง */}
       {game.stage === "intro" && (
@@ -131,13 +146,14 @@ export default function FinalLevel() {
       {/* เกม — จำกัดความกว้างและอยู่กึ่งกลาง */}
       {game.stage !== "intro" && (
         <div className="w-full max-w-6xl h-[650px] mx-auto mt-10 relative z-10">
-          <NavBar onRestart={game.restart} />
+          <NavBar onRestart={game.restart} stage={game.stage} />
           {game.stage === "title" && (
-            <TitleScreen onStart={() => game.setStage("select")} />
+            <TitleScreen onStart={game.startFinalLevel} />
           )}
 
           {game.stage === "select" && (
             <CaseSelect
+              cases={game.cases}
               caseIdx={game.caseIdx}
               results={game.results}
               unlockedCaseCount={game.unlockedCaseCount}
@@ -187,12 +203,17 @@ export default function FinalLevel() {
               evidenceResult={
                 game.evidenceResults[game.currentCase.id]
               }
+              failReason={
+                game.evidenceFailReasons[game.currentCase.id]
+              }
               retryCount={game.analysisRetryCount[game.currentCase.id] || 0}
               onTogglePick={game.toggleAnalysisPick}
               onSubmitAnalysis={game.submitAnalysis}
               onContinue={() => game.setStage("question")}
               onRetryAnalysis={game.retryAnalysis}
+              onTimerExpired={game.timerExpired}
             />
+
           )}
 
           {game.stage === "question" && (
@@ -217,12 +238,8 @@ export default function FinalLevel() {
 
           {game.stage === "end" && (
             <EndSummary
-              passCount={game.passCount}
-              evidencePassCount={game.evidencePassCount}
-              totalScore={game.totalScore}
-              results={game.results}
-              evidenceResults={game.evidenceResults}
-              rank={game.rank}
+              finalLevelResult={game.finalLevelResult}
+              cases={game.cases}
               onRestart={game.restart}
             />
           )}

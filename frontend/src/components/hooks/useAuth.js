@@ -1,12 +1,40 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login, register } from "../services/authService";
 import { getFaculties } from "../services/masterService";
+
+const initialLoginData = {
+    email: "",
+    password: "",
+};
+
+const initialRegisterData = {
+    // ข้อมูลบัญชี (ใช้ร่วมกัน)
+    username: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    gender: "",
+    faculty: "",
+
+    // นักเรียน
+    age: "",
+    major: "",
+    year: "",
+
+    // อาจารย์
+    department: "",
+    position: "",
+    inviteCode: "",
+};
 
 export default function useAuth() {
     const navigate = useNavigate();
 
     const [isLogin, setIsLogin] = useState(true);
+    const [role, setRole] = useState("student"); // "student" | "teacher"
 
     const [popup, setPopup] = useState({
         show: false,
@@ -17,23 +45,8 @@ export default function useAuth() {
     const [faculties, setFaculties] = useState([]);
     const [filteredMajors, setFilteredMajors] = useState([]);
 
-    const [loginData, setLoginData] = useState({
-        email: "",
-        password: "",
-    });
-
-    const [registerData, setRegisterData] = useState({
-        username: "",
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-        gender: "",
-        age: "",
-        faculty: "",
-        major: "",
-        year: "",
-    });
+    const [loginData, setLoginData] = useState(initialLoginData);
+    const [registerData, setRegisterData] = useState(initialRegisterData);
 
     useEffect(() => {
         fetchFaculties();
@@ -48,22 +61,34 @@ export default function useAuth() {
         }
     };
 
+    // ภาควิชาทั้งหมด ดึงจาก faculties (ถ้า API ส่ง faculty.departments มาด้วย)
+    // ถ้า backend มี API ภาควิชาแยก ให้เปลี่ยนเป็น state + fetch แทน
+    const departments = useMemo(
+        () =>
+            faculties.flatMap((f) =>
+                (f.departments || []).map((d) => ({
+                    ...d,
+                    faculty_id: d.faculty_id ?? f.faculty_id,
+                }))
+            ),
+        [faculties]
+    );
+
+    const showPopup = (type, message) => {
+        setPopup({ show: true, type, message });
+    };
+
     const handleLoginChange = (e) => {
-        setLoginData({
-            ...loginData,
-            [e.target.name]: e.target.value,
-        });
+        const { name, value } = e.target;
+
+        setLoginData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
     };
 
     const handleRegisterChange = (e) => {
         const { name, value } = e.target;
-
-        const updatedData = {
-            ...registerData,
-            [name]: value,
-        };
-
-        setRegisterData(updatedData);
 
         if (name === "faculty") {
             const selectedFaculty = faculties.find(
@@ -72,76 +97,97 @@ export default function useAuth() {
 
             setFilteredMajors(selectedFaculty?.majors || []);
 
-            setRegisterData({
-                ...updatedData,
+            // เปลี่ยนคณะ → ล้างสาขา/ภาควิชาที่เลือกไว้
+            setRegisterData((prev) => ({
+                ...prev,
+                faculty: value,
                 major: "",
-            });
+                department: "",
+            }));
+            return;
         }
+
+        setRegisterData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
     };
 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
 
         try {
-            const res = await login(loginData);
+            const res = await login({ ...loginData, role });
 
             localStorage.setItem("token", res.token);
+            if (res.user) {
+                localStorage.setItem("user", JSON.stringify(res.user));
+            }
 
-            setPopup({
-                show: true,
-                type: "success",
-                message: "เข้าสู่ระบบสำเร็จ!",
-            });
+            // ใช้ role จาก backend เป็นหลัก (กันคนเลือกแท็บผิด)
+            // ถ้า backend ไม่ส่งมา ค่อยใช้แท็บที่เลือก
+            const userRole = res.user?.role || res.role || role;
+            const target = userRole === "teacher" ? "/teacher" : "/map";
+
+            showPopup("success", "เข้าสู่ระบบสำเร็จ!");
 
             setTimeout(() => {
-                navigate("/map");
+                navigate(target, { replace: true });
             }, 1000);
         } catch (err) {
             console.log(err);
-
-            setPopup({
-                show: true,
-                type: "error",
-                message: "เข้าสู่ระบบไม่สำเร็จ!",
-            });
+            showPopup("error", "เข้าสู่ระบบไม่สำเร็จ!");
         }
     };
 
     const handleRegisterSubmit = async (e) => {
         e.preventDefault();
 
-        try {
-            await register(registerData);
+        if (registerData.password !== registerData.confirmPassword) {
+            showPopup("error", "รหัสผ่านไม่ตรงกัน!");
+            return;
+        }
 
-            setPopup({
-                show: true,
-                type: "success",
-                message: "ลงทะเบียนสำเร็จ!",
-            });
+        const {
+            confirmPassword,
+            age,
+            major,
+            year,
+            department,
+            position,
+            inviteCode,
+            ...common
+        } = registerData;
+
+        // ส่งเฉพาะช่องที่ตรงกับ role
+        const payload =
+            role === "teacher"
+                ? { ...common, role, department, position, inviteCode }
+                : { ...common, role, age, major, year };
+
+        try {
+            await register(payload);
+
+            showPopup("success", "ลงทะเบียนสำเร็จ!");
 
             setTimeout(() => {
-                setPopup({
-                    show: false,
-                    type: "",
-                    message: "",
-                });
-
+                setPopup({ show: false, type: "", message: "" });
+                setRegisterData(initialRegisterData);
+                setFilteredMajors([]);
                 setIsLogin(true);
             }, 2000);
         } catch (err) {
             console.log(err);
-
-            setPopup({
-                show: true,
-                type: "error",
-                message: "ลงทะเบียนไม่สำเร็จ!",
-            });
+            showPopup("error", "ลงทะเบียนไม่สำเร็จ!");
         }
     };
 
     return {
         isLogin,
         setIsLogin,
+
+        role,
+        setRole,
 
         popup,
         setPopup,
@@ -151,6 +197,7 @@ export default function useAuth() {
 
         faculties,
         filteredMajors,
+        departments,
 
         handleLoginChange,
         handleRegisterChange,

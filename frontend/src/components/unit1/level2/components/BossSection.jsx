@@ -1,6 +1,8 @@
 import BossBubble from "../BossBubble";
 
 export default function BossSection({
+    levelId,
+    playId,
     open,
     onFinish,
     onFail,
@@ -11,6 +13,8 @@ export default function BossSection({
 
     return (
         <BossBubble
+            levelId={levelId}
+            playId={playId}
             onFinish={onFinish}
             onFail={onFail}
         />

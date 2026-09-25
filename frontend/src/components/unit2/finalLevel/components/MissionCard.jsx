@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function MissionCard({ currentMission, handleSelectOption, money, image }) {
+export default function MissionCard({ currentMission, handleSelectOption, money, image, timeLeft, currentStep, totalMissions }) {
     return (
         <div className="flex flex-col gap-4 w-full">
             {/* กล่องคำถาม */}
@@ -51,6 +51,36 @@ export default function MissionCard({ currentMission, handleSelectOption, money,
                         </span>
                     </button>
                 ))}
+
+                {/* Progress (Dots) - ตรงกลางด้านล่าง */}
+                <div className="pointer-events-auto flex flex-col items-center gap-2 md:col-span-3 mt-2">
+                    <div className="flex items-center gap-3">
+                        {Array.from({ length: totalMissions }).map((_, index) => {
+                            const isCompleted = index < currentStep;
+                            const isCurrent = index === currentStep;
+
+                            return (
+                                <div
+                                    key={index}
+                                    className={`
+                                                        rounded-full
+                                                        transition-all
+                                                        duration-300
+                                                        ${isCompleted || isCurrent
+                                            ? "h-3 w-3 bg-yellow-400 shadow-[0_0_10px_rgba(249,115,22,0.8)]"
+                                            : "h-3 w-3 bg-white/40"
+                                        }
+                                                        ${isCurrent
+                                            ? "scale-125 ring-4 ring-yellow-400/40"
+                                            : ""
+                                        }
+                                                    `}
+                                    title={`ภารกิจที่ ${index + 1}`}
+                                />
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
         </div>
     );

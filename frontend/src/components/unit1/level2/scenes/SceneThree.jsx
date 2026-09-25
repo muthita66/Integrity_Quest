@@ -5,12 +5,14 @@ import { FaLightbulb } from "react-icons/fa6";
 import SceneThreeImg from "../../../../assets/unit1/level2/intro/scene3.png";
 
 export default function SceneThree({
+    scene,
     onNext,
     onBack,
     handleSkip,
     currentScene,
     totalScenes,
 }) {
+    const dialog = scene?.introDialog?.[0];
     return (
         <div>
             {/* Illustration */}
@@ -37,32 +39,13 @@ export default function SceneThree({
             {/* Dialog */}
             <div className="absolute bottom-10 left-0 w-full z-10">
                 <IntroDialog
-                    speaker="ผู้พิทักษ์แห่งความซื่อสัตย์"
-                    title="คิดถึงผลที่ตามมา"
-                    text={
-                        <>
-                            <span>
-                                ก่อนตัดสินใจ ลองคิดถึงผลที่จะเกิดขึ้นกับ
-                                <strong> ตนเองและผู้อื่น</strong>
-                            </span>
-                            <br />
-
-                            <span>
-                                แล้วเลือกสิ่งที่<strong>ถูกต้องและเป็นธรรม</strong>
-                            </span>
-                            <br />
-
-                            <span className="mt-2 flex items-start gap-2 text-yellow-300">
-                                <FaLightbulb className="mt-1 shrink-0" />
-                                <span>
-                                    <span className="font-bold">จำไว้:</span>{" "}
-                                    การตัดสินใจที่ดีไม่ได้คิดถึงเพียงผลประโยชน์ของตนเอง
-                                </span>
-                            </span>
-                        </>
-                    }
+                    speaker={dialog.speaker}
+                    title={dialog.title}
+                    text={dialog.text}
+                    lesson={dialog.lesson}
                     onNext={onNext}
                     onBack={onBack}
+                    showBack={currentScene > 0}
                     currentScene={currentScene}
                     totalScenes={totalScenes}
                 />

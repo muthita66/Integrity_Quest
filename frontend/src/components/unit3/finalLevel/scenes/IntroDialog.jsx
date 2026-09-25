@@ -28,7 +28,7 @@ export default function IntroDialog({
                 className="
                     absolute -top-7 left-6
                     rounded-2xl border-2 border-white/50
-                    bg-yellow-200 px-6 py-2
+                    bg-green-300 px-6 py-2
                     shadow-lg
                 "
             >
@@ -51,7 +51,7 @@ export default function IntroDialog({
             </div>
 
             {/* Controls */}
-            <div className="mt-8 flex items-center justify-between gap-4">
+            <div className="mt-4 sm:mt-8 flex items-center justify-between gap-4">
                 {showBack ? (
                     <button
                         type="button"
@@ -73,7 +73,7 @@ export default function IntroDialog({
                             className={`
                                 w-3 h-3 rounded-full transition-all duration-300
                                 ${index === currentScene
-                                    ? "w-8 bg-blue-300"
+                                    ? "w-8 bg-green-200"
                                     : "w-3 bg-slate-300"
                                 }
                             `}

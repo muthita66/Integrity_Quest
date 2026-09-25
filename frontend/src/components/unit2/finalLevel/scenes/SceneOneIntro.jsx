@@ -63,6 +63,7 @@ export default function SceneOneIntro({
                     onNext={onNext}
                     currentScene={currentScene}
                     totalScenes={totalScenes}
+                    showBack={false}
                 />
             </div>
         </div>

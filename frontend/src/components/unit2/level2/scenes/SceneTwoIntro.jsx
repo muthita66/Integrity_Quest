@@ -4,12 +4,15 @@ import { FaLightbulb } from "react-icons/fa";
 import SceneTwo from "../../../../assets/unit2/Level2/intro/sceneTwo.png";
 
 export default function SceneTwoIntro({
+    scene,
     onNext,
     onBack,
     handleSkip,
     currentScene,
     totalScenes,
 }) {
+    // ข้อมูล Dialog จาก Database
+    const dialog = scene?.introDialog?.[0];
     return (
         <div className="relative w-full h-screen overflow-hidden">
             {/* Illustration */}
@@ -39,34 +42,19 @@ export default function SceneTwoIntro({
 
             {/* Dialog */}
             <div className="absolute bottom-10 left-0 w-full z-10">
-                <IntroDialog
-                    speaker="ผู้วางแผนการเงิน"
-                    title="คิดก่อนใช้"
-                    text={
-                        <>
-                            <span>
-                                แต่เพียงแค่รู้ว่าอะไรควรซื้อ...ก็ยังไม่เพียงพอ หากใช้เงินโดยไม่คำนวณ สุดท้ายเงินก็อาจหมดก่อนสิ้นเดือน
-                            </span>
-                            <br />
-                            <span>
-                                ลองพิจารณาดูว่าค่าใช้จ่ายใดจำเป็น ค่าใช้จ่ายใดรอได้ และควรเหลือเงินไว้เท่าไร
-                            </span>
-                            <br />
-
-                            <span className="mt-2 flex items-start gap-2 text-yellow-300">
-                                <FaLightbulb className="mt-1 shrink-0" />
-                                <span>
-                                    <span className="font-bold">เรียนรู้จากสถานการณ์:</span>{" "}
-                                    เปรียบเทียบรายรับกับรายจ่ายก่อนตัดสินใจ
-                                </span>
-                            </span>
-                        </>}
-                    onNext={onNext}
-                    onBack={onBack}
-                    showBack={true}
-                    currentScene={currentScene}
-                    totalScenes={totalScenes}
-                />
+                {dialog && (
+                    <IntroDialog
+                        speaker={dialog.speaker}
+                        title={dialog.title}
+                        text={dialog.text}
+                        lesson={dialog.lesson}
+                        onNext={onNext}
+                        onBack={onBack}
+                        showBack={true}
+                        currentScene={currentScene}
+                        totalScenes={totalScenes}
+                    />
+                )}
             </div>
         </div>
     );

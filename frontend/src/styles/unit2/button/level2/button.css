@@ -1,127 +1,52 @@
-.Minigame-button {
-    position: relative;
-    min-width: 120px;
-    width: fit-content;
-    height: 40px;
-    padding: 0 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* From Uiverse.io by Voxybuns */
+
+button.Minigame-button {
+    /* Variables */
+    --button_radius: 0.75em;
+    --button_color: #e8e8e8;
+    --button_outline_color: #000000;
+    font-size: 17px;
+    font-weight: bold;
     border: none;
-    border-radius: 28px;
-    overflow: hidden;
     cursor: pointer;
-    appearance: none;
-    font-family: "Sarabun", sans-serif;
-    box-shadow:
-        0 0 0 7px #f1f1f1,
-        0 7px 0 7px #bcbcbc,
-        0 10px 15px rgba(0, 0, 0, 0.2);
-    transition:
-        transform 0.1s ease,
-        filter 0.1s ease;
+    border-radius: var(--button_radius);
+    background: var(--button_outline_color);
 }
 
-.Minigame-button::before {
-    content: "";
-    position: absolute;
-    top: 4px;
-    left: 6px;
-    right: 6px;
-    height: 26px;
-    border-radius: 13px;
-    border-top: 3px solid rgba(255, 255, 255, 0.45);
-    border-left: 2px solid rgba(255, 255, 255, 0.15);
-    pointer-events: none;
-    z-index: 2;
+.Minigame-button .button_top {
+    display: block;
+    box-sizing: border-box;
+    border: 2px solid var(--button_outline_color);
+    border-radius: var(--button_radius);
+    padding: 0.5em 1.5em;
+    background: var(--button_color);
+    color: var(--button_outline_color);
+    transform: translateY(-0.2em);
+    transition: transform 0.1s ease;
 }
 
-.Minigame-button::after {
-    content: "";
-    position: absolute;
-    top: 8px;
-    left: 16px;
-    right: 16px;
-    height: 16px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.10);
-    pointer-events: none;
-    z-index: 1;
+.Minigame-button:hover .button_top {
+    transform: translateY(-0.33em);
 }
 
-.Minigame-button .button-text {
-    position: relative;
-    z-index: 10;
-    font-size: 16px;
-    font-weight: 700;
-    color: white;
-    text-shadow:
-        0 2px 2px rgba(0, 0, 0, 0.3);
+.Minigame-button:active .button_top {
+    transform: translateY(0);
 }
 
-.Minigame-button--green {
-    background: linear-gradient(to bottom,
-            #a6ff4d 0%,
-            #8bea32 50%,
-            #72d91f 67%,
-            #45b80c 68%,
-            #38a708 100%);
+.Minigame-button.green {
+    --button_color: #43a047;
+    --button_outline_color: #1b5e20;
 }
 
-.Minigame-button--blue {
-    background: linear-gradient(to bottom,
-            #70e3ff 0%,
-            #4fd2f5 50%,
-            #2bbde7 67%,
-            #079bd4 68%,
-            #078bc0 100%);
+.Minigame-button.green .button_top {
+    color: #fff;
 }
 
-.Minigame-button--purple {
-    background: linear-gradient(to bottom,
-            #d09aff 0%,
-            #bb76f2 50%,
-            #a45ce1 67%,
-            #7d38c5 68%,
-            #692ca8 100%);
+.Minigame-button.red {
+    --button_color: #ef5350;
+    --button_outline_color: #b71c1c;
 }
 
-.Minigame-button--pink {
-    background: linear-gradient(to bottom,
-            #ffacd0 0%,
-            #ff8cbb 50%,
-            #ff6da6 67%,
-            #e94382 68%,
-            #d52f6e 100%);
-}
-
-.Minigame-button--brown {
-    background: linear-gradient(to bottom,
-            #e2ae78 0%,
-            #d69459 50%,
-            #c77a3c 67%,
-            #a45625 68%,
-            #8b421b 100%);
-}
-
-.Minigame-button--red {
-    background: linear-gradient(to bottom,
-            #ff8585 0%,
-            #ff6666 50%,
-            #f34c4c 67%,
-            #d93636 68%,
-            #c52626 100%);
-}
-
-.Minigame-button:hover {
-    filter: brightness(1.05);
-}
-
-.Minigame-button:active {
-    transform: translateY(7px);
-
-    box-shadow:
-        0 0 0 7px #f1f1f1,
-        0 2px 0 7px #bcbcbc,
-        0 4px 8px rgba(0, 0, 0, 0.15);
+.Minigame-button.red .button_top {
+    color: #fff;
 }

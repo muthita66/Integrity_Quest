@@ -21,24 +21,40 @@ export default function WalletAnimation({
 }) {
     const [step, setStep] = useState(1);
     const [text, setText] = useState("");
-
     const [skipped, setSkipped] = useState(false);
 
     const timersRef = useRef([]);
+    const questionText = question?.question_text || "";
 
     const handleSkip = () => {
         timersRef.current.forEach(clearTimeout);
         timersRef.current = [];
 
         setSkipped(true);
-        setText(question.question);
+        setText(questionText);
         stopKeyboard();
         setStep(5);
     };
 
-    const { play: playKeyboard, stop: stopKeyboard } = useSound(keyboardSfx, { volume: 0.5, loop: true });
-    const { play: playUI } = useSound(uiSoundSfx, { volume: 0.7 });
-    const { play: playWalletDrop } = useSound(walletDropSfx, { volume: 0.8 });
+    const {
+        play: playKeyboard,
+        stop: stopKeyboard,
+    } = useSound(keyboardSfx, {
+        volume: 0.5,
+        loop: true,
+    });
+
+    const {
+        play: playUI,
+    } = useSound(uiSoundSfx, {
+        volume: 0.7,
+    });
+
+    const {
+        play: playWalletDrop,
+    } = useSound(walletDropSfx, {
+        volume: 0.8,
+    });
 
     useEffect(() => {
         setStep(1);
@@ -46,26 +62,41 @@ export default function WalletAnimation({
         setSkipped(false);
 
         timersRef.current = [
-            setTimeout(() => setStep(3), 2200),
-            setTimeout(() => playWalletDrop(), 2470),
-            setTimeout(() => setStep(4), 4200)
+            setTimeout(() => {
+                setStep(3);
+            }, 2200),
+
+            setTimeout(() => {
+                playWalletDrop();
+            }, 2470),
+
+            setTimeout(() => {
+                setStep(4);
+            }, 4200),
         ];
 
-        return () => timersRef.current.forEach(clearTimeout);
-    }, [question.question]);
+        return () => {
+            timersRef.current.forEach(clearTimeout);
+            timersRef.current = [];
+        };
+    }, [questionText]);
 
     useEffect(() => {
         if (step !== 4) return;
         if (skipped) return;
+        if (!questionText) return;
 
         let i = 0;
+
+        setText("");
         playKeyboard();
 
         const typing = setInterval(() => {
-            setText(question.question.slice(0, i + 1));
+            setText(questionText.slice(0, i + 1));
+
             i++;
 
-            if (i >= question.question.length) {
+            if (i >= questionText.length) {
                 clearInterval(typing);
                 stopKeyboard();
                 setStep(5);
@@ -76,37 +107,39 @@ export default function WalletAnimation({
             clearInterval(typing);
             stopKeyboard();
         };
-    }, [step, question.question]);
+    }, [step, questionText, skipped]);
 
     return (
-        <AnimationLayout onSkip={handleSkip} showSkip={step < 5}>
-
-            {/* Background */}
+        <AnimationLayout
+            onSkip={handleSkip}
+            showSkip={step < 5}
+        >
             <motion.img
                 src={gym}
                 alt="background"
                 className="absolute inset-0 w-full h-full object-cover"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8 }}
+                initial={{
+                    opacity: 0,
+                }}
+                animate={{
+                    opacity: 1,
+                }}
+                transition={{
+                    duration: 0.8,
+                }}
             />
 
+            {/* Overlay */}
             <div className="absolute inset-0 bg-black/40" />
 
-            {/* Wallet */}
             {step !== 1 && (
                 <motion.img
                     src={wallet}
                     alt="wallet"
-                    className="
-                        absolute
-                        left-1/2
-                        w-24
-                        md:w-32
-                        -translate-x-1/2
-                        z-20
-                    "
-                    initial={{ opacity: 0 }}
+                    className="absolute left-1/2 w-24 md:w-32 -translate-x-1/2 z-20"
+                    initial={{
+                        opacity: 0,
+                    }}
                     animate={
                         step === 2
                             ? {
@@ -145,20 +178,25 @@ export default function WalletAnimation({
                 />
             )}
 
-            {/* Guardian */}
             {step >= 4 && (
                 <motion.img
                     src={QuizImg}
                     alt="guardian"
-                    className="absolute -right-2 -bottom-10 w-30 md:w-48 z-50 pointer-events-none
-                    "
-                    initial={{ opacity: 0, x: 120 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8 }}
+                    className="absolute -right-2 -bottom-10 w-30 md:w-48 z-50 pointer-events-none"
+                    initial={{
+                        opacity: 0,
+                        x: 120,
+                    }}
+                    animate={{
+                        opacity: 1,
+                        x: 0,
+                    }}
+                    transition={{
+                        duration: 0.8,
+                    }}
                 />
             )}
 
-            {/* Choices */}
             <ChoiceButtons
                 show={step >= 5}
                 question={question}
@@ -167,11 +205,11 @@ export default function WalletAnimation({
                 playUI={playUI}
             />
 
-            {/* Dialogue */}
+            {/* Question */}
             <QuestionBox
                 show={step >= 4}
                 text={text}
-                isTyping={true}
+                isTyping={step >= 4 && step < 5}
             />
         </AnimationLayout>
     );

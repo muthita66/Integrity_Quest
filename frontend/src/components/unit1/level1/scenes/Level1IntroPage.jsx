@@ -1,8 +1,7 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+
 import "../../../../styles/unit1/Level1/MirrorIntro.css";
-import IntroSound from "../../../../assets/sounds/IntroSound.mp3";
-import uiSoundSfx from "../../../../assets/sounds/ui_sounds.mp3";
 
 import SceneOne from "./SceneOne";
 import SceneTwo from "./SceneTwo";
@@ -22,8 +21,13 @@ const SHIMMER_DOTS = [
 
 export default function Level1IntroPage() {
     const navigate = useNavigate();
+
     const [hasStarted, setHasStarted] = useState(false);
     const [currentScene, setCurrentScene] = useState(0);
+
+    // ข้อมูล Scene จาก Database
+    const [sceneData, setSceneData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const scenes = [
         SceneOne,
@@ -34,21 +38,52 @@ export default function Level1IntroPage() {
 
     const CurrentSceneComponent = scenes[currentScene];
 
-    const textAudioRef = useRef(new Audio(IntroSound));
-    const uiSoundSfxAudioRef = useRef(new Audio(uiSoundSfx));
+    // ดึง Scene + Dialog จาก Database
+    useEffect(() => {
+        const fetchScenes = async () => {
+            try {
+                setLoading(true);
+
+                const response = await fetch(
+                    "http://localhost:5000/api/introDialog/level/1"
+                );
+
+                if (!response.ok) {
+                    throw new Error("ไม่สามารถดึงข้อมูล Scene ได้");
+                }
+
+                const data = await response.json();
+
+                console.log("Scene Data:", data);
+
+                setSceneData(data);
+            } catch (error) {
+                console.error("Error fetching scenes:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchScenes();
+    }, []);
 
     const handleInitialClick = () => {
         if (!hasStarted) {
-            // ปลดล็อก Audio ในมือถือ (iOS Safari) และเบราว์เซอร์
-            textAudioRef.current.play().then(() => {
-                textAudioRef.current.pause();
-                textAudioRef.current.currentTime = 0;
-            }).catch(() => { });
+            textAudioRef.current
+                .play()
+                .then(() => {
+                    textAudioRef.current.pause();
+                    textAudioRef.current.currentTime = 0;
+                })
+                .catch(() => { });
 
-            uiSoundSfxAudioRef.current.play().then(() => {
-                uiSoundSfxAudioRef.current.pause();
-                uiSoundSfxAudioRef.current.currentTime = 0;
-            }).catch(() => { });
+            uiSoundSfxAudioRef.current
+                .play()
+                .then(() => {
+                    uiSoundSfxAudioRef.current.pause();
+                    uiSoundSfxAudioRef.current.currentTime = 0;
+                })
+                .catch(() => { });
 
             setHasStarted(true);
         }
@@ -78,20 +113,20 @@ export default function Level1IntroPage() {
             style={{ cursor: hasStarted ? "default" : "pointer" }}
             onClick={!hasStarted ? handleInitialClick : undefined}
         >
-            <>
-                {/* Scene */}
-                <section className="relative z-20 flex items-start justify-center">
-                    <div className="w-full">
+            <section className="relative z-20 flex items-start justify-center">
+                <div className="w-full">
+                    {!loading && sceneData.length > 0 && (
                         <CurrentSceneComponent
+                            scene={sceneData[currentScene]}
                             onNext={handleNext}
                             onBack={handleBack}
                             handleSkip={handleSkip}
                             currentScene={currentScene}
                             totalScenes={scenes.length}
                         />
-                    </div>
-                </section>
-            </>
+                    )}
+                </div>
+            </section>
         </main>
     );
 }

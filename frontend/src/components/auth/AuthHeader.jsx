@@ -2,7 +2,7 @@ export default function AuthHeader({ isLogin }) {
     return (
         <>
             {/* TITLE */}
-            <h1 className="text-center text-5xl font-extrabold text-yellow-500 drop-shadow-lg">
+            <h1 className="text-center text-4xl sm:text-5xl font-extrabold text-yellow-400 drop-shadow-lg sm:whitespace-nowrap">
                 WELCOME, HERO!
             </h1>
 
