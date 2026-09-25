@@ -1,80 +1,163 @@
 import { motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
-import "../styles/theme.css";
+import { FaRedo, FaBookOpen } from "react-icons/fa";
+import BookLayout from "../BookLayout";
+import { SLIPS } from "./slips";
+import room from "../../../assets/unit4/investigation-room.png";
+import "../../../styles/theme.css";
+import "./level1.css";
+
+const RANKS = {
+    S: { label: "นักสืบระดับ S", note: "ตรวจถูกทุกใบ ไม่มีที่ติ" },
+    A: { label: "นักสืบระดับ A", note: "แม่นมาก เหลืออีกนิดเดียว" },
+    B: { label: "นักสืบระดับ B", note: "ใช้ได้ ลองทบทวนใบที่พลาดอีกครั้ง" },
+    C: { label: "นักสืบฝึกหัด", note: "กลับไปดูเช็กลิสต์แล้วลองใหม่ได้เลย" },
+};
 
 export default function Result() {
     const navigate = useNavigate();
     const { state } = useLocation();
+
+    const total = state?.total ?? SLIPS.length;
     const score = state?.score ?? 0;
-    const total = state?.total ?? 5;
+    const answers = state?.answers ?? [];
     const percent = Math.round((score / total) * 100);
 
-    const getRank = () => {
-        if (percent === 100) return "S";
-        if (percent >= 80) return "A";
-        if (percent >= 60) return "B";
-        return "C";
-    };
+    const rank = percent === 100 ? "S" : percent >= 80 ? "A" : percent >= 60 ? "B" : "C";
+    const passed = score >= 3;
 
-    const handleFinish = () => {
-        localStorage.setItem("unit4", JSON.stringify({ level1: true, level2: true, level3: false }));
+    const finish = () => {
+        // ปลดล็อกบทถัดไปเฉพาะตอนที่ผ่านเกณฑ์ และไม่ลบความคืบหน้าเดิมทิ้ง
+        try {
+            const save = JSON.parse(localStorage.getItem("unit4")) || {};
+            localStorage.setItem(
+                "unit4",
+                JSON.stringify({
+                    ...save,
+                    level1: true,
+                    level2: save.level2 || passed,
+                    level1Points: Math.min(250, Math.max(0, score * 50)),
+                })
+            );
+        } catch {
+            localStorage.setItem("unit4", JSON.stringify({ level1: true, level2: passed, level3: false }));
+        }
         navigate("/unit4/book");
     };
 
     return (
-        <div style={{
-            width: "100vw", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-            background: "var(--bg-radial)", fontFamily: "var(--font-serif)", overflow: "hidden", userSelect: "none"
-        }}>
-            <motion.div
-                initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                style={{
-                    width: "90%", maxWidth: 520, background: "#FFF", borderRadius: 24, padding: 36,
-                    boxShadow: "0 25px 60px rgba(0,0,0,0.5)", textAlign: "center", position: "relative"
-                }}
-            >
-                <span style={{ color: "var(--text-gold)", fontSize: 12, fontWeight: 800, letterSpacing: 3, fontFamily: "var(--font-title)" }}>
-                    MISSION COMPLETED
-                </span>
-                <h2 style={{ margin: "6px 0 16px 0", fontSize: 28, color: "var(--text-primary)" }}>สรุปผลการสืบสวน</h2>
+        <BookLayout
+            title="สรุปผลการสืบสวน"
+            subtitle="บทที่ 1 — จับสลิปปลอม"
+            rightLabel="ทบทวนทีละใบ"
+            rightNote=""
+            backgroundImage={room}
+            showBack={false}
 
-                {/* Rank Circle */}
-                <motion.div
-                    initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.2 }}
-                    style={{
-                        width: 90, height: 90, borderRadius: "50%", background: "var(--gold-gradient)",
-                        margin: "0 auto 20px auto", display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 42, fontWeight: 800, color: "var(--text-primary)", fontFamily: "var(--font-title)",
-                        boxShadow: "0 10px 20px rgba(202,138,4,0.3)"
-                    }}
-                >
-                    {getRank()}
-                </motion.div>
+            /* ---------------- หน้าซ้าย : ผลรวม ---------------- */
+            leftPage={
+                <div style={{ display: "flex", flexDirection: "column", gap: 18, height: "100%" }}>
+                    <div style={{ textAlign: "center", padding: "28px 20px", borderRadius: "var(--radius-card)", background: "var(--paper-sunken)", border: "1px solid var(--paper-border)", boxShadow: "var(--shadow-card)" }}>
+                        <motion.div
+                            initial={{ scale: 0.4, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: "spring", stiffness: 220, damping: 16 }}
+                            style={{
+                                width: 108, height: 108, margin: "0 auto 16px", borderRadius: "50%",
+                                display: "grid", placeItems: "center",
+                                background: "var(--gold-gradient)",
+                                fontFamily: "var(--font-title)", fontSize: 48, fontWeight: 700, color: "#3A2708",
+                                boxShadow: "0 10px 24px rgba(138,95,20,.35), inset 0 2px 0 rgba(255,255,255,.7)",
+                            }}
+                        >
+                            {rank}
+                        </motion.div>
 
-                {/* Stats Grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
-                    <div style={{ padding: 14, borderRadius: 12, background: "#F8FAFC", border: "1px solid #E2E8F0" }}>
-                        <span style={{ fontSize: 11, color: "#64748B" }}>ACCURACY SCORE</span>
-                        <div style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", marginTop: 2 }}>{score} / {total}</div>
+                        <h2 style={{ margin: "0 0 6px", fontFamily: "var(--font-serif)", fontSize: 24, fontWeight: 600, color: "var(--text-primary)" }}>
+                            {RANKS[rank].label}
+                        </h2>
+                        <p style={{ margin: 0, fontSize: 14.5, color: "var(--text-secondary)" }}>
+                            {RANKS[rank].note}
+                        </p>
                     </div>
-                    <div style={{ padding: 14, borderRadius: 12, background: "#F8FAFC", border: "1px solid #E2E8F0" }}>
-                        <span style={{ fontSize: 11, color: "#64748B" }}>EXP EARNED</span>
-                        <div style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", marginTop: 2 }}>+{score * 50} XP</div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                        <div style={{ padding: "16px 18px", borderRadius: 12, background: "rgba(255,255,255,.6)", border: "1px solid var(--paper-border)" }}>
+                            <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>ตรวจถูก</span>
+                            <div style={{ fontSize: 22, fontWeight: 700, color: "var(--text-primary)" }}>
+                                {score} / {total} ใบ
+                            </div>
+                        </div>
+                        <div style={{ padding: "16px 18px", borderRadius: 12, background: "rgba(255,255,255,.6)", border: "1px solid var(--paper-border)" }}>
+                            <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>ได้รับ</span>
+                            <div style={{ fontSize: 22, fontWeight: 700, color: "var(--text-primary)" }}>
+                                +{score * 50} EXP
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                        <button type="button" className="primary-btn" style={{ alignSelf: "center" }} onClick={finish}>
+                            <FaBookOpen size={14} /> กลับไปหน้าสารบัญ
+                        </button>
+                        <button
+                            type="button"
+                            className="ghost-btn"
+                            style={{
+                                alignSelf: "center",
+                                justifyContent: "center",
+                                flexDirection: "column",
+                                gap: 2,
+                            }}
+                            onClick={() => navigate("/unit4/level1/game")}
+                        >
+                            <FaRedo />
+                            ตรวจใหม่อีกครั้ง
+                        </button>
                     </div>
                 </div>
+            }
 
-                {/* Action Button */}
-                <motion.button
-                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleFinish}
-                    style={{
-                        width: "100%", padding: "14px 0", borderRadius: 12, border: "none", cursor: "pointer",
-                        background: "var(--gold-gradient)", color: "var(--text-primary)", fontWeight: 700,
-                        fontSize: 15, fontFamily: "var(--font-title)", boxShadow: "0 4px 14px rgba(202,138,4,0.3)"
-                    }}
-                >
-                    RETURN TO DOSSIER 📖
-                </motion.button>
-            </motion.div>
-        </div>
+            /* ---------------- หน้าขวา : ทบทวน ---------------- */
+            rightPage={
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <p style={{ margin: "0 0 4px", fontSize: 14, color: "var(--text-secondary)" }}>
+                        จุดที่ทำให้แต่ละใบจริงหรือปลอม อ่านทวนก่อนไปบทต่อไป
+                    </p>
+
+                    {SLIPS.map((slip) => {
+                        const result = answers.find((a) => a.id === slip.id);
+                        const ok = result?.correct;
+
+                        return (
+                            <div key={slip.id} className={`review-row ${ok ? "review-row--ok" : "review-row--no"}`}>
+                                <img src={slip.image} alt="" aria-hidden="true" />
+
+                                <div style={{ minWidth: 0 }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                        <strong style={{ fontSize: 15, color: "var(--text-primary)" }}>
+                                            #{slip.id} {slip.bank}
+                                        </strong>
+                                        <span
+                                            className={`chip ${slip.answer === "fake" ? "chip--lock" : "chip--done"}`}
+                                            style={{ padding: "3px 10px", fontSize: 11.5 }}
+                                        >
+                                            {slip.answer === "fake" ? "ของปลอม" : "ของจริง"}
+                                        </span>
+                                        <span style={{ fontSize: 12.5, color: ok ? "#15803D" : "#B91C1C", fontWeight: 600 }}>
+                                            {result ? (ok ? "คุณตอบถูก" : "คุณตอบพลาด") : "ยังไม่ได้ตรวจ"}
+                                        </span>
+                                    </div>
+
+                                    <p style={{ margin: "6px 0 0", fontSize: 13.5, lineHeight: 1.75, color: "var(--text-secondary)" }}>
+                                        {slip.clue}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            }
+        />
     );
 }

@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { MdWarning } from "react-icons/md";
 
-import stationBg from "../../assets/unit5/station.png";
-import sendChar from "../../assets/unit5/send.png";
+import stationBg from "../../../assets/unit5/station.png";
+import sendChar from "../../../assets/unit5/send.png";
 
 export default function IntroScene() {
     const navigate = useNavigate();

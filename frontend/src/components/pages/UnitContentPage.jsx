@@ -39,6 +39,12 @@ export default function UnitContentPage() {
             navigate("/unit2/intro");
         } else if (currentUnitId === 3) {
             navigate("/unit3/level1/intro");
+        } else if (currentUnitId === 4) {
+            navigate("/unit4/cover");
+        } else if (currentUnitId === 5) {
+            navigate("/unit5/intro");
+        } else if (currentUnitId === 6) {
+            navigate("/unit6/intro");
         } else {
             navigate(`/unit${currentUnitId}/level1`);
         }

@@ -37,7 +37,7 @@ export default function TaxBuilderResult() {
     } = location.state || {};
 
     if (!budgets) {
-        navigate("/unit5/gamelevel2");
+        navigate("/unit5/game2");
         return null;
     }
 

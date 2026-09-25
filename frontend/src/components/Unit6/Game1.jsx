@@ -149,7 +149,7 @@ function getTargetConcurrency(elapsedSeconds) {
     return 3;
 }
 
-export default function CrisisResponse({ nextRoute = "/unit5/gamelevel2" }) {
+export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
     const navigate = useNavigate();
 
     const [phase, setPhase] = useState("intro"); // intro | playing | summary

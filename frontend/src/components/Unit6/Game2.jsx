@@ -509,6 +509,13 @@ export default function GoodNetworkGame() {
                 <button className="gng-btn primary" onClick={resetGame}>
                   เล่นอีกครั้ง
                 </button>
+                <button
+                  className="gng-btn"
+                  onClick={() => navigate("/unit6/game3")}
+                  style={{ marginLeft: 10 }}
+                >
+                  ภารกิจสุดท้าย
+                </button>
               </div>
             </div>
 

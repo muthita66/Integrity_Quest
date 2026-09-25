@@ -1,14 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 
-import WordCard from "./WordCard";
+import WordCard from "./Wordcard";
 import ClueCard from "./ClueCard";
 import MissionComplete from "./MissionComplete";
 
 export default function GameLevel1() {
-    const navigate = useNavigate();
-
     const words = [
         { id: 1, answer: "สินบน", clue: "เงินหรือของที่ให้เพื่อแลกกับสิทธิพิเศษ", revealed: 2 },
         { id: 2, answer: "ใต้โต๊ะ", clue: "การจ่ายเงินแบบไม่เปิดเผย", revealed: 1 },
@@ -53,7 +50,7 @@ export default function GameLevel1() {
     }, [correctCount, words.length]);
 
     const handleCorrect = (id) => {
-        setCompleted((prev) => ({ ...prev, [id]: true }));
+        setCompleted((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
     };
 
     const formatTime = () => {
@@ -158,7 +155,7 @@ export default function GameLevel1() {
                             "radial-gradient(circle at 15% 15%, rgba(255,255,255,0.04), transparent 30%)",
                     }}
                 >
-                    <div ref={boardRef} className="relative w-full h-full px-9 py-6 flex flex-col">
+                    <div ref={boardRef} className="relative w-full h-full min-w-0 px-5 py-4 flex flex-col">
 
                         {/* vignette ด้านใน ให้ความรู้สึกเหมือนสปอตไลท์กลางกระดาน */}
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_35%,rgba(20,10,5,0.55)_100%)] pointer-events-none z-10" />
@@ -194,7 +191,11 @@ export default function GameLevel1() {
                         </svg>
 
                         {/* หัวข้อ */}
-                        <div className="relative z-20 flex justify-between items-start mb-4">
+                        <div className="relative z-20 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-700/30 bg-[#ecdcc9]/95 px-4 py-2 text-sm font-bold text-[#4a2b17] shadow-sm">
+                            <span>พิมพ์คำตอบจากคำใบ้ให้ครบทุกช่อง</span>
+                            <span className="text-amber-800">ตัวเข้ม = หลักฐานที่เปิดให้แล้ว</span>
+                        </div>
+                        <div className="relative z-20 flex flex-wrap justify-between items-start gap-3 mb-4">
                             <h2 className="text-2xl font-black text-[#1a0c02] bg-[#ecdcc9] px-5 py-2 rounded shadow-md border border-[#cfbfa8] -rotate-1">
                                 หลักฐานที่พบ
                             </h2>
@@ -204,9 +205,9 @@ export default function GameLevel1() {
                         </div>
 
                         {/* การ์ดตัวช่วย + เบาะแส จัดด้วย grid ที่ยืดหยุ่นตามหน้าจอ */}
-                        <div className="relative z-20 flex-1 flex items-center justify-between gap-10 overflow-y-auto">
+                        <div className="relative z-20 flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-2 items-center gap-5 xl:gap-8 overflow-hidden">
 
-                            <div className="grid grid-cols-2 gap-x-10 gap-y-8">
+                            <div className="min-w-0 grid grid-cols-2 justify-items-center gap-x-3 gap-y-3">
                                 {words.map((word, i) => (
                                     <motion.div
                                         key={word.id}
@@ -220,7 +221,7 @@ export default function GameLevel1() {
                                 ))}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-x-10 gap-y-8">
+                            <div className="min-w-0 grid grid-cols-2 justify-items-center gap-x-3 gap-y-3">
                                 {words.map((word, i) => (
                                     <motion.div
                                         key={`clue-${word.id}`}

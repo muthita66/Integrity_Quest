@@ -1,98 +1,152 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaPlay, FaChevronRight } from "react-icons/fa";
 import BookLayout from "../BookLayout";
-import jane from "../../../assets/unit4/Jane.png";
-import "../styles/theme.css";
+import { HINTS } from "./slips";
+import room from "../../../assets/unit4/investigation-room.png";
+import jane from "../../../assets/unit4/senior-detective.png";
+import "../../../styles/theme.css";
+import "./level1.css";
 
-export default function Intro() {
+const DIALOGS = [
+    "สวัสดี วันนี้มีเคสด่วนเข้ามา บริษัทได้รับสลิปโอนเงิน 5 ใบ แต่มีบางใบที่เราไม่แน่ใจ",
+    "มิจฉาชีพทำสลิปปลอมได้เนียนขึ้นมาก แต่ยังไงก็ยังพลาดในรายละเอียดเล็ก ๆ เสมอ",
+    "ดู 4 จุดนี้ให้ครบทุกใบ เวลา วันที่ QR Code และเลขที่รายการ แล้วค่อยตัดสิน",
+    "ถ้าไม่แน่ใจ กดที่รูปสลิปเพื่อซูมดูใกล้ ๆ ได้ พร้อมแล้วเริ่มเลย",
+];
+
+export default function IntroScene() {
     const navigate = useNavigate();
-    const dialogs = [
-        "ยินดีต้อนรับสู่ภารกิจแรกของ Cyber Trap!",
-        "วันนี้เราได้รับแจ้งเหตุเกี่ยวกับสลิปโอนเงินปลอมระบาด",
-        "สังเกตฟอนต์ ตัวเลข วันเวลา และ QR Code ให้ดีๆ ก่อนยืนยันนะครับ",
-        "ถ้าพร้อมแล้ว กดปุ่มเริ่มภารกิจได้เลย!"
-    ];
-
     const [index, setIndex] = useState(0);
     const [text, setText] = useState("");
+    const [typing, setTyping] = useState(true);
+    const timer = useRef(null);
 
     useEffect(() => {
+        const line = DIALOGS[index];
         let i = 0;
-        const current = dialogs[index];
         setText("");
-        const timer = setInterval(() => {
-            i++;
-            setText(current.slice(0, i));
-            if (i >= current.length) clearInterval(timer);
-        }, 20);
-        return () => clearInterval(timer);
+        setTyping(true);
+
+        timer.current = setInterval(() => {
+            i += 1;
+            setText(line.slice(0, i));
+            if (i >= line.length) {
+                clearInterval(timer.current);
+                setTyping(false);
+            }
+        }, 28);
+
+        return () => clearInterval(timer.current);
     }, [index]);
+
+    // กดครั้งแรกระหว่างพิมพ์ = แสดงข้อความทั้งบรรทัดทันที ไม่ต้องรอ
+    const advance = () => {
+        if (typing) {
+            clearInterval(timer.current);
+            setText(DIALOGS[index]);
+            setTyping(false);
+            return;
+        }
+        if (index < DIALOGS.length - 1) setIndex(index + 1);
+        else navigate("/unit4/level1/game");
+    };
+
+    const last = index === DIALOGS.length - 1;
 
     return (
         <BookLayout
-            title="Chapter I: Investigation"
-            subtitle="คู่มือและรายละเอียดภารกิจ"
+            title="บทที่ 1 — จับสลิปปลอม"
+            subtitle="ฟังบรีฟจากพี่เจนก่อนลงพื้นที่"
+            rightLabel="ห้องสืบสวน"
+            rightNote={`${index + 1} / ${DIALOGS.length}`}
+            backgroundImage={room}
             onBack={() => navigate("/unit4/book")}
+
             leftPage={
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                    <div style={{ padding: 18, borderRadius: 14, background: "#FFF", border: "1px solid var(--paper-border)" }}>
-                        <h4 style={{ margin: "0 0 10px 0", color: "var(--text-gold)", fontFamily: "var(--font-title)" }}>🎯 TARGET OBJECTIVES</h4>
-                        <ul style={{ margin: 0, paddingLeft: 18, color: "var(--text-primary)", fontSize: 13, lineHeight: 1.8 }}>
-                            <li>แยกแยะสลิปโอนเงินจริง และ สลิปปลอม</li>
-                            <li>วิเคราะห์ความผิดปกติของตัวอักษรและเวลา</li>
-                            <li>ทำคะแนนให้ได้ระดับ Rank A ขึ้นไป</li>
-                        </ul>
+                    <div style={{ padding: "18px 20px", borderRadius: "var(--radius-card)", background: "var(--paper-sunken)", border: "1px solid var(--paper-border)", boxShadow: "var(--shadow-card)" }}>
+                        <h3 style={{ margin: "0 0 4px", fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "var(--text-primary)" }}>
+                            สิ่งที่ต้องทำ
+                        </h3>
+                        <p style={{ margin: 0, fontSize: 14, color: "var(--text-secondary)" }}>
+                            ตรวจสลิปทีละใบ ทั้งหมด 5 ใบ แล้วตัดสินว่าใบไหนจริงใบไหนปลอม
+                        </p>
                     </div>
 
-                    <div style={{ padding: 18, borderRadius: 14, background: "rgba(212,175,55,0.08)", border: "1px solid var(--gold-main)" }}>
-                        <h4 style={{ margin: "0 0 6px 0", color: "var(--text-gold)", fontFamily: "var(--font-title)" }}>🏆 MISSION REWARD</h4>
-                        <p style={{ margin: 0, fontSize: 13, color: "var(--text-primary)" }}>
-                            +250 EXP • Detective Badge • Unlocks Chapter II
-                        </p>
+                    <div>
+                        <h3 style={{ margin: "0 0 12px", fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "var(--text-primary)" }}>
+                            4 จุดที่ของปลอมมักพลาด
+                        </h3>
+
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            {HINTS.map((hint, i) => (
+                                <div
+                                    key={hint.title}
+                                    style={{
+                                        display: "flex", gap: 14, padding: "14px 16px",
+                                        borderRadius: 12, background: "rgba(255,255,255,.6)",
+                                        border: "1px solid var(--paper-border)",
+                                    }}
+                                >
+                                    <span
+                                        aria-hidden="true"
+                                        style={{
+                                            width: 30, height: 30, flex: "none", borderRadius: "50%",
+                                            display: "grid", placeItems: "center",
+                                            background: "var(--gold-gradient)", color: "#3A2708",
+                                            fontSize: 14, fontWeight: 700,
+                                        }}
+                                    >
+                                        {i + 1}
+                                    </span>
+                                    <span>
+                                        <strong style={{ display: "block", fontSize: 15, color: "var(--text-primary)" }}>
+                                            {hint.title}
+                                        </strong>
+                                        <span style={{ fontSize: 13.5, color: "var(--text-secondary)" }}>
+                                            {hint.detail}
+                                        </span>
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div style={{ padding: "16px 18px", borderRadius: "var(--radius-card)", background: "rgba(192,138,46,.1)", border: "1px solid var(--gold-main)", fontSize: 14, color: "var(--text-primary)" }}>
+                        ตรวจครบทั้ง 5 ใบแล้วได้ Badge นักสืบ และบทที่ 2 จะเปิดให้ทันที
                     </div>
                 </div>
             }
-            rightPage={
-                <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between", alignItems: "center" }}>
-                    {/* NPC Character */}
-                    <motion.img
-                        src={jane} alt="Jane"
-                        animate={{ y: [0, -6, 0] }}
-                        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                        style={{ height: 220, objectFit: "contain", filter: "drop-shadow(0 10px 15px rgba(0,0,0,0.15))" }}
-                    />
 
-                    {/* Dialog Box */}
-                    <div style={{
-                        width: "100%", padding: 20, borderRadius: 16, background: "#FFF",
-                        border: "1px solid var(--paper-border)", boxShadow: "0 4px 16px rgba(0,0,0,0.04)"
-                    }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                            <span style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: 14 }}>พี่เจน (Senior Detective)</span>
-                            <span style={{ fontSize: 12, color: "var(--text-gold)" }}>{index + 1}/{dialogs.length}</span>
+            rightPage={
+                <div style={{ display: "flex", flexDirection: "column", gap: 18, height: "100%" }}>
+                    <img className="scene-photo" src={jane} alt="พี่เจน นักสืบรุ่นพี่ที่โต๊ะทำงาน" />
+
+                    <div className="dialog-box">
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                            <strong style={{ fontSize: 15, color: "var(--text-primary)" }}>พี่เจน</strong>
+                            <span style={{ fontSize: 12.5, color: "var(--text-gold)" }}>นักสืบรุ่นพี่</span>
                         </div>
-                        <p style={{ margin: 0, fontSize: 14, color: "var(--text-secondary)", minHeight: 48, lineHeight: 1.6 }}>
+
+                        <p className="dialog-text">
                             {text}
+                            {typing && <span className="caret" aria-hidden="true" />}
                         </p>
                     </div>
 
-                    {/* Action Button */}
-                    <motion.button
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => {
-                            if (index < dialogs.length - 1) setIndex(index + 1);
-                            else navigate("/unit4/level1/game");
-                        }}
-                        style={{
-                            width: "100%", padding: "14px 0", borderRadius: 12, border: "none", cursor: "pointer",
-                            background: "var(--gold-gradient)", color: "var(--text-primary)", fontWeight: 700,
-                            fontSize: 15, fontFamily: "var(--font-title)", boxShadow: "0 4px 14px rgba(202,138,4,0.3)"
-                        }}
-                    >
-                        {index < dialogs.length - 1 ? "NEXT DIALOG ▶" : "START MISSION 🚀"}
-                    </motion.button>
+                    <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
+                        <div className="dots" aria-hidden="true">
+                            {DIALOGS.map((_, i) => (
+                                <span key={i} className={`dot${i <= index ? " dot--on" : ""}`} />
+                            ))}
+                        </div>
+
+                        <button type="button" className="primary-btn" onClick={advance}>
+                            {typing ? "แสดงทั้งหมด" : last ? <>เริ่มตรวจสลิป <FaPlay size={13} /></> : <>ต่อไป <FaChevronRight size={13} /></>}
+                        </button>
+
+                    </div>
                 </div>
             }
         />

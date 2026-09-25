@@ -1,4 +1,5 @@
 import TraitBar from "./TraitBar";
+import { useNavigate } from "react-router-dom";
 
 const TRAITS = [
     { key: "logic", label: "Logic · ตรรกะ" },
@@ -13,6 +14,7 @@ export default function ResultScreen({
     error,
     restart,
 }) {
+    const navigate = useNavigate();
     if (error || !result) {
         return (
             <div className="sm-screen">
@@ -72,7 +74,7 @@ export default function ResultScreen({
 
                 <button
                     className="sm-btn"
-                    onClick={() => navigate("../map")}
+                    onClick={() => navigate("/map")}
                 >
                     กลับหน้าหลัก
                 </button>
