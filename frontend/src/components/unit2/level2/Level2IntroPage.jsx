@@ -1,12 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoMdSkipForward } from "react-icons/io";
 
 import "../../../styles/unit1/Level1/MirrorIntro.css"; // Reuse styling for gate
 
 import bgGame from "../../../assets/unit2/Level2/bgLevel2.png";
-import IntroSound from "../../../assets/sounds/IntroSound.mp3";
-import uiSoundSfx from "../../../assets/sounds/ui_sounds.mp3";
 
 import SceneOne from "./scenes/SceneOneIntro";
 import SceneTwo from "./scenes/SceneTwoIntro";
@@ -25,8 +23,11 @@ const SHIMMER_DOTS = [
 
 export default function Level2IntroPage() {
     const navigate = useNavigate();
-    const [hasStarted, setHasStarted] = useState(true);
     const [currentScene, setCurrentScene] = useState(0);
+
+    // Scene Data จาก Database
+    const [sceneData, setSceneData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const scenes = [
         SceneOne,
@@ -37,28 +38,46 @@ export default function Level2IntroPage() {
 
     const CurrentSceneComponent = scenes[currentScene];
 
-    const textAudioRef = useRef(new Audio(IntroSound));
-    const uiSoundSfxAudioRef = useRef(new Audio(uiSoundSfx));
+    // fetch Scene Data จาก Database
+    useEffect(() => {
+        const fetchScenes = async () => {
+            try {
+                setLoading(true);
 
-    const handleInitialClick = () => {
-        if (!hasStarted) {
-            textAudioRef.current.play().then(() => {
-                textAudioRef.current.pause();
-                textAudioRef.current.currentTime = 0;
-            }).catch(() => { });
+                const response = await fetch(
+                    "http://localhost:5000/api/introDialog/level/6"
+                );
 
-            uiSoundSfxAudioRef.current.play().then(() => {
-                uiSoundSfxAudioRef.current.pause();
-                uiSoundSfxAudioRef.current.currentTime = 0;
-            }).catch(() => { });
+                if (!response.ok) {
+                    throw new Error(
+                        "ไม่สามารถดึงข้อมูล Scene ของ Unit 2 Level 2 ได้"
+                    );
+                }
 
-            setHasStarted(true);
-        }
-    };
+                const data = await response.json();
+
+                console.log("Unit 2 Level 2 Scene Data:", data);
+
+                setSceneData(data);
+
+            } catch (error) {
+                console.error(
+                    "Error fetching Unit 2 Level 2 scenes:",
+                    error
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchScenes();
+    }, []);
 
     const handleNext = () => {
         if (currentScene < scenes.length - 1) {
             setCurrentScene((prev) => prev + 1);
+        } else {
+            navigate("/unit2/level2/start");
         }
     };
 
@@ -73,11 +92,7 @@ export default function Level2IntroPage() {
     };
 
     return (
-        <main
-            className="mirror-scene min-h-screen relative overflow-hidden font-sara"
-            style={{ cursor: hasStarted ? "default" : "pointer" }}
-            onClick={!hasStarted ? handleInitialClick : undefined}
-        >
+        <main className="mirror-scene min-h-screen relative overflow-hidden font-sara">
             {/* Background */}
             <div
                 className="mirror-scene__bg absolute inset-0"
@@ -86,7 +101,7 @@ export default function Level2IntroPage() {
             <div className="mirror-scene__vignette absolute inset-0" />
 
             {/* Sweep light */}
-            {hasStarted && <div className="mirror-scene__sweep" />}
+            <div className="mirror-scene__sweep" />
 
             {/* Particles */}
             <div className="mirror-scene__particles">
@@ -108,13 +123,16 @@ export default function Level2IntroPage() {
             {/* Scene */}
             <section className="relative z-20 flex items-start justify-center">
                 <div className="w-full">
-                    <CurrentSceneComponent
-                        onNext={handleNext}
-                        onBack={handleBack}
-                        handleSkip={handleSkip}
-                        currentScene={currentScene}
-                        totalScenes={scenes.length}
-                    />
+                    {!loading && sceneData.length > 0 && (
+                        <CurrentSceneComponent
+                            scene={sceneData[currentScene]}
+                            onNext={handleNext}
+                            onBack={handleBack}
+                            handleSkip={handleSkip}
+                            currentScene={currentScene}
+                            totalScenes={scenes.length}
+                        />
+                    )}
                 </div>
             </section>
         </main>

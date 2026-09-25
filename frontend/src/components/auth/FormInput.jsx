@@ -6,17 +6,14 @@ export default function FormInput({
     onChange,
     placeholder,
     noIcon = false,
-    bg = "yellow",
+    focusClass = "focus:border-blue-500 focus:ring-blue-100",
 }) {
-    const bgClass =
-        bg === "white"
-            ? "bg-white border border-gray-300"
-            : "bg-yellow-50 border-2 border-orange-300";
+    const showIcon = !noIcon && Icon;
 
     return (
         <div className="relative">
-            {!noIcon && Icon && (
-                <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 text-lg" />
+            {showIcon && (
+                <Icon className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
             )}
 
             <input
@@ -25,19 +22,14 @@ export default function FormInput({
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
+                aria-label={placeholder}
                 className={`
-          w-full
-          ${bgClass}
-          rounded-xl
-          py-3
-          ${!noIcon && Icon ? "pl-12" : "px-4"}
-          pr-4
-          font-semibold
-          focus:outline-none
-          focus:ring-2
-          focus:ring-blue-400
-          transition
-        `}
+                    w-full rounded-lg border border-gray-300 bg-white
+                    py-3 ${showIcon ? "pl-10" : "pl-3.5"} pr-3.5
+                    text-sm text-gray-800 placeholder:text-gray-400
+                    transition focus:outline-none focus:ring-4
+                    ${focusClass}
+                `}
             />
         </div>
     );

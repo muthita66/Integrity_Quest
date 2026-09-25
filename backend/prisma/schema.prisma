@@ -15,6 +15,47 @@ model action_types {
   logs_user_actions logs_user_actions[]
 }
 
+model bubbles {
+  bubble_id         Int                 @id @default(autoincrement())
+  level_id          Int
+  bubble_text       String
+  bubble_type       String              @db.VarChar(100)
+  is_active         Boolean
+  level             level               @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bubble_level")
+  game_play_bubbles game_play_bubbles[]
+}
+
+model choice {
+  choice_id         Int                 @id @default(autoincrement())
+  question_id       Int
+  choice_key        String              @db.Char(1)
+  choice_text       String              @db.VarChar(255)
+  is_correct        Boolean
+  ip_reward         Int
+  image             String?             @db.VarChar(255)
+  cost              Int?
+  feedback          String?
+  question          question            @relation(fields: [question_id], references: [question_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_question_id")
+  game_play_answers game_play_answers[]
+}
+
+model comparison_questions {
+  id                                              Int                    @id @default(autoincrement())
+  level_id                                        Int
+  question_order                                  Int
+  left_item_id                                    Int
+  left_price                                      Int
+  right_item_id                                   Int
+  right_price                                     Int
+  question_text                                   String
+  correct_answer                                  Int
+  items_comparison_questions_left_item_idToitems  items                  @relation("comparison_questions_left_item_idToitems", fields: [left_item_id], references: [items_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Left_item_id")
+  items_comparison_questions_right_item_idToitems items                  @relation("comparison_questions_right_item_idToitems", fields: [right_item_id], references: [items_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_Right_item_id")
+  level                                           level                  @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_level_id")
+  game_play_comparison                            game_play_comparison[]
+  level_hints                                     level_hints[]
+}
+
 model departments {
   dept_id    Int       @id @default(autoincrement())
   dept_name  String    @db.VarChar(100)
@@ -48,13 +89,426 @@ model feedback {
   users       users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "feedback_fk_user")
 }
 
-model game_contents_mission {
-  content_id     Int      @id(map: "game_contents_pkey") @default(autoincrement())
-  mission_id     Int
-  question       String
-  correct_answer String
-  options        Json
-  missions       missions @relation(fields: [mission_id], references: [mission_id], onDelete: NoAction, onUpdate: NoAction, map: "game_mission_fk_mission")
+model final_case_items {
+  id              Int         @id @default(autoincrement())
+  case_id         Int
+  item_id         Int
+  item_order      Int
+  is_key_evidence Boolean
+  final_cases     final_cases @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_case_id")
+  items           items       @relation(fields: [item_id], references: [items_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_items_id")
+}
+
+model final_cases {
+  case_id                 Int                       @id @default(autoincrement())
+  level_id                Int
+  case_number             Int
+  title                   String                    @db.VarChar(255)
+  location                String?                   @db.VarChar(255)
+  description             String?
+  is_active               Boolean?
+  background_image        String?                   @db.VarChar(255)
+  lesson_title            String?                   @db.VarChar(255)
+  lesson_description      String?
+  final_case_items        final_case_items[]
+  level                   level                     @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_level_id")
+  game_play_case_attempts game_play_case_attempts[]
+  question                question[]
+}
+
+model final_level_category_budgets {
+  id                 Int                @id @default(autoincrement())
+  config_id          Int
+  category           String             @db.VarChar(100)
+  budget             Int                @default(0)
+  final_level_config final_level_config @relation(fields: [config_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "final_level_category_budget_config_fk")
+
+  @@unique([config_id, category], map: "final_level_category_budget_unique")
+}
+
+model final_level_config {
+  id                           Int                            @id @default(autoincrement())
+  level_id                     Int                            @unique
+  start_budget                 Int                            @default(10000)
+  min_reserve                  Int                            @default(1000)
+  limit_time                   Int                            @default(110)
+  final_level_category_budgets final_level_category_budgets[]
+  level                        level                          @relation(fields: [level_id], references: [level_id], onDelete: Cascade, onUpdate: NoAction, map: "final_level_config_level_fk")
+}
+
+model final_level_event_choices {
+  choice_id            Int                @id @default(autoincrement())
+  event_id             Int
+  choice_key           String             @db.VarChar(100)
+  choice_text          String             @db.VarChar(255)
+  money_change         Int                @default(0)
+  score_change         Int                @default(0)
+  missing_receipt      Boolean            @default(false)
+  unnecessary_purchase Boolean            @default(false)
+  recover_receipt      Boolean            @default(false)
+  remove_need_item_id  Int?
+  feedback             String?
+  final_level_events   final_level_events @relation(fields: [event_id], references: [event_id], onDelete: Cascade, onUpdate: NoAction, map: "final_level_event_choices_event_fk")
+  items                items?             @relation(fields: [remove_need_item_id], references: [items_id], onUpdate: NoAction, map: "final_level_event_choices_item_fk")
+
+  @@unique([event_id, choice_key], map: "final_level_event_choices_unique")
+}
+
+model final_level_events {
+  event_id                  Int                         @id @default(autoincrement())
+  level_id                  Int
+  event_key                 String                      @db.VarChar(100)
+  title                     String                      @db.VarChar(255)
+  description               String?
+  event_order               Int
+  is_active                 Boolean                     @default(true)
+  final_level_event_choices final_level_event_choices[]
+  level                     level                       @relation(fields: [level_id], references: [level_id], onDelete: Cascade, onUpdate: NoAction, map: "final_level_events_level_fk")
+
+  @@unique([level_id, event_key], map: "final_level_events_unique")
+}
+
+model game_play_answers {
+  play_answer_id    Int               @id @default(autoincrement())
+  play_id           Int
+  question_id       Int
+  choice_id         Int
+  is_correct        Boolean
+  ip_reward         Int
+  answered_at       DateTime?         @db.Timestamptz(6)
+  choice            choice            @relation(fields: [choice_id], references: [choice_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_choice")
+  game_play_history game_play_history @relation(fields: [play_id], references: [play_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_play_id")
+  question          question          @relation(fields: [question_id], references: [question_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_question_id")
+}
+
+model game_play_bubbles {
+  play_bubble_id    Int               @id @default(autoincrement())
+  play_id           Int
+  bubble_id         Int
+  bubble_order      Int
+  is_destroyed      Boolean?
+  is_correct        Boolean?
+  destroyed_at      DateTime?         @db.Timestamptz(6)
+  bubbles           bubbles           @relation(fields: [bubble_id], references: [bubble_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bubble")
+  game_play_history game_play_history @relation(fields: [play_id], references: [play_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_play_history")
+}
+
+model game_play_case_attempts {
+  attempt_id        Int               @id @default(autoincrement())
+  play_id           Int
+  case_id           Int
+  attempt_number    Int
+  started_at        DateTime          @db.Timestamptz(6)
+  completed_at      DateTime?         @db.Timestamptz(6)
+  elapsed_seconds   Int?
+  is_timeout        Boolean           @default(false)
+  is_passed         Boolean           @default(false)
+  final_cases       final_cases       @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_case_id")
+  game_play_history game_play_history @relation(fields: [play_id], references: [play_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_play_id")
+  game_play_items   game_play_items[]
+}
+
+model game_play_comparison {
+  id                     Int                  @id @default(autoincrement())
+  play_id                Int
+  comparison_question_id Int
+  user_answer            Int
+  is_correct             Boolean
+  attempt_number         Int                  @default(1)
+  first_try_correct      Boolean              @default(false)
+  answered_at            DateTime?            @default(now()) @db.Timestamptz(6)
+  game_play_history      game_play_history    @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_comparison_play")
+  comparison_questions   comparison_questions @relation(fields: [comparison_question_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_comparison_question")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model game_play_history {
+  play_id                      Int                            @id @default(autoincrement())
+  user_id                      Int
+  level_id                     Int
+  score                        Int
+  max_score                    Int
+  started_at                   DateTime                       @db.Timestamptz(6)
+  completed_at                 DateTime?                      @db.Timestamptz(6)
+  status                       String                         @default("IN_PROGRESS") @db.VarChar(20)
+  correct_count                Int                            @default(0)
+  wrong_count                  Int                            @default(0)
+  earned_ip                    Int                            @default(0)
+  game_play_answers            game_play_answers[]
+  game_play_bubbles            game_play_bubbles[]
+  game_play_case_attempts      game_play_case_attempts[]
+  game_play_comparison         game_play_comparison[]
+  level                        level                          @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_level_id")
+  users                        users                          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+  game_play_money              game_play_money[]
+  game_play_need_want          game_play_need_want[]
+  game_play_receipt_hunt       game_play_receipt_hunt[]
+  game_play_treasurer          game_play_treasurer?
+  game_play_treasurer_events   game_play_treasurer_events[]
+  game_play_treasurer_receipts game_play_treasurer_receipts[]
+}
+
+model game_play_items {
+  play_item_id            Int                     @id @default(autoincrement())
+  attempt_id              Int
+  item_id                 Int
+  is_correct              Boolean                 @default(false)
+  selected_at             DateTime                @default(now()) @db.Timestamptz(6)
+  game_play_case_attempts game_play_case_attempts @relation(fields: [attempt_id], references: [attempt_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_attempt_id")
+  items                   items                   @relation(fields: [item_id], references: [items_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_items_id")
+}
+
+model game_play_money {
+  id                Int               @id @default(autoincrement())
+  play_id           Int
+  item_id           Int
+  selected_type_id  Int
+  is_correct        Boolean
+  answered_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  items             items             @relation(fields: [item_id], references: [items_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_money_item")
+  game_play_history game_play_history @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_money_play")
+  item_types        item_types        @relation(fields: [selected_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_money_selected_type")
+
+  @@unique([play_id, item_id], map: "game_play_money_play_item_unique")
+}
+
+model game_play_need_want {
+  id                Int               @id @default(autoincrement())
+  play_id           Int
+  item_id           Int
+  user_type         String            @db.VarChar(10)
+  is_correct        Boolean
+  answered_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  items             items             @relation(fields: [item_id], references: [items_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_need_want_item")
+  game_play_history game_play_history @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_need_want_play")
+}
+
+model game_play_receipt_hunt {
+  id                Int               @id @default(autoincrement())
+  play_id           Int
+  item_id           Int
+  item_order        Int
+  is_target         Boolean
+  is_selected       Boolean           @default(false)
+  is_correct        Boolean?
+  selected_at       DateTime?         @db.Timestamp(6)
+  items             items             @relation(fields: [item_id], references: [items_id], map: "game_play_receipt_hunt_item_fk")
+  game_play_history game_play_history @relation(fields: [play_id], references: [play_id], onDelete: Cascade, map: "game_play_receipt_hunt_play_fk")
+
+  @@unique([play_id, item_id], map: "game_play_receipt_hunt_play_item_unique")
+  @@unique([play_id, item_order], map: "game_play_receipt_hunt_play_order_unique")
+}
+
+model game_play_treasurer {
+  play_id              Int               @id
+  score                Int               @default(0)
+  max_score            Int               @default(100)
+  grade                String?           @db.VarChar(5)
+  start_budget         Int               @default(10000)
+  final_balance        Int               @default(0)
+  spent_amount         Int               @default(0)
+  receipt_count        Int               @default(0)
+  unnecessary_count    Int               @default(0)
+  missing_receipt      Boolean           @default(false)
+  unnecessary_purchase Boolean           @default(false)
+  elapsed_time         Int               @default(0)
+  hp_bonus             Boolean           @default(false)
+  success              Boolean           @default(false)
+  fail_reason          String?
+  feedback             String?
+  created_at           DateTime          @default(now()) @db.Timestamptz(6)
+  completed_at         DateTime?         @db.Timestamptz(6)
+  purchased_items      Json?
+  game_play_history    game_play_history @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_game_play_treasurer_play")
+}
+
+model game_story {
+  id          Int     @id @default(autoincrement())
+  level_id    Int
+  story_order Int
+  text        String?
+  level       level   @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_level_id")
+}
+
+model game_type {
+  game_type_id Int     @id @default(autoincrement())
+  name         String? @db.VarChar(100)
+  description  String?
+  level        level[]
+}
+
+model hint_minigame_options {
+  id             Int             @id @default(autoincrement())
+  minigame_id    Int?
+  option_key     String?         @db.VarChar(10)
+  option_text    String?         @db.VarChar(50)
+  value          Int?
+  image          String?         @db.VarChar(255)
+  is_correct     Boolean?        @default(false)
+  order_no       Int?
+  hint_minigames hint_minigames? @relation(fields: [minigame_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_minigame_id")
+}
+
+model hint_minigame_scenario_options {
+  id                      Int                     @id @default(autoincrement())
+  scenario_id             Int
+  option_key              String                  @db.VarChar(10)
+  option_text             String                  @db.VarChar(255)
+  amount                  Int
+  is_correct              Boolean?                @default(false)
+  order_no                Int
+  hint_minigame_scenarios hint_minigame_scenarios @relation(fields: [scenario_id], references: [id], onDelete: Cascade, map: "fk_scenario_option_scenario")
+}
+
+model hint_minigame_scenarios {
+  id                             Int                              @id @default(autoincrement())
+  minigame_id                    Int
+  month_no                       Int
+  budget                         Int?
+  scenario_text                  String
+  item_id                        Int?
+  hint_minigame_scenario_options hint_minigame_scenario_options[]
+  items                          items?                           @relation(fields: [item_id], references: [items_id], onDelete: Restrict, map: "fk_scenario_item_id")
+  hint_minigames                 hint_minigames                   @relation(fields: [minigame_id], references: [id], onDelete: Cascade, map: "fk_scenario_minigame")
+
+  @@unique([minigame_id, month_no], map: "scenario_month_unique")
+}
+
+model hint_minigames {
+  id                      Int                       @id @default(autoincrement())
+  game_type               String                    @db.VarChar(50)
+  title                   String?                   @db.VarChar(255)
+  description             String?
+  target_value            Int?
+  is_active               Boolean?
+  hint_minigame_options   hint_minigame_options[]
+  hint_minigame_scenarios hint_minigame_scenarios[]
+  level_hints             level_hints[]
+}
+
+model introDialog {
+  id           Int        @id @default(autoincrement())
+  scene_id     Int
+  speaker      String?    @db.VarChar(100)
+  title        String?    @db.VarChar(100)
+  text         String?
+  dialog_order Int?
+  lesson       String?
+  introScene   introScene @relation(fields: [scene_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_introScene_id")
+}
+
+model introScene {
+  id            Int            @id @default(autoincrement())
+  level_id      Int
+  scene_order   Int
+  title         String?        @db.VarChar(100)
+  scene_type_id Int
+  introDialog   introDialog[]
+  level         level          @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_level_id")
+  sceneMission  sceneMission[]
+}
+
+model item_types {
+  id              Int               @id @default(autoincrement())
+  code            String            @db.VarChar(100)
+  name            String            @db.VarChar(100)
+  description     String?
+  game_play_money game_play_money[]
+  level_items     level_items[]
+}
+
+model items {
+  items_id                                                       Int                         @id @default(autoincrement())
+  name                                                           String                      @db.VarChar(150)
+  description                                                    String?
+  image                                                          String?                     @db.VarChar(255)
+  category                                                       String?                     @db.VarChar(50)
+  price                                                          Int?
+  comparison_questions_comparison_questions_left_item_idToitems  comparison_questions[]      @relation("comparison_questions_left_item_idToitems")
+  comparison_questions_comparison_questions_right_item_idToitems comparison_questions[]      @relation("comparison_questions_right_item_idToitems")
+  final_case_items                                               final_case_items[]
+  final_level_event_choices                                      final_level_event_choices[]
+  game_play_items                                                game_play_items[]
+  game_play_money                                                game_play_money[]
+  game_play_need_want                                            game_play_need_want[]
+  game_play_receipt_hunt                                         game_play_receipt_hunt[]
+  hint_minigame_scenarios                                        hint_minigame_scenarios[]
+  level_items                                                    level_items[]
+}
+
+model level {
+  level_id              Int                     @id @default(autoincrement())
+  unit_id               Int
+  title                 String                  @db.VarChar(255)
+  description           String?
+  order_no              Int
+  level_type_id         Int
+  game_type_id          Int
+  is_final              Boolean?
+  bubbles               bubbles[]
+  comparison_questions  comparison_questions[]
+  final_cases           final_cases[]
+  final_level_config    final_level_config?
+  final_level_events    final_level_events[]
+  game_play_history     game_play_history[]
+  game_story            game_story[]
+  introScene            introScene[]
+  game_type             game_type               @relation(fields: [game_type_id], references: [game_type_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_game_type_id")
+  level_type            level_type              @relation(fields: [level_type_id], references: [level_type_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_level_type_id")
+  level_hints           level_hints[]
+  level_items           level_items[]
+  level_result_messages level_result_messages[]
+  question              question[]
+  user_level_progress   user_level_progress[]
+}
+
+model level_hints {
+  id                     Int                   @id @default(autoincrement())
+  level_id               Int
+  title                  String?               @db.VarChar(255)
+  description            String?
+  hint_order             Int?
+  comparison_question_id Int?
+  minigame_id            Int?
+  comparison_questions   comparison_questions? @relation(fields: [comparison_question_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_comparison_id")
+  level                  level                 @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_level_id")
+  hint_minigames         hint_minigames?       @relation(fields: [minigame_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_minigame_id")
+}
+
+model level_items {
+  id           Int        @id @default(autoincrement())
+  level_id     Int
+  item_id      Int
+  item_type_id Int        @default(0)
+  quantity     Int?       @default(1)
+  is_required  Boolean?   @default(false)
+  item_types   item_types @relation(fields: [item_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "item_type_id_fk")
+  items        items      @relation(fields: [item_id], references: [items_id], onDelete: NoAction, onUpdate: NoAction, map: "items_id_fk")
+  level        level      @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction, map: "level_id_fk")
+}
+
+model level_result_messages {
+  id              Int     @id @default(autoincrement())
+  level_id        Int
+  status          String  @db.VarChar(20)
+  heading         String? @db.VarChar(255)
+  title           String? @db.VarChar(255)
+  description     String?
+  highlight_text  String?
+  message         String?
+  verdict_label   String? @db.VarChar(100)
+  character_image String? @db.VarChar(255)
+  mirror_image    String? @db.VarChar(255)
+  level           level   @relation(fields: [level_id], references: [level_id], onDelete: Cascade, onUpdate: NoAction, map: "level_result_messages_level_fk")
+
+  @@unique([level_id, status], map: "level_result_messages_unique")
+}
+
+model level_type {
+  level_type_id Int     @id @default(autoincrement())
+  name          String  @db.VarChar(100)
+  description   String?
+  level         level[]
 }
 
 model logs_user_actions {
@@ -64,7 +518,7 @@ model logs_user_actions {
   reference_id Int?
   description  String?
   time_spent   Int?
-  created_at   DateTime?     @default(now()) @db.Timestamp(6)
+  created_at   DateTime?     @db.Timestamptz(6)
   action_types action_types? @relation(fields: [type_id], references: [type_id], onDelete: NoAction, onUpdate: NoAction)
   users        users?        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
@@ -77,14 +531,13 @@ model majors {
   students   students[]
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model mission_rewards {
   mission_id Int
   reward_id  Int
   missions   missions @relation(fields: [mission_id], references: [mission_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk")
   rewards    rewards  @relation(fields: [reward_id], references: [reward_id], onDelete: NoAction, onUpdate: NoAction, map: "reward_fk")
 
-  @@ignore
+  @@id([mission_id, reward_id])
 }
 
 model mission_types {
@@ -95,26 +548,37 @@ model mission_types {
 }
 
 model missions {
-  mission_id            Int                     @id
-  unit_id               Int
-  type_id               Int
-  level_number          Int?
-  mission_name          String                  @db.VarChar(255)
-  is_active             Boolean
-  game_contents_mission game_contents_mission[]
-  mission_rewards       mission_rewards[]     @ignore
-  mission_types         mission_types           @relation(fields: [type_id], references: [type_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_type")
-  units                 units                   @relation(fields: [unit_id], references: [unit_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_unit")
-  user_missions         user_missions[]
+  mission_id      Int               @id
+  unit_id         Int
+  type_id         Int
+  level_number    Int?
+  mission_name    String            @db.VarChar(255)
+  is_active       Boolean
+  mission_rewards mission_rewards[]
+  mission_types   mission_types     @relation(fields: [type_id], references: [type_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_type")
+  units           units             @relation(fields: [unit_id], references: [unit_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_unit")
+  user_missions   user_missions[]
+}
+
+model question {
+  question_id       Int                 @id @default(autoincrement())
+  level_id          Int
+  question_order    Int
+  question_text     String              @db.VarChar(255)
+  case_id           Int?
+  correct_explain   String?
+  wrong_explain     String?
+  choice            choice[]
+  game_play_answers game_play_answers[]
+  final_cases       final_cases?        @relation(fields: [case_id], references: [case_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_case_id")
+  level             level               @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_level_id")
 }
 
 model quizzes {
   quiz_id           Int                 @id @default(autoincrement())
-  unit_id           Int?
   quiz_type         quiz_type_enum
   question_text     String
   max_score         Int?                @default(5)
-  units             units?              @relation(fields: [unit_id], references: [unit_id], onDelete: Cascade, onUpdate: NoAction)
   user_quiz_answers user_quiz_answers[]
 }
 
@@ -130,15 +594,48 @@ model rewards {
   reward_name         String                @db.VarChar(255)
   reward_value        Int
   type_id             Int
-  mission_rewards     mission_rewards[]     @ignore
+  mission_rewards     mission_rewards[]
   reward_types        reward_types          @relation(fields: [reward_id], references: [type_id], onDelete: NoAction, onUpdate: NoAction, map: "reward_fk_reward_type")
-  user_earned_rewards user_earned_rewards[] @ignore
+  user_earned_rewards user_earned_rewards[]
 }
 
 model roles {
   role_id   Int     @id @default(autoincrement())
   role_name String  @db.VarChar(50)
   users     users[]
+}
+
+model rules {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(50)
+  description String?
+  rule_type   String? @db.VarChar(100)
+}
+
+model sceneMission {
+  id                Int                 @id @default(autoincrement())
+  scene_id          Int
+  title             String              @db.VarChar(100)
+  subtitle          String?             @db.VarChar(255)
+  text              String?
+  introScene        introScene          @relation(fields: [scene_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_scene_id")
+  sceneMissionRules sceneMissionRules[]
+}
+
+model sceneMissionRules {
+  id               Int          @id @default(autoincrement())
+  scene_mission_id Int
+  rule_id          Int
+  value            Json?
+  description      String?
+  title            String?      @db.VarChar(100)
+  image_path       String?      @db.VarChar(255)
+  sceneMission     sceneMission @relation(fields: [scene_mission_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_scene_mission")
+}
+
+model scene_type {
+  scene_type_id Int    @id @default(autoincrement())
+  name          String @db.VarChar(100)
 }
 
 model students {
@@ -155,15 +652,15 @@ model students {
 }
 
 model teachers {
-  teacher_id Int      @id @default(autoincrement())
+  teacher_id Int       @id @default(autoincrement())
   user_id    Int
-  first_name String   @db.VarChar(255)
-  last_name  String   @db.VarChar(255)
-  gender     String   @db.VarChar(50)
-  birth_date DateTime @db.Date
+  first_name String    @db.VarChar(255)
+  last_name  String    @db.VarChar(255)
+  gender     String    @db.VarChar(50)
+  birth_date DateTime? @db.Date
   dept_id    Int
-  position   String   @db.VarChar(255)
-  users      users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teacher_fk_userID")
+  position   String    @db.VarChar(255)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teacher_fk_userID")
 }
 
 model unit_contents {
@@ -181,22 +678,21 @@ model unit_contents {
 }
 
 model units {
-  unit_id       Int             @id @default(autoincrement())
-  name_th       String          @db.VarChar(100)
-  name_en       String          @db.VarChar(100)
-  order_number  Int
-  is_active     Boolean
-  description   String?
-  created_at    DateTime        @db.Timestamptz(6)
-  updated_at    DateTime?       @db.Timestamptz(6)
-  feedback      feedback[]
-  missions      missions[]
-  quizzes       quizzes[]
-  unit_contents unit_contents[]
-  user_progress user_progress[]
+  unit_id             Int                   @id @default(autoincrement())
+  name_th             String                @db.VarChar(100)
+  name_en             String                @db.VarChar(100)
+  order_number        Int
+  is_active           Boolean
+  description         String?
+  created_at          DateTime              @db.Timestamptz(6)
+  updated_at          DateTime?             @db.Timestamptz(6)
+  feedback            feedback[]
+  missions            missions[]
+  unit_contents       unit_contents[]
+  user_level_progress user_level_progress[]
+  user_progress       user_progress[]
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model user_earned_rewards {
   user_id   Int
   reward_id Int
@@ -204,7 +700,7 @@ model user_earned_rewards {
   rewards   rewards  @relation(fields: [reward_id], references: [reward_id], onDelete: NoAction, onUpdate: NoAction, map: "reward_fk")
   users     users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_fk")
 
-  @@ignore
+  @@id([user_id, reward_id])
 }
 
 model user_missions {
@@ -227,7 +723,7 @@ model user_progress {
   score                 Int?      @default(0)
   completion_percentage Int?      @default(0)
   is_locked             Boolean?  @default(true)
-  last_accessed         DateTime? @default(now()) @db.Timestamp(6)
+  last_accessed         DateTime? @default(now()) @db.Timestamptz(6)
   units                 units     @relation(fields: [unit_id], references: [unit_id], onDelete: Cascade, onUpdate: NoAction)
   users                 users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -245,12 +741,13 @@ model user_quiz_answers {
 }
 
 model user_stats {
-  user_id         Int      @id @default(autoincrement())
-  total_points    Int
-  current_streak  Int
-  highest_score   Int
-  last_login_date DateTime @db.Date
-  users           users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "stats_fk_userID")
+  user_id          Int      @id
+  total_points     Int
+  current_streak   Int
+  highest_score    Int
+  last_login_date  DateTime @db.Date
+  integrity_points Int      @default(0)
+  users            users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "stats_fk_userID")
 }
 
 model users {
@@ -262,57 +759,93 @@ model users {
   last_login          DateTime              @db.Date
   created_at          DateTime              @db.Timestamptz(6)
   feedback            feedback[]
+  game_play_history   game_play_history[]
   logs_user_actions   logs_user_actions[]
   students            students[]
   teachers            teachers[]
-  user_earned_rewards user_earned_rewards[] @ignore
+  user_earned_rewards user_earned_rewards[]
+  user_level_progress user_level_progress[]
   user_missions       user_missions[]
   user_progress       user_progress[]
   user_quiz_answers   user_quiz_answers[]
+  user_sessions       user_sessions[]
   user_stats          user_stats?
   roles               roles                 @relation(fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction, map: "user_fk_roleID")
 }
 
-model level {
-  level_id    Int           @id @default(autoincrement())
-  unit_id     Int
-  title       String        @db.VarChar(255)
-  description String?
-  level_type  String        @db.VarChar(255)
-  game_type   String        @db.VarChar(255)
-  order_no    Int
-  created_at  DateTime      @db.Timestamptz(6)
-  pass_score  String?       @db.VarChar
-  level_items level_items[]
+model game_play_treasurer_events {
+  id                        Int               @id @default(autoincrement())
+  play_id                   Int
+  event_id                  Int
+  choice_id                 Int
+  money_change              Int               @default(0)
+  score_change              Int               @default(0)
+  missing_receipt_flag      Boolean           @default(false)
+  unnecessary_purchase_flag Boolean           @default(false)
+  applied_at                DateTime          @default(now()) @db.Timestamptz(6)
+  game_play_history         game_play_history @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([play_id, event_id], map: "gpt_events_play_event_unique")
+  @@index([play_id], map: "idx_gpt_events_play_id")
 }
 
-model item_types {
-  id          Int           @id @default(autoincrement())
-  code        String        @db.VarChar(100)
-  name        String        @db.VarChar(100)
-  description String?
-  level_items level_items[]
+model game_play_treasurer_receipt_items {
+  id                           Int                          @id @default(autoincrement())
+  receipt_id                   Int
+  item_id                      Int
+  category                     String?                      @db.VarChar(100)
+  item_type                    String?                      @db.VarChar(20)
+  quantity                     Int                          @default(1)
+  unit_price                   Int                          @default(0)
+  game_play_treasurer_receipts game_play_treasurer_receipts @relation(fields: [receipt_id], references: [receipt_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([receipt_id], map: "idx_gpt_receipt_items_receipt_id")
 }
 
-model items {
-  items_id    Int           @id
-  name        String        @db.VarChar(150)
-  description String?
-  image       String?       @db.VarChar(255)
-  category    String?       @db.VarChar(50)
-  level_items level_items[]
+model game_play_treasurer_receipts {
+  receipt_id                        Int                                 @id @default(autoincrement())
+  play_id                           Int
+  total_amount                      Int                                 @default(0)
+  is_saved                          Boolean?
+  created_at                        DateTime                            @default(now()) @db.Timestamptz(6)
+  decided_at                        DateTime?                           @db.Timestamptz(6)
+  game_play_treasurer_receipt_items game_play_treasurer_receipt_items[]
+  game_play_history                 game_play_history                   @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([play_id], map: "idx_gpt_receipts_play_id")
 }
 
-model level_items {
-  id           Int        @id
-  level_id     Int
-  item_id      Int
-  item_type_id Int        @default(0)
-  quantity     Int?       @default(1)
-  is_required  Boolean?   @default(false)
-  item_types   item_types @relation(fields: [item_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "item_type_id_fk")
-  items        items      @relation(fields: [item_id], references: [items_id], onDelete: NoAction, onUpdate: NoAction, map: "items_id_fk")
-  level        level      @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction, map: "level_id_fk")
+model user_level_progress {
+  progress_id   Int       @id @default(autoincrement())
+  user_id       Int
+  unit_id       Int
+  level_id      Int
+  status        String    @default("LOCKED") @db.VarChar(20)
+  is_locked     Boolean   @default(true)
+  score         Int       @default(0)
+  best_score    Int       @default(0)
+  completed_at  DateTime? @db.Timestamptz(6)
+  last_accessed DateTime? @default(now()) @db.Timestamptz(6)
+  level         level     @relation(fields: [level_id], references: [level_id], onDelete: Cascade, onUpdate: NoAction, map: "user_level_progress_level_fk")
+  units         units     @relation(fields: [unit_id], references: [unit_id], onDelete: Cascade, onUpdate: NoAction, map: "user_level_progress_unit_fk")
+  users         users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_level_progress_user_fk")
+
+  @@unique([user_id, level_id], map: "user_level_progress_user_level_unique")
+  @@index([level_id], map: "idx_user_level_progress_level_id")
+  @@index([unit_id], map: "idx_user_level_progress_unit_id")
+  @@index([user_id], map: "idx_user_level_progress_user_id")
+}
+
+model user_sessions {
+  session_id     Int       @id @default(autoincrement())
+  user_id        Int
+  started_at     DateTime  @default(now()) @db.Timestamptz(6)
+  last_seen_at   DateTime  @default(now()) @db.Timestamptz(6)
+  ended_at       DateTime? @db.Timestamptz(6)
+  active_minutes Int       @default(0)
+  users          users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_sessions_user_fk")
+
+  @@index([user_id, started_at(sort: Desc)], map: "idx_user_sessions_user_started")
 }
 
 enum quiz_type_enum {

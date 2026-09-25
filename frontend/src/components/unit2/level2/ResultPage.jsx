@@ -1,21 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import ConfettiExplosion from "react-confetti-explosion";
-import BackgroundImg from "../../../assets/unit2/Level2/sceneLevel2.png";
+import BackgroundImg from "../../../assets/unit2/Level2/bgLevel2.png";
+import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
+import useGameMuted from "../../../hooks/useGameMuted";
 
-const TOTAL_QUESTIONS = 5;
-
-const PARTICLES = [
-    { left: "8%", top: "15%", size: 5, delay: "0s", dur: "7s", opacity: 0.7 },
-    { left: "15%", top: "65%", size: 3, delay: "1.2s", dur: "9s", opacity: 0.5 },
-    { left: "25%", top: "35%", size: 4, delay: "2.5s", dur: "8s", opacity: 0.6 },
-    { left: "45%", top: "80%", size: 3, delay: "0.8s", dur: "10s", opacity: 0.4 },
-    { left: "60%", top: "20%", size: 5, delay: "3s", dur: "6.5s", opacity: 0.65 },
-    { left: "72%", top: "55%", size: 4, delay: "1.8s", dur: "8.5s", opacity: 0.5 },
-    { left: "85%", top: "30%", size: 3, delay: "0.4s", dur: "11s", opacity: 0.45 },
-    { left: "90%", top: "70%", size: 5, delay: "2.1s", dur: "7.5s", opacity: 0.6 },
-];
+const API_URL = "http://localhost:5000";
+const LEVEL_ID = 6;
 
 function useCountUp(
     target,
@@ -32,21 +24,16 @@ function useCountUp(
                 raf = requestAnimationFrame(tick);
                 return;
             }
-
             const progress = Math.min(
                 (now - startTime) / duration,
                 1
             );
-
             const eased = 1 - Math.pow(1 - progress, 3);
-
             setValue(Math.round(eased * target));
-
             if (progress < 1) {
                 raf = requestAnimationFrame(tick);
             }
         };
-
         raf = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(raf);
     }, [target, duration, start, delay]);
@@ -55,32 +42,85 @@ function useCountUp(
 }
 
 export default function ResultPage({
-    passed,
+    result,
     resetGame,
-
-    // จำนวนข้อที่ตอบถูกตั้งแต่ครั้งแรก
-    firstTryCorrect = 0,
 }) {
     const navigate = useNavigate();
     const prefersReducedMotion = useReducedMotion();
 
-    // จำกัด EXP ให้อยู่ระหว่าง 0 - 5
-    const expEarned = Math.max(
-        0,
-        Math.min(TOTAL_QUESTIONS, firstTryCorrect)
-    );
+    /*
+     * เดิมหน้านี้รับ passed/firstTryCorrect ที่ Frontend คำนวณเอง
+     * (hp >= 15 ที่ไม่เคยตรวจกับ DB) แล้วเลือกข้อความ title/message/tip
+     * จาก 4 ระดับที่ hardcode ไว้ในไฟล์นี้ทั้งหมด (getResultTitle,
+     * getResultMessage, getTip) — ตอนนี้เปลี่ยนมารับผลจริงจาก Backend
+     * (completeGame ของ level_id=6) ผ่าน prop `result` แทน และลดข้อความ
+     * เหลือ PASS/FAIL 2 สถานะ ดึงจาก level_result_messages เหมือน
+     * Level 1 (Need or Want?)
+     */
+    const isPass = result?.is_pass ?? false;
+    const status = result?.status;
+    const score = result?.score ?? 0;
+    const maxScore = result?.max_score ?? 5;
+    const earnedIP = result?.earned_ip ?? 0;
+    const totalIntegrityPoints =
+        result?.total_integrity_points ?? 0;
 
-    // EXP รวมของด่าน
-    const expProgress = (expEarned / TOTAL_QUESTIONS) * 100;
+    const [resultText, setResultText] = useState(null);
+    const [messageError, setMessageError] = useState(false);
+
+    useEffect(() => {
+        if (!status) return;
+
+        const fetchResultMessage = async () => {
+            try {
+                setMessageError(false);
+
+                const response = await fetch(
+                    `${API_URL}/api/level-result/${LEVEL_ID}/${status}`
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "โหลดข้อความผลลัพธ์ไม่สำเร็จ"
+                    );
+                }
+
+                const data = await response.json();
+                setResultText(data.data);
+            } catch (error) {
+                console.error(
+                    "Fetch Result Message Error:",
+                    error
+                );
+                setMessageError(true);
+            }
+        };
+
+        fetchResultMessage();
+    }, [status]);
 
     // Animation
     const PRINT_DURATION = prefersReducedMotion ? 0 : 0.7;
-
-    const animatedExp = useCountUp(expEarned, {
+    const animatedScore = useCountUp(score, {
         duration: 900,
         start: true,
         delay: 500,
     });
+
+    // เสียง Bonus เล่นครั้งเดียวตอนหน้าผลลัพธ์แสดงขึ้นมา ไม่วน
+    const [muted] = useGameMuted();
+    const soundPlayedRef = useRef(false);
+
+    useEffect(() => {
+        if (!result || !resultText || soundPlayedRef.current) return;
+        soundPlayedRef.current = true;
+
+        if (muted) return;
+
+        const audio = new Audio(bonusSound);
+        audio.volume = 0.6;
+        audio.play().catch(() => { });
+    }, [result, resultText, muted]);
 
     const [showExplosion, setShowExplosion] = useState(true);
 
@@ -92,69 +132,24 @@ export default function ResultPage({
         return () => clearTimeout(timer);
     }, []);
 
-    const getResultTitle = () => {
-        if (expEarned === 5) {
-            return "ยอดเยี่ยมมาก!";
-        }
-
-        if (expEarned >= 3) {
-            return "ทำได้ดีมาก!";
-        }
-
-        if (expEarned >= 1) {
-            return "เก่งมาก! พยายามต่อไป";
-        }
-
-        return "ลองอีกครั้งนะ!";
-    };
-
-
-    const getResultMessage = () => {
-        if (expEarned === 5) {
-            return "คุณเปรียบเทียบราคา วางแผนค่าใช้จ่าย และคิดก่อนตัดสินใจซื้อได้อย่างดีเยี่ยม";
-        }
-
-        if (expEarned >= 3) {
-            return "คุณเริ่มเข้าใจการเปรียบเทียบราคาและการวางแผนค่าใช้จ่ายได้ดี ลองคิดให้รอบคอบขึ้นอีกนิด";
-        }
-
-        if (expEarned >= 1) {
-            return "คุณเริ่มเข้าใจการใช้เงินแล้ว ลองทบทวนการเปรียบเทียบราคาและความจำเป็นก่อนตัดสินใจซื้อ";
-        }
-
-        return "ไม่เป็นไรนะ ลองทบทวนแต่ละสถานการณ์ แล้วคิดก่อนตัดสินใจใช้เงินอีกครั้ง";
-    };
-
-
-    const getTip = () => {
-        if (expEarned === 5) {
-            return "จำไว้นะ... เงินทุกบาทมีค่า ก่อนจ่าย ลองถามตัวเองว่า จำเป็นจริงไหม และคุ้มค่าหรือเปล่า?";
-        }
-
-        if (expEarned >= 3) {
-            return "ก่อนจ่าย ลองเปรียบเทียบราคาและคิดถึงความจำเป็นก่อนเสมอ";
-        }
-
-        return "ก่อนซื้อ ลองถามตัวเองว่า สิ่งนี้จำเป็นจริงไหม และมีทางเลือกที่คุ้มกว่าหรือเปล่า?";
-    };
-
+    if (!result || !resultText) {
+        return (
+            <div
+                className="min-h-screen flex items-center justify-center bg-cover bg-center sarabun-bold"
+                style={{ backgroundImage: `url(${BackgroundImg})` }}
+            >
+                <p className="text-xl font-bold">
+                    {messageError
+                        ? "ไม่สามารถโหลดข้อมูลผลลัพธ์ได้"
+                        : "กำลังโหลดผลลัพธ์..."}
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div
-            className="
-        min-h-screen
-        flex
-        items-center
-        justify-center
-        px-4
-        py-8
-        relative
-        overflow-hidden
-        sarabun-bold
-        bg-cover
-        bg-center
-        bg-no-repeat
-    "
+            className="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden sarabun-bold bg-cover bg-center bg-no-repeat"
             style={{
                 backgroundImage: `url(${BackgroundImg})`,
                 backgroundSize: "cover",
@@ -162,37 +157,7 @@ export default function ResultPage({
                 backgroundRepeat: "no-repeat",
             }}
         >
-            <div className="absolute inset-0 pointer-events-none z-10">
-                {PARTICLES.map((p, i) => (
-                    <span
-                        key={i}
-                        className="absolute rounded-full"
-                        style={{
-                            left: p.left,
-                            top: p.top,
-                            width: p.size,
-                            height: p.size,
-                            opacity: p.opacity,
-                            background: "white",
-                            boxShadow: `
-                                0 0 ${p.size * 3}px
-                                ${p.size}px
-                                rgba(255,255,230,0.8)
-                            `,
-                            animation: `
-                                hpDotFloat
-                                ${p.dur}
-                                ${p.delay}
-                                ease-in-out
-                                infinite
-                                alternate
-                            `,
-                        }}
-                    />
-                ))}
-            </div>
-
-            {showExplosion && passed && (
+            {showExplosion && isPass && (
                 <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[100]">
                     <ConfettiExplosion
                         force={0.5}
@@ -241,25 +206,13 @@ export default function ResultPage({
                         damping: 14,
                     },
                 }}
-                className="
-                    relative
-                    z-20
-                    w-[620px]
-                    max-w-[94vw]
-                    flex-shrink-0
-                "
+                className="relative z-20 w-[620px] max-w-[94vw] flex-shrink-0"
             >
 
                 <div
-                    className="
-                        absolute
-                        inset-0
-                        translate-y-4
-                        translate-x-2
-                        rounded-[24px]
-                    "
+                    className="absolute inset-0 translate-y-4 translate-x-2 rounded-[24px]"
                     style={{
-                        background: "#000",
+                        background: "#ffffffff",
                         opacity: 0.35,
                         filter: "blur(10px)",
                     }}
@@ -277,12 +230,7 @@ export default function ResultPage({
                 />
 
                 <div
-                    className="
-                        absolute
-                        inset-0
-                        rounded-[24px]
-                        pointer-events-none
-                    "
+                    className="absolute inset-0 rounded-[24px] pointer-events-none"
                     style={{
                         background:
                             "rgba(120,90,45,0.06)",
@@ -290,73 +238,24 @@ export default function ResultPage({
                 />
 
                 <div
-                    className="
-                        relative
-                        z-10
-                        flex
-                        flex-col
-                        items-center
-                        px-8
+                    className="relative z-10 flex flex-col items-center px-8
                         md:px-12
                         pt-8
-                        pb-7
-                    "
-                >
-                    <p
-                        className="text-xs md:text-sm mb-2"
-                        style={{
-                            color: "#5a4326",
-                        }}
-                    >
-                        สรุปผลการคำนวณ
+                        pb-7">
+                    <h1 className="text-3xl md:text-4xl font-black text-center text-black mb-1">ผลภารกิจ</h1>
+                    <p className="text-xl md:text-2xl font-black text-green-700 mb-2">
+                        {resultText.title}
                     </p>
-
-
-                    <h1
-                        className="
-                            text-3xl
-                            md:text-4xl
-                            font-black
-                            text-center
-                            mb-1
-                        "
-                        style={{
-                            color: "#3B2A1E",
-                            textShadow:
-                                "0 1px 0 rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.12)",
-                        }}
-                    >
-                        สรุปผล
-                    </h1>
-
-                    <p
-                        className="
-                            text-xl
-                            md:text-2xl
-                            font-black
-                            mb-2
-                        "
-                        style={{
-                            color: "#3F5A34",
-                        }}
-                    >
-                        {getResultTitle()}
-                    </p>
-
-
-                    <div
-                        className="
-                            w-40
-                            h-[3px]
-                            mb-5
-                            rounded-full
-                        "
+                    <div className="w-40 h-[3px] mb-3 rounded-full"
                         style={{
                             background: "#8a6a3c",
                             opacity: 0.5,
                         }}
                     />
 
+                    <p className="text-sm md:text-base text-center text-black sarabun-semibold mb-3 px-2">
+                        {resultText.description}
+                    </p>
                     <motion.div
                         initial={{
                             opacity: 0,
@@ -390,180 +289,64 @@ export default function ResultPage({
                                     stiffness: 180,
                                     damping: 10,
                                 }}
-                                className="
-                relative
-                flex
-                shrink-0
-                items-center
-                justify-center
-                w-24
-                h-24
-            "
+                                className="relative flex shrink-0 items-center justify-center w-24 h-24"
                             >
                                 <div
-                                    className="
-                    absolute
-                    inset-0
-                    rotate-6
-                    bg-gradient-to-b
-                    from-yellow-300
-                    via-yellow-400
-                    to-orange-500
-                    [clip-path:polygon(50%_0%,61%_35%,98%_35%,68%_57%,79%_95%,50%_72%,21%_95%,32%_57%,2%_35%,39%_35%)]
-                    drop-shadow-[0_5px_4px_rgba(120,70,0,0.35)]
-                "
+                                    className="absolute inset-0 rotate-6 bg-gradient-to-b from-yellow-300 via-yellow-400
+                                        to-orange-500 [clip-path:polygon(50%_0%,61%_35%,98%_35%,68%_57%,79%_95%,50%_72%,21%_95%,32%_57%,2%_35%,39%_35%)]
+                                        drop-shadow-[0_5px_4px_rgba(120,70,0,0.35)]"
                                 />
 
                                 <span
-                                    className="
-                    relative
-                    z-10
-                    text-xl
-                    font-black
-                    text-white
-                "
+                                    className="relative z-10 text-xl font-black text-white"
                                     style={{
                                         textShadow:
                                             "0 2px 2px rgba(120,70,0,0.4)",
                                     }}
                                 >
-                                    EXP
+                                    IP
                                 </span>
                             </motion.div>
 
-
-                            {/* EXP EARNED */}
+                            {/* คะแนน + IP */}
                             <div className="flex flex-col justify-center">
 
-                                <p
-                                    className="
-                    text-lg
-                    font-bold
-                    mb-0
-                "
-                                    style={{
-                                        color: "#6b5636",
-                                    }}
-                                >
-                                    EXP ที่ได้รับ
+                                <p className="text-lg font-bold mb-0">
+                                    คะแนนรวม {animatedScore} / {maxScore}
                                 </p>
 
-                                <div
-                                    className="
-                    text-5xl
-                    font-black
-                    leading-none
-                "
-                                    style={{
-                                        color: "#3B2A1E",
-                                    }}
-                                >
-                                    +{animatedExp}
-                                </div>
-
+                                {isPass && (
+                                    <div className="text-3xl font-black leading-none text-green-700">
+                                        +{earnedIP} IP
+                                    </div>
+                                )}
                             </div>
 
                         </div>
                     </motion.div>
 
-                    <motion.div
-                        initial={{
-                            opacity: 0,
-                            y: 15,
-                        }}
-                        animate={{
-                            opacity: 1,
-                            y: 0,
-                        }}
-                        transition={{
-                            delay: 1.2,
-                        }}
-                        className="
-                            w-full
-                            rounded-[20px]
-                            border-2
-                            border-[#C8D6A0]
-                            bg-[#F4F7E7]
-                            p-4
-                            mb-6
-                            flex
-                            items-center
-                            gap-4
-                        "
-                    >
 
-                        {/* Lightbulb */}
-                        <div
-                            className="
-                                shrink-0
-                                flex
-                                items-center
-                                justify-center
-                                w-14
-                                h-14
-                                rounded-full
-                                bg-yellow-100
-                                border-2
-                                border-yellow-300
-                                text-3xl
-                            "
-                        >
-                            💡
-                        </div>
+                    {/* Tip box */}
+                    {resultText.message && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.2 }}
+                            className="w-full rounded-[20px] border-2 border-[#C8D6A0] bg-[#F4F7E7] p-4 mb-6 flex items-center gap-4">
+                            {/* Lightbulb */}
+                            <div className="shrink-0 flex items-center justify-center w-14 h-14 rounded-full bg-yellow-100 border-2 border-yellow-300 text-3xl">
+                                💡
+                            </div>
 
+                            <div className="text-center flex-1">
+                                <p className="text-sm md:text-base font-bold leading-relaxed sarabun-bold text-black">
+                                    {resultText.message}
+                                </p>
+                            </div>
 
-                        <div className="text-center flex-1">
+                        </motion.div>
+                    )}
 
-                            <p
-                                className="
-                                    text-lg
-                                    md:text-xl
-                                    font-black
-                                    mb-1
-                                "
-                                style={{
-                                    color: "#4E7A42",
-                                }}
-                            >
-                                จำไว้นะ... เงินทุกบาทมีค่า
-                            </p>
-
-                            <p
-                                className="
-                                    text-sm
-                                    md:text-base
-                                    font-bold
-                                    leading-relaxed
-                                "
-                                style={{
-                                    color: "#4A3826",
-                                }}
-                            >
-                                ก่อนจ่าย ลองถามตัวเองว่า
-                                <br />
-
-                                <span
-                                    className="
-                                        text-base
-                                        md:text-lg
-                                        font-black
-                                    "
-                                    style={{
-                                        color: "#D85B5B",
-                                    }}
-                                >
-                                    “จำเป็นจริงไหม และคุ้มค่าหรือเปล่า?”
-                                </span>
-                            </p>
-
-                        </div>
-
-                    </motion.div>
-
-
-                    {/* ==================================================
-                        BUTTONS
-                    ================================================== */}
                     <motion.div
                         initial={{
                             opacity: 0,
@@ -576,113 +359,47 @@ export default function ResultPage({
                         transition={{
                             delay: 1.4,
                         }}
-                        className="
-                            flex
-                            gap-3
-                            w-full
-                        "
+                        className="flex flex-wrap gap-3 w-full justify-center pb-4 min-h-[60px]"
                     >
-
                         {/* HOME */}
                         <button
-                            onClick={() => navigate("/unit2")}
-                            className="
-                                flex-1
-                                h-14
-                                rounded-[18px]
-                                border-4
-                                border-[#D99616]
-                                bg-gradient-to-b
-                                from-[#FFD95A]
-                                to-[#F5B928]
-                                text-[#5A3B0A]
-                                font-black
-                                text-base
-                                md:text-lg
-                                shadow-[0_5px_0_#B9780C,0_7px_12px_rgba(0,0,0,0.2)]
-                                hover:-translate-y-1
-                                active:translate-y-1
-                                active:shadow-[0_2px_0_#B9780C]
-                                transition-all
-                            "
-                        >
-                            🏠 หน้าหลัก
+                            onClick={() => navigate("/map")}
+                            className="button-finish-game yellow">
+                            <span className="button-finish-game-top">หน้าหลัก</span>
+                            <span className="button-finish-game-bottom"></span>
+                            <span className="button-finish-game-base"></span>
                         </button>
 
-
-                        {/* RETRY */}
-                        <button
-                            onClick={resetGame}
-                            className="
-                                flex-1
-                                h-14
-                                rounded-[18px]
-                                border-4
-                                border-[#2D8B2D]
-                                bg-gradient-to-b
-                                from-[#65D85D]
-                                to-[#39B83C]
-                                text-white
-                                font-black
-                                text-base
-                                md:text-lg
-                                shadow-[0_5px_0_#247524,0_7px_12px_rgba(0,0,0,0.2)]
-                                hover:-translate-y-1
-                                active:translate-y-1
-                                active:shadow-[0_2px_0_#247524]
-                                transition-all
-                            "
-                        >
-                            🔄 เล่นอีกครั้ง
-                        </button>
-
+                        {/* RETRY - แสดงเฉพาะเมื่อยังไม่ผ่าน */}
+                        {!isPass && (
+                            <button onClick={resetGame} className="button-finish-game red">
+                                <span className="button-finish-game-top">เล่นอีกครั้ง</span>
+                                <span className="button-finish-game-bottom"></span>
+                                <span className="button-finish-game-base"></span>
+                            </button>
+                        )}
 
                         {/* NEXT */}
                         <button
                             onClick={() =>
-                                navigate("/unit2/final", {
+                                navigate("/unit2/final/intro", {
                                     state: {
                                         startAtIntro: true,
                                     },
                                 })
                             }
-                            disabled={!passed}
-                            className="
-                                flex-1
-                                h-14
-                                rounded-[18px]
-                                border-4
-                                border-[#2471B8]
-                                bg-gradient-to-b
-                                from-[#5DB7F5]
-                                to-[#328DD3]
-                                text-white
-                                font-black
-                                text-base
-                                md:text-lg
-                                shadow-[0_5px_0_#1E5A91,0_7px_12px_rgba(0,0,0,0.2)]
-                                hover:-translate-y-1
-                                active:translate-y-1
-                                active:shadow-[0_2px_0_#1E5A91]
-                                disabled:opacity-40
-                                disabled:cursor-not-allowed
-                                disabled:hover:translate-y-0
-                                transition-all
-                            "
-                        >
-                            ▶ ไปต่อ
+                            disabled={!isPass}
+                            className="button-finish-game">
+                            <span className="button-finish-game-top">ไปต่อ</span>
+                            <span className="button-finish-game-bottom"></span>
+                            <span className="button-finish-game-base"></span>
                         </button>
-
                     </motion.div>
 
                 </div>
 
             </motion.div>
 
-
-            {/* ==================================================
-                Animation
-            ================================================== */}
             <style>{`
                 @keyframes hpDotFloat {
                     0% {

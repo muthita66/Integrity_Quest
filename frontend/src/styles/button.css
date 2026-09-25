@@ -235,6 +235,13 @@
     --active-shadow: #7e3aaf;
 }
 
+.button-yellow {
+    --bg: #f7eb02;
+    --border: #f0c306;
+    --shadow: #c9a306;
+    --active-shadow: #d6a103;
+}
+
 
 
 /*button unit3*/

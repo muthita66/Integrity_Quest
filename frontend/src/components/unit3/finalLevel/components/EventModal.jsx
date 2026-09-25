@@ -1,122 +1,107 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle } from "lucide-react";
-
-
 export default function EventModal({
     event,
     applyEvent,
     closeEvent,
 }) {
-    if (!event) return null;
+    if (!event) {
+        return null;
+    }
+
     return (
-        <AnimatePresence>
-            <motion.div
-                initial={{
-                    opacity: 0
-                }}
-                animate={{
-                    opacity: 1
-                }}
+        <div
+            className="
+                fixed
+                inset-0
+                z-[100]
+                flex
+                items-center
+                justify-center
+                bg-black/60
+                p-4
+            "
+        >
+            <div
                 className="
-                    fixed
-                    inset-0
-                    bg-black/60
-                    z-50
-                    flex
-                    items-center
-                    justify-center
-                    p-4
+                    w-full
+                    max-w-xl
+                    overflow-hidden
+                    rounded-2xl
+                    border-4
+                    border-black
+                    bg-white
+                    shadow-2xl
                 "
             >
-                <motion.div
-                    initial={{
-                        scale: .8
-                    }}
-                    animate={{
-                        scale: 1
-                    }}
+                {/* Header */}
+                <div
                     className="
-                        bg-white
-                        border-4
+                        border-b-4
                         border-black
-                        rounded-2xl
-                        w-full
-                        max-w-xl
-                        shadow-2xl
-                    ">
-                    <div
-                        className="
-                            bg-orange-300
-                            border-b-4
-                            border-black
-                            p-4
-                            flex
-                            gap-3
-                            items-center
-                        ">
+                        bg-orange-300
+                        p-4
+                    "
+                >
+                    <h2 className="text-2xl font-black">
+                        ⚠️ {event.title}
+                    </h2>
+                </div>
 
-                        <AlertTriangle size={35} />
-                        <h2 className="
-                            text-2xl
-                            font-black
-                        ">
-                            {event.title}
-                        </h2>
-                    </div>
-                    <div className="
-                        p-5
-                    ">
-                        <p className="
-                            font-bold
-                            text-lg
-                        ">
-                            {event.description}
-                        </p>
-                    </div>
+                {/* Content */}
+                <div className="p-6">
+                    <p className="mb-6 text-lg font-bold">
+                        {event.description}
+                    </p>
 
-                    <div className="
-                        p-5
-                        space-y-3
-                    ">
-                        {
-                            event.choices.map(choice => (
-                                <button
-                                    key={choice.id}
-                                    onClick={() =>
-                                        applyEvent(choice)
-                                    }
-                                    className="
+                    {/* Choices */}
+                    <div className="space-y-4">
+                        {event.choices?.map((choice) => (
+                            <button
+                                key={choice.choice_id}
+                                type="button"
+                                onClick={() => applyEvent(choice)}
+                                className="
                                     w-full
-                                    bg-yellow-200
-                                    hover:bg-yellow-300
+                                    rounded-xl
                                     border-4
                                     border-black
-                                    rounded-xl
+                                    bg-yellow-200
+                                    px-5
                                     py-3
+                                    text-lg
                                     font-black
+                                    shadow-md
+                                    transition-all
+                                    hover:scale-[1.02]
+                                    hover:bg-yellow-300
+                                    active:scale-95
                                 "
-                                >
-                                    {choice.text}
-                                </button>
-                            ))
-                        }
-                        <button
-                            onClick={closeEvent}
-                            className="
+                            >
+                                {choice.choice_text}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Close */}
+                    <button
+                        type="button"
+                        onClick={closeEvent}
+                        className="
+                            mt-4
                             w-full
-                            bg-gray-300
+                            rounded-xl
                             border-2
                             border-black
-                            rounded-xl
-                            py-2
-                            font-bold
+                            bg-gray-200
+                            px-5
+                            py-3
+                            font-black
+                            hover:bg-gray-300
                         "
-                        >
-                            ปิด
-                        </button>
-                    </div>
-                </motion.div>
-            </motion.div>
-        </AnimatePresence>
+                    >
+                        ปิด
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 }

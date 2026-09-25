@@ -20,9 +20,9 @@ export default function CartPanel({
             className="bg-white/90 border-4 border-black rounded-2xl p-5 shadow-xl">
 
             {/* HEADER */}
-            <div className="flex items-centergap-2 mb-4">
+            <div className="flex gap-2 items-centergap-2 mb-4">
                 <ShoppingCart size={32} />
-                <h2 className="text-2xl font-black">ตะกร้า</h2>
+                <h2 className="text-xl font-black">ตะกร้า</h2>
             </div>
 
             {/* ITEM LIST */}
@@ -102,7 +102,7 @@ export default function CartPanel({
             {/* SUMMARY */}
             <div
                 className="
-                    border-t-4
+                    border-t-2
                     border-black
                     mt-5
                     pt-4
@@ -137,24 +137,26 @@ export default function CartPanel({
                     </span>
                 </div>
 
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: .95 }}
-                    onClick={checkout}
-                    className="
-                        mt-4
-                        w-full
-                        bg-green-500
-                        text-white
-                        border-4
-                        border-black
-                        rounded-xl
-                        py-3
-                        font-black
-                    "
-                >
-                    ชำระเงิน
-                </motion.button>
+                {cart.length > 0 && (
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={checkout}
+                        className="
+            mt-4
+            w-full
+            bg-green-500
+            text-white
+            border-2
+            border-black
+            rounded-xl
+            py-3
+            font-black
+        "
+                    >
+                        ชำระเงิน
+                    </motion.button>
+                )}
             </div>
         </div>
     );

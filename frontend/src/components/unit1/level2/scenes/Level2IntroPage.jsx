@@ -1,10 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { IoMdSkipForward } from "react-icons/io";
-
-import bgGameLevel2 from "../../../../assets/unit1/level2/bgGameLevel2.png";
-import Tolsetmusic from "../../../../assets/sounds/tolsetmusic.mp3";
-import uiSoundSfx from "../../../../assets/sounds/ui_sounds.mp3";
 
 import SceneOne from "./SceneOne";
 import SceneTwo from "./SceneTwo";
@@ -13,9 +8,10 @@ import SceneMission from "./SceneMission";
 
 export default function Level2IntroPage() {
     const navigate = useNavigate();
-    const [hasStarted, setHasStarted] = useState(false);
+
     const [currentScene, setCurrentScene] = useState(0);
 
+    // Scene ทั้งหมดของ Level 2
     const scenes = [
         SceneOne,
         SceneTwo,
@@ -25,77 +21,118 @@ export default function Level2IntroPage() {
 
     const CurrentSceneComponent = scenes[currentScene];
 
-    const tolsetmusicAudioRef = useRef(new Audio(Tolsetmusic));
-    const uiSoundSfxAudioRef = useRef(new Audio(uiSoundSfx));
+    // Scene Data จาก Database
+    const [sceneData, setSceneData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
+    // fetch Scene Data
     useEffect(() => {
-        const bgm = tolsetmusicAudioRef.current;
-        return () => {
-            bgm.pause();
-            bgm.currentTime = 0;
+        const fetchScenes = async () => {
+            try {
+                setLoading(true);
+
+                const response = await fetch(
+                    "http://localhost:5000/api/introDialog/level/2"
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "ไม่สามารถดึงข้อมูล Scene ของ Level 2 ได้"
+                    );
+                }
+
+                const data = await response.json();
+
+                console.log("Level 2 Scene Data:", data);
+
+                setSceneData(data);
+
+            } catch (error) {
+                console.error(
+                    "Error fetching Level 2 scenes:",
+                    error
+                );
+            } finally {
+                setLoading(false);
+            }
         };
+
+        fetchScenes();
     }, []);
 
-    const handleInitialClick = () => {
-        if (!hasStarted) {
-            const audio = tolsetmusicAudioRef.current;
-            audio.loop = true;
-            audio.volume = 0.4;
-            audio.play().catch(() => { });
-
-            const sfx = uiSoundSfxAudioRef.current;
-            sfx.volume = 0.5;
-            sfx.play().then(() => {
-                sfx.pause();
-                sfx.currentTime = 0;
-            }).catch(() => { });
-
-            setHasStarted(true);
-        }
-    };
-
+    // Next
     const handleNext = () => {
+
         if (currentScene < scenes.length - 1) {
+
             setCurrentScene((prev) => prev + 1);
+
         } else {
+
             handleStartGame();
+
         }
     };
 
+    // Back
     const handleBack = () => {
+
         if (currentScene > 0) {
+
             setCurrentScene((prev) => prev - 1);
+
         }
     };
 
+    // Skip
     const handleSkip = () => {
+
         setCurrentScene(scenes.length - 1);
+
     };
 
+    // startGame
     const handleStartGame = () => {
-        const bgm = tolsetmusicAudioRef.current;
-        bgm.pause();
-        bgm.currentTime = 0;
 
         navigate("/unit1/level2");
     };
 
+    if (loading) {
+        return (
+            <main className="min-h-screen flex items-center justify-center bg-black text-white">
+                <p className="text-xl sarabun-bold">
+                    กำลังโหลดข้อมูล...
+                </p>
+            </main>
+        );
+    }
+
+    // ถ้าไม่มีข้อมูล
+    if (!sceneData.length) {
+        return (
+            <main className="min-h-screen flex items-center justify-center bg-black text-white">
+                <p className="text-xl sarabun-bold">
+                    ไม่พบข้อมูล Scene ของ Level 2
+                </p>
+            </main>
+        );
+    }
+
+    // Main
     return (
         <main className="min-h-screen relative overflow-hidden bg-black">
-            <>
-                {/* Scene */}
-                <section className="relative z-20 flex items-start justify-center">
-                    <div className="w-full">
-                        <CurrentSceneComponent
-                            onNext={handleNext}
-                            onBack={handleBack}
-                            handleSkip={handleSkip}
-                            currentScene={currentScene}
-                            totalScenes={scenes.length}
-                        />
-                    </div>
-                </section>
-            </>
+            <section className="relative z-20 flex items-start justify-center">
+                <div className="w-full">
+                    <CurrentSceneComponent
+                        scene={sceneData[currentScene]}
+                        onNext={handleNext}
+                        onBack={handleBack}
+                        handleSkip={handleSkip}
+                        currentScene={currentScene}
+                        totalScenes={scenes.length}
+                    />
+                </div>
+            </section>
         </main>
     );
 }

@@ -1,183 +1,199 @@
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-
-import { FaCircle } from "react-icons/fa";
+import { FaPlay, FaHome, FaCircle } from "react-icons/fa";
+import { IoMdSkipForward } from "react-icons/io";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 import { ImCross } from "react-icons/im";
 import { TbDeviceGamepadFilled } from "react-icons/tb";
+import { useNavigate } from "react-router-dom";
 
+import "../../../../styles/unit1/Level1/button.css";
 import bgGameLevel2 from "../../../../assets/unit3/level2/bgGameLevel2.png"
-import Tawan from "../../../../assets/unit3/level2/intro/tawan.png"
 
-export default function SceneMission({ onBack }) {
+export default function SceneMission({
+    scene,
+    onNext,
+    onBack,
+    handleSkip,
+    currentScene,
+    totalScenes,
+}) {
     const navigate = useNavigate();
+    const mission = scene?.sceneMission?.[0];
+    const rules = mission?.sceneMissionRules || [];
 
-    const handleStartGame = () => {
-        navigate("/unit3/level2/game");
+    // เลือกสีตาม rule_id
+    const getRuleStyle = (ruleId) => {
+        switch (ruleId) {
+            case 9:
+                return "bg-yellow-50 border-yellow-200";
+            case 11:
+                return "bg-green-50 border-green-200";
+            case 14:
+                return "bg-red-50 border-red-200";
+            default:
+                return "bg-white/70 border-white/70";
+        }
     };
 
     return (
-        <div className="relative mx-auto w-full min-h-screen flex flex-col justify-center">
+        <div className="relative w-full h-screen overflow-hidden">
             {/* Background */}
-            <div className="fixed inset-0 -z-10 w-full h-full">
-                <div className="absolute inset-0" style={{ backgroundImage: `url(${bgLevel2})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }} />
-                {/* Dark Overlay */}
-                <div className="absolute inset-0 bg-black/60" />
-            </div>
+            <img
+                src={bgGameLevel2}
+                alt="Mission"
+                className="absolute inset-0 w-full h-full object-cover object-center"
+            />
 
-            <div className="relative z-10 px-8 pt-3 pb-8 md:px-14 h-full flex flex-col justify-center gap-6">
-                {/* Title */}
-                <motion.div
-                    initial={{ opacity: 0, y: -35 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="mx-auto max-w-2xl w-full rounded-[28px] border-4 border-yellow-950 bg-yellow-100 px-8 py-4 mt-1 text-center shadow-2xl"
-                >
-                    <h2 className="text-xl font-black text-black md:text-3xl">
-                        ภารกิจบัญชีใครบัญชีมัน
-                    </h2>
+            {/* Dark Overlay since bg is too bright */}
+            <div className="absolute inset-0 bg-black/40" />
 
-                    <p className="mt-1 text-base font-bold text-black">
-                        แยกเงินส่วนตัวออกจากเงินกองกลางให้ถูกต้อง
-                    </p>
-                </motion.div>
+            {/* Skip Button */}
+            <button
+                type="button"
+                onClick={handleSkip}
+                className={`
+                    absolute top-4 right-20 z-20
+                    rounded-full border-2 border-white/80
+                    bg-black/40 p-2
+                    text-white shadow-lg
+                    backdrop-blur-sm
+                    transition-all duration-300
+                    hover:scale-105 hover:bg-black/60
+                    active:scale-95
+                    ${currentScene < totalScenes - 1 ? "" : "invisible"}
+                `}
+            >
+                <IoMdSkipForward className="text-2xl" />
+            </button>
 
-                {/* Rules */}
-                {/* Mission Brief */}
-                <div
-                    className="
-                        grid grid-cols-3 gap-5 items-center
-                        rounded-2xl
-                        border-4 border-yellow-950
-                        bg-[#FFFDF0]
-                        p-5
-                        shadow-inner
-                        h-full
-                        mt-4 mb-4
-                    ">
-                    {/* ฝั่งซ้าย */}
-                    <div className="col-span-2 space-y-4">
-                        {/* วิธีเล่น */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.25 }}
-                            className="
-                                flex items-center gap-4
-                                rounded-xl border-2 border-yellow-300
-                                bg-white p-4
-                            ">
-                            <TbDeviceGamepadFilled className="text-4xl text-yellow-500 shrink-0" />
-                            <div>
-                                <h4 className="font-black text-yellow-700 text-lg">วิธีเล่น</h4>
-                                <p className="text-base">ลากรายการเงินลงในช่อง<b> เงินกองกลาง </b>หรือ<b> เงินส่วนตัว </b>ให้ถูกต้อง</p>
-                            </div>
-                        </motion.div>
+            {/* Home Button */}
+            <button
+                type="button"
+                onClick={() => navigate('/map')}
+                className={`
+                    absolute top-4 right-4 z-20
+                    rounded-full border-2 border-white/80
+                    bg-black/40 p-2
+                    text-white shadow-lg
+                    backdrop-blur-sm
+                    transition-all duration-300
+                    hover:scale-105 hover:bg-black/60
+                    active:scale-95
+                `}
+            >
+                <FaHome className="text-2xl" />
+            </button>
 
-                        {/* ผ่านภารกิจ */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.35 }}
-                            className="
-                                flex items-center gap-4
-                                rounded-xl border-2 border-green-300
-                                bg-white p-4
-                            ">
-                            <IoIosCheckmarkCircle className="text-4xl text-green-500 shrink-0" />
-                            <div>
-                                <h4 className="font-black text-green-700 text-lg">ผ่านภารกิจ</h4>
-                                <p className="text-base">แยกรายการถูกต้อง<b>ทุกรายการ รวมทั้งหมด 12 รายการ</b></p>
-                            </div>
-                        </motion.div>
-
-
-                        {/* ระวัง */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.45 }}
-                            className="
-                                flex items-center gap-4
-                                rounded-xl border-2 border-red-300
-                                bg-white p-4
-                            ">
-                            <ImCross className="text-3xl text-red-500 shrink-0" />
-                            <div>
-                                <h4 className="font-black text-red-700 text-lg">ระวัง</h4>
-                                <p className="text-base">ห้ามใช้เงินกองกลางเพื่อ<b> ประโยชน์ส่วนตัว </b></p>
-                            </div>
-                        </motion.div>
+            {/* Game Instruction Box */}
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 w-[90%] max-w-4xl">
+                <div className="
+                    rounded-3xl
+                    border border-white/70
+                    bg-white/60
+                    px-8 py-5
+                    shadow-2xl
+                    backdrop-blur-md
+                ">
+                    {/* Header */}
+                    <div className="text-center mb-5">
+                        <h2 className="text-2xl md:text-3xl font-bold text-black sarabun-bold">
+                            {mission?.title || "ภารกิจบัญชีใครบัญชีมัน"}
+                        </h2>
+                        <p className="mt-0 text-base md:text-lg text-black sarabun-bold">
+                            {mission?.subtitle || "แยกเงินส่วนตัวออกจากเงินกองกลางให้ถูกต้อง"}
+                        </p>
                     </div>
 
-                    {/* ฝั่งขวา ตัวอย่าง */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 30 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.6 }}
-                        className="w-full rounded-2xl border-2 border-dashed border-amber-400 bg-white p-2">
-                        <h4 className="mb-1 text-center font-black text-lg">ตัวอย่าง</h4>
-                        <div className="space-y-3 text-base">
-                            <div className="rounded-xl bg-green-50 p-3">
-                                <p className="flex items-center gap-2">
-                                    <FaCircle className="text-sm text-green-500" />
+                    {/* Description - ตัวอย่าง */}
+                    <div className="rounded-2xl bg-white/80 border-2 border-dashed border-amber-400 px-5 py-4 mb-5 shadow-sm text-center">
+                        <h4 className="mb-2 text-center font-black text-lg sarabun-bold">ตัวอย่าง</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm sarabun-bold">
+                            <div className="rounded-xl bg-green-50 p-2 flex flex-col justify-center items-center">
+                                <p className="flex items-center gap-2 mb-1">
+                                    <FaCircle className="text-xs text-green-500" />
                                     <span>ค่าอาหารค่ายอาสา</span>
                                 </p>
-                                <p className="font-base text-green-700">เงินกองกลาง</p>
+                                <p className="font-bold text-green-700">เงินกองกลาง</p>
                             </div>
-                            <div className="rounded-xl bg-red-50 p-3">
-                                <p className="flex items-center gap-2">
-                                    <FaCircle className="text-sm text-red-500" />
+                            <div className="rounded-xl bg-red-50 p-2 flex flex-col justify-center items-center">
+                                <p className="flex items-center gap-2 mb-1">
+                                    <FaCircle className="text-xs text-red-500" />
                                     <span>ซื้อของให้ตัวเอง</span>
                                 </p>
-                                <p className="font-base text-red-700">เงินส่วนตัว</p>
+                                <p className="font-bold text-red-700">เงินส่วนตัว</p>
                             </div>
-                            <div className="rounded-xl bg-yellow-50 p-3">
-                                <p className="flex items-center gap-2">
-                                    <FaCircle className="text-sm text-yellow-500" />
-                                    <span>ซื้อของว่างให้ทีมงานระหว่างจัดกิจกรรม</span>
+                            <div className="rounded-xl bg-yellow-50 p-2 flex flex-col justify-center items-center">
+                                <p className="flex items-center gap-2 mb-1">
+                                    <FaCircle className="text-xs text-yellow-500" />
+                                    <span>ซื้อของว่างให้ทีมงาน</span>
                                 </p>
-                                <p className="font-base text-red-700">แล้วแบบนี้ควรใช้เงินของใคร?</p>
+                                <p className="font-bold text-yellow-700">แล้วแบบนี้ควรใช้เงินของใคร?</p>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
+
+                    {/* Rules */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                        {rules.map((rule) => (
+                            <div
+                                key={rule.id}
+                                className={`rounded-2xl border px-4 py-2 text-center ${getRuleStyle(rule.rule_id)}`}>
+                                {rule.image_path && (
+                                    <div className="mb-1 mx-auto flex justify-center">
+                                        <img
+                                            src={`/image/${rule.image_path}`}
+                                            alt={rule.title || "Rule"}
+                                            className="w-12 h-12 object-contain" />
+                                    </div>
+                                )}
+
+                                <p className="font-bold text-gray-800 sarabun-bold">
+                                    {rule.title || ""}
+                                </p>
+
+                                <p className="text-sm text-gray-600 mt-1 sarabun-light">
+                                    {rule.description || ""}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Start Button & Back */}
+                    <div className="flex w-full justify-center gap-6 items-center">
+                        <button
+                            type="button"
+                            onClick={onBack}
+                            className="circle-play-button yellow"
+                        >
+                            <div className="circle-play-button__outer">
+                                <div className="circle-play-button__shadow"></div>
+                                <div className="circle-play-button__main">
+                                    <FaPlay
+                                        className="circle-play-button__icon scale-x-[-1]"
+                                        size={26}
+                                    />
+                                </div>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            className="circle-play-button green"
+                            onClick={onNext}
+                            aria-label="เริ่มภารกิจ"
+                        >
+                            <div className="circle-play-button__outer">
+                                <div className="circle-play-button__shadow"></div>
+                                <div className="circle-play-button__main">
+                                    <FaPlay
+                                        className="circle-play-button__icon"
+                                        size={26}
+                                    />
+                                </div>
+                            </div>
+                        </button>
+                    </div>
                 </div>
-
-                {/* Buttons */}
-                <motion.div
-                    initial={{
-                        opacity: 0,
-                        y: 30,
-                    }}
-                    animate={{
-                        opacity: 1,
-                        y: 0,
-                    }}
-                    transition={{
-                        delay: 0.85,
-                        duration: 0.45,
-                        ease: "easeOut",
-                    }}
-                    className="mt-1 flex items-center justify-between sarabun-bold"
-                >
-                    <button
-                        type="button"
-                        onClick={onBack}
-                        className="button-with-icon-introScenes button-gray icon-left"
-                    >
-                        <span className="icon">◀</span>
-                        <span className="text">ย้อนกลับ</span>
-                    </button>
-
-                    <button
-                        onClick={handleStartGame}
-                        className="button-with-icon-introScenes button-green icon-right"
-                    >
-                        <span className="text">เริ่มเกม</span>
-                        <span className="icon">▶</span>
-                    </button>
-                </motion.div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }

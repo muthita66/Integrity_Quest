@@ -9,7 +9,19 @@
   padding: 0;
   font-family: 'Inter', 'Outfit', 'Helvetica Neue', sans-serif;
 }
-*/
+
+/* ── ฟอนต์หลักของทั้งเว็บ: Sarabun ── */
+@theme {
+  --font-sans: "Sarabun", sans-serif;
+}
+
+/* ── ทุกอย่างใช้ Sarabun ยกเว้นส่วนที่ติดคลาส no-sarabun ── */
+*:not(.no-sarabun, .no-sarabun *),
+*:not(.no-sarabun, .no-sarabun *)::before,
+*:not(.no-sarabun, .no-sarabun *)::after {
+  font-family: "Sarabun", sans-serif !important;
+}
+
 html,
 body,
 #root {

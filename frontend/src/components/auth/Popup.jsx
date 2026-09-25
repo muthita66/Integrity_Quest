@@ -1,3 +1,5 @@
+import { ImCross } from "react-icons/im";
+
 export default function Popup({ popup, onClose }) {
     if (!popup.show) return null;
 
@@ -10,7 +12,7 @@ export default function Popup({ popup, onClose }) {
                     className={`mb-3 text-3xl font-bold ${isSuccess ? "text-green-600" : "text-red-600"
                         }`}
                 >
-                    {isSuccess ? "🎉 สำเร็จ!" : "❌ ผิดพลาด"}
+                    {isSuccess ? "🎉 สำเร็จ!" : <ImCross className="inline-block mr-2 text-red-600 text-3xl" />}
                 </h2>
 
                 <p className="mb-6 text-gray-700">{popup.message}</p>

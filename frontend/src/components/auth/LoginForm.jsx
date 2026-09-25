@@ -1,77 +1,72 @@
-import {
-    FaUser,
-    FaKey,
-    FaShieldAlt,
-    FaHatWizard,
-    FaScroll,
-} from "react-icons/fa";
+import { FiUser, FiLock } from "react-icons/fi";
 
 import FormInput from "./FormInput";
 import AuthButton from "./AuthButton";
+import RoleToggle, { getRoleTheme } from "./RoleToggle";
 
 export default function LoginForm({
     loginData,
     handleLoginChange,
     handleLoginSubmit,
     setIsLogin,
+    role,
+    setRole,
 }) {
+    const theme = getRoleTheme(role);
+
     return (
-        <form
-            onSubmit={handleLoginSubmit}
-            className="max-w-md mx-auto space-y-5"
-        >
+        <form onSubmit={handleLoginSubmit} className="space-y-4">
+            {/* ROLE */}
+            <RoleToggle role={role} setRole={setRole} />
+
             {/* EMAIL */}
             <FormInput
-                icon={FaUser}
+                icon={FiUser}
                 type="email"
                 name="email"
                 value={loginData.email}
                 onChange={handleLoginChange}
-                placeholder="EMAIL / รหัส"
+                placeholder="Enter your email"
+                focusClass={theme.focus}
             />
 
             {/* PASSWORD */}
             <FormInput
-                icon={FaKey}
+                icon={FiLock}
                 type="password"
                 name="password"
                 value={loginData.password}
                 onChange={handleLoginChange}
-                placeholder="PASSWORD / รหัสผ่าน"
+                placeholder="Enter your password"
+                focusClass={theme.focus}
             />
+
+            {/* FORGOT */}
+            <button
+                type="button"
+                className="text-xs text-gray-500 hover:text-gray-700 hover:underline"
+            >
+                Forgot password?
+            </button>
 
             {/* LOGIN */}
             <AuthButton
                 type="submit"
-                icon={FaShieldAlt}
-                title="LOG IN"
-                subtitle="START ADVENTURE!"
-                className="w-full bg-gradient-to-b from-blue-400 to-blue-600 text-white"
+                title="Log In"
+                className={theme.button}
             />
 
-            {/* Bottom Buttons */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* SIGN UP LINK */}
+            <p className="text-center text-sm text-gray-500">
+                Don't have an account?{" "}
                 <button
                     type="button"
                     onClick={() => setIsLogin(false)}
-                    className="bg-gradient-to-b from-yellow-300 to-orange-400 text-gray-800 rounded-xl h-12 font-bold shadow hover:scale-105 transition"
+                    className={`font-semibold hover:underline ${theme.link}`}
                 >
-                    <div className="flex items-center justify-center gap-2">
-                        <FaScroll />
-                        SIGN UP
-                    </div>
+                    Sign up
                 </button>
-
-                <button
-                    type="button"
-                    className="bg-gradient-to-b from-purple-400 to-purple-600 text-white rounded-xl h-12 font-bold shadow hover:scale-105 transition"
-                >
-                    <div className="flex items-center justify-center gap-2">
-                        <FaHatWizard />
-                        FORGOT?
-                    </div>
-                </button>
-            </div>
+            </p>
         </form>
     );
 }

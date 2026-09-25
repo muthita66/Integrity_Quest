@@ -1,4 +1,3 @@
-import { EVIDENCES } from "../data/evidences";
 import Cross from "../../../../assets/unit1/finalLevel/case/cross.png";
 import { TfiSave } from "react-icons/tfi";
 
@@ -13,9 +12,6 @@ export default function EvidenceModal({
 
     const Icon = evidence.icon;
 
-    const searchId = currentCase ? `c${currentCase.id}${evidence.id}` : evidence.id;
-    const imageData = EVIDENCES.find(item => item.id === searchId);
-
     return (
         <div
             className="fixed inset-0 flex items-center justify-center p-4 z-50"
@@ -28,7 +24,7 @@ export default function EvidenceModal({
                 onClick={(event) => event.stopPropagation()}
             >
                 <div className="flex items-center gap-2 mb-3">
-                    <Icon size={20} color="#4A3B22" />
+                    {Icon && <Icon size={20} color="#4A3B22" />}
 
                     <p
                         className="cid-display font-bold text-xl"
@@ -39,17 +35,19 @@ export default function EvidenceModal({
                 </div>
 
                 <p
-                    className="text-base leading-start mb-2"
+                    className="text-base leading-start mb-6"
                     style={{ color: "#3A2E1B" }}
                 >
                     {evidence.detail}
                 </p>
 
-                <img
-                    src={imageData?.image}
-                    alt={evidence.name}
-                    className={`${imageData?.imageClass} mx-auto mb-3 object-contain`}
-                />
+                {evidence.image && (
+                    <img
+                        src={evidence.image}
+                        alt={evidence.name}
+                        className={`${evidence.imageClass} mx-auto mb-3 object-contain`}
+                    />
+                )}
 
                 <button
                     type="button"
@@ -73,10 +71,15 @@ export default function EvidenceModal({
                     `}
                     title={isCollected ? "ปิด" : "บันทึกลงแฟ้มคดี"}
                 >
-                    {isCollected
-                        ? <img src={Cross} alt="ปิด" className="w-7 h-7 object-contain" />
-                        : <TfiSave size={20} />
-                    }
+                    {isCollected ? (
+                        <img
+                            src={Cross}
+                            alt="ปิด"
+                            className="w-7 h-7 object-contain"
+                        />
+                    ) : (
+                        <TfiSave size={20} />
+                    )}
                 </button>
             </div>
         </div>

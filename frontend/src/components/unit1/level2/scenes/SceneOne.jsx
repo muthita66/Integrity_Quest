@@ -3,51 +3,66 @@ import { IoMdSkipForward } from "react-icons/io";
 import SceneOneImg from "../../../../assets/unit1/level2/intro/scene1.png";
 
 export default function SceneOne({
+    scene,
     onNext,
+    onBack,
     handleSkip,
     currentScene,
     totalScenes,
 }) {
+    // ข้อมูล Dialog จาก Database
+    const dialog = scene?.introDialog?.[0];
+
     return (
         <div>
             {/* Illustration */}
             <div className="relative w-full h-screen overflow-hidden">
-                {/* Illustration */}
+
+                {/* Background */}
                 <img
                     src={SceneOneImg}
                     alt="Scene One"
                     className="absolute inset-0 w-full h-full object-cover object-top"
                 />
 
+                {/* Skip Button */}
                 <button
                     type="button"
                     onClick={handleSkip}
                     className={`
-                                absolute top-4 right-4 z-10
-                                rounded-full border-2 border-white/80
-                                bg-black/40 p-2
-                                text-white shadow-lg
-                                backdrop-blur-sm
-                                transition-all duration-300
-                                hover:scale-105 hover:bg-black/60
-                                active:scale-95
-                                ${currentScene < totalScenes - 1 ? "" : "invisible"}
-                            `}
+                        absolute top-4 right-4 z-10
+                        rounded-full border-2 border-white/80
+                        bg-black/40 p-2
+                        text-white shadow-lg
+                        backdrop-blur-sm
+                        transition-all duration-300
+                        hover:scale-105 hover:bg-black/60
+                        active:scale-95
+                        ${currentScene < totalScenes - 1 ? "" : "invisible"}
+                    `}
                 >
                     <IoMdSkipForward className="text-2xl" />
                 </button>
+
                 {/* Dialog */}
-                <div className="absolute bottom-10 left-0 w-full z-10">
-                    <IntroDialog
-                        speaker="ผู้พิทักษ์แห่งความซื่อสัตย์"
-                        title="บททดสอบครั้งต่อไป"
-                        text="คุณผ่านบททดสอบแรกมาได้แล้ว ต่อไปคือบททดสอบที่ท้าทายกว่าเดิม เมื่อคุณต้องเผชิญกับการตัดสินใจที่ยากขึ้น"
-                        onNext={onNext}
-                        showBack={false}
-                        currentScene={currentScene}
-                        totalScenes={totalScenes}
-                    />
-                </div>
+                {dialog && (
+                    <div className="absolute bottom-10 left-0 w-full z-10">
+
+                        <IntroDialog
+                            speaker={dialog.speaker}
+                            title={dialog.title}
+                            text={dialog.text}
+                            lesson={dialog.lesson}
+                            onNext={onNext}
+                            onBack={onBack}
+                            showBack={currentScene > 0}
+                            currentScene={currentScene}
+                            totalScenes={totalScenes}
+                        />
+
+                    </div>
+                )}
+
             </div>
         </div>
     );

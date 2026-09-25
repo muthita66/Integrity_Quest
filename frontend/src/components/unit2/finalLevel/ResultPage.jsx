@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
+import useGameMuted from "../../../hooks/useGameMuted";
 import { useNavigate } from 'react-router-dom';
 
-import "../../../styles/unit2/components/debrief.css"
+import "../../../styles/unit2/components/debrief.css";
+import "../../../styles/unit2/button/level1/button.css";
 import SceneResult from "../../../assets/unit2/FinalLevel/Result/sceneResult.png"
 import MedalGold from "../../../assets/unit2/FinalLevel/Result/gold.jpg";
 import MedalSilver from "../../../assets/unit2/FinalLevel/Result/silver.jpg";
 import MedalBronze from "../../../assets/unit2/FinalLevel/Result/bronze.jpg";
+
+const API_URL = "http://localhost:5000";
+const LEVEL_ID = 7;
 
 export default function ResultPage({
     isPassed,
@@ -17,12 +23,77 @@ export default function ResultPage({
     setIntroStep,
     money,
     medal,
-    expBonus,
+    baseIP,
+    medalBonusIP,
+    earnedIP,
+    totalIntegrityPoints,
     playCount,
 }) {
     const navigate = useNavigate();
     const verdict = isPassed ? 'PASSED' : 'FAILED';
     const verdictColor = isPassed ? '#2F6B4F' : '#A8412C';
+
+    // เสียง Bonus เล่นครั้งเดียวตอนเปิดหน้า ไม่วน
+    const [muted] = useGameMuted();
+
+    useEffect(() => {
+        if (muted) return;
+
+        const audio = new Audio(bonusSound);
+        audio.volume = 0.6;
+        audio.play().catch(() => { });
+
+        // ออกจากหน้านี้แล้วหยุดเสียงทันที
+        return () => {
+            audio.pause();
+            audio.src = "";
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    /*
+     * ข้อความคำบรรยายใต้ชื่อเหรียญ เดิม hardcode ไว้ในไฟล์นี้ทั้งหมด
+     * (รวมถึงเลขคะแนน "9/10" / "8/10" ที่ตายตัว ไม่ตรงกับ totalQuestions
+     * จริงถ้าจำนวนคำถามเปลี่ยนในอนาคต) — ย้ายมาดึงจาก level_result_messages
+     * เหมือน Level 1 / Level 2 โดยใช้ status = GOLD/SILVER/BRONZE
+     * ข้อความที่เก็บใน DB เป็น template ที่มี {score}/{total} ให้แทนค่า
+     * จากผลจริงตรงนี้แทน
+     */
+    const medalStatus = medal ? medal.toUpperCase() : null;
+    const [medalText, setMedalText] = useState(null);
+
+    useEffect(() => {
+        if (!medalStatus) {
+            setMedalText(null);
+            return;
+        }
+
+        const fetchMedalMessage = async () => {
+            try {
+                const response = await fetch(
+                    `${API_URL}/api/level-result/${LEVEL_ID}/${medalStatus}`
+                );
+
+                if (!response.ok) {
+                    throw new Error("โหลดข้อความเหรียญไม่สำเร็จ");
+                }
+
+                const data = await response.json();
+                setMedalText(data.data?.message || "");
+            } catch (error) {
+                console.error("Fetch Medal Message Error:", error);
+                setMedalText("");
+            }
+        };
+
+        fetchMedalMessage();
+    }, [medalStatus]);
+
+    const medalCaption = medalText
+        ? medalText
+            .replace("{score}", totalCorrect)
+            .replace("{total}", MISSIONS.length)
+        : "";
 
     return (
         <div
@@ -38,6 +109,8 @@ export default function ResultPage({
                 }}
             />
 
+            {/* พอดีจอเดียวเหมือนเดิม (ไม่มี scroll ทั้งหน้า) — ที่เลื่อนได้
+                มีแค่ในกล่อง DECISION LOG ข้างในกระดาษเท่านั้น */}
             <div className="w-full max-w-2xl h-full relative my-auto flex flex-col" style={{ transform: 'rotate(-0.6deg)' }}>
                 {/* a strip of tape pinning the report to the scene */}
                 <div
@@ -45,7 +118,7 @@ export default function ResultPage({
                     style={{ top: '-14px', left: '38%', width: '110px', height: '26px', transform: 'rotate(-3deg)' }}
                 />
 
-                <div className="debrief-paper rounded-sm px-6 md:px-10 py-6 md:py-8 text-[#2A2620] flex flex-col h-full shadow-2xl">
+                <div className="debrief-paper rounded-sm px-6 md:px-10 py-6 md:py-8 text-[#2A2620] flex flex-col h-full shadow-2xl" style={{ overflow: 'visible' }}>
 
                     {/* Header / verdict (shrink-0 prevents it from squishing) */}
                     <div className="flex items-start justify-between gap-4 shrink-0">
@@ -96,23 +169,48 @@ export default function ResultPage({
                                                     : 'BRONZE MEDAL'}
                                         </span>
 
-                                        <span className="font-thai text-[11px] md:text-xs text-[#5B5340]">
-                                            {medal === 'gold'
-                                                ? 'ยอดเยี่ยม! ตอบถูกทั้งหมดในครั้งแรก'
-                                                : medal === 'silver'
-                                                    ? 'ดีมาก! ตอบถูก 9/10 ในครั้งแรก'
-                                                    : 'ดี! ตอบถูก 8/10 ในครั้งแรก'}
-                                        </span>
+                                        {medalCaption && (
+                                            <span className="font-thai text-[11px] md:text-xs text-[#5B5340]">
+                                                {medalCaption}
+                                            </span>
+                                        )}
 
-                                        {medal === 'gold' && expBonus > 0 && (
+                                        {medalBonusIP > 0 && (
                                             <span
                                                 className="font-stamp text-[10px] md:text-[11px] tracking-wide"
-                                                style={{ color: '#B8860B' }}
+                                                style={{
+                                                    color:
+                                                        medal === 'gold'
+                                                            ? '#B8860B'
+                                                            : medal === 'silver'
+                                                                ? '#7A7A7A'
+                                                                : '#8B5E3C',
+                                                }}
                                             >
-                                                ⭐ BONUS +{expBonus} EXP
+                                                ⭐ โบนัสเหรียญ +{medalBonusIP} IP
                                             </span>
                                         )}
                                     </div>
+                                </div>
+                            )}
+
+                            {/* IP รวมที่ได้จากภารกิจนี้ — เดิมหน้านี้แยกเป็น
+                                EXP bonus / Coin bonus ที่ไม่เคยถูกบันทึกจริง
+                                ในระบบเลย (มีแค่ integrity_points เท่านั้นที่
+                                persist) เลยรวมเป็น IP ก้อนเดียวให้ตรงกับของจริง */}
+                            {isPassed && (
+                                <div className="mt-2 flex flex-col gap-0.5">
+                                    <span className="font-stamp text-sm md:text-base font-bold text-[#2F6B4F]">
+                                        +{earnedIP} IP
+                                        {medalBonusIP > 0 && (
+                                            <span className="ml-1 text-[10px] md:text-[11px] font-normal text-[#8C806A]">
+                                                (พื้นฐาน {baseIP} + โบนัสเหรียญ {medalBonusIP})
+                                            </span>
+                                        )}
+                                    </span>
+                                    <span className="font-thai text-[11px] text-[#8C806A]">
+                                        IP สะสมทั้งหมด {totalIntegrityPoints}
+                                    </span>
                                 </div>
                             )}
                         </div>
@@ -138,7 +236,7 @@ export default function ResultPage({
                         </p>
                         <div className="flex items-baseline justify-between ledger-row pb-1 mb-2">
                             <span className="font-thai text-[#5B5340]">เงินคงเหลือ</span>
-                            <span className="font-bold text-base md:text-lg">฿{Number(money).toLocaleString()}</span>
+                            <span className="font-bold text-base md:text-lg">{Number(money).toLocaleString()} ฿</span>
                         </div>
                         <div className="flex items-baseline justify-between">
                             <span className="font-thai text-[#5B5340]">สรุปผลการเล่น</span>
@@ -146,7 +244,9 @@ export default function ResultPage({
                         </div>
                     </div>
 
-                    {/* Perforated receipt: decision log */}
+                    {/* Perforated receipt: decision log — ส่วนนี้ยังคงกินพื้นที่
+                        ที่เหลือทั้งหมด (flex-1 min-h-0) และเลื่อนดูข้างในได้
+                        เอง ไม่ทำให้การ์ดทั้งใบสูงเกินจอ */}
                     <div className="mt-5 md:mt-6 flex-1 min-h-0 flex flex-col">
                         <p className="font-stamp text-[11px] tracking-[0.25em] text-[#8C806A] mb-1 shrink-0">
                             DECISION LOG
@@ -216,33 +316,32 @@ export default function ResultPage({
                         <div className="perforation shrink-0" />
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-4 justify-center mt-5 shrink-0">
+                    {/* Actions — ระยะห่างด้านบนมากกว่าเดิมให้ปุ่มขยับลงมา
+                        DECISION LOG เป็น flex-1 อยู่แล้ว จะหดพื้นที่ตัวเอง
+                        ให้พอดีโดยอัตโนมัติ การ์ดจึงยังพอดีจอเดียวเหมือนเดิม */}
+                    <div className="flex flex-wrap gap-4 justify-center mt-10 shrink-0 pb-6 min-h-[80px]" style={{ position: 'relative', zIndex: 1, overflow: 'visible' }}>
+                        <button
+                            onClick={() => navigate('/map')}
+                            className="button-finish-game gray">
+                            <span className="button-finish-game-top">กลับหน้าหลัก</span>
+                            <span className="button-finish-game-bottom"></span>
+                            <span className="button-finish-game-base"></span>
+                        </button>
                         {!isPassed ? (
                             <button
-                                onClick={() => {
-                                    setIntroStep(2);
-                                    setGameState('intro');
-                                }}
-                                className="btn-stamp font-stamp tracking-widest text-sm md:text-base px-6 py-2 bg-[#F3ECDA] text-[#2A2620] rounded-sm"
-                            >
-                                เล่นอีกครั้ง
+                                onClick={() => navigate('/unit2/final/introMission')}
+                                className="button-finish-game yellow">
+                                <span className="button-finish-game-top">เล่นอีกครั้ง</span>
+                                <span className="button-finish-game-bottom"></span>
+                                <span className="button-finish-game-base"></span>
                             </button>
                         ) : (
                             <button
                                 onClick={() => navigate('/map')}
-                                className="btn-stamp text-sm md:text-base px-6 py-2 bg-[#F3ECDA] text-[#2A2620] rounded-sm font-bold"
-                            >
-                                กลับหน้าหลัก
-                            </button>
-                        )}
-
-                        {isPassed && (
-                            <button
-                                className="btn-stamp text-sm md:text-base px-6 py-2 rounded-sm text-[#F3ECDA]"
-                                style={{ backgroundColor: '#2F6B4F' }}
-                            >
-                                ดำเนินการต่อ
+                                className="button-finish-game green">
+                                <span className="button-finish-game-top">ดำเนินการต่อ</span>
+                                <span className="button-finish-game-bottom"></span>
+                                <span className="button-finish-game-base"></span>
                             </button>
                         )}
                     </div>

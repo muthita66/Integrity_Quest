@@ -1,232 +1,227 @@
+import { FaPlay, FaHome } from "react-icons/fa";
+import { IoMdSkipForward } from "react-icons/io";
+import { MdTimer } from "react-icons/md";
+import { GiTargetArrows } from "react-icons/gi";
+import { ImCross } from "react-icons/im";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 
+import "../../../../styles/unit1/Level1/button.css";
+import BgMission from "../../../../assets/unit3/level1/intro/sceneMission.png";
 import Receipt from '../../../../assets/unit3/level1/intro/receipt.png'
 import TaxReceipt from '../../../../assets/unit3/level1/intro/tax.png'
 import CashReceipt from '../../../../assets/unit3/level1/intro/cash.png'
-import BgMission from "../../../../assets/unit3/level1/bgGameLevel1.png";
 
-export default function SceneMission({ onBack }) {
+export default function SceneMission({
+    scene,
+    onNext,
+    onBack,
+    handleSkip,
+    currentScene,
+    totalScenes,
+}) {
     const navigate = useNavigate();
+    const mission = scene?.sceneMission?.[0];
+    const rules = mission?.sceneMissionRules || []
 
-    const handleStartGame = () => {
-        navigate("/unit3/level1/game");
+    const getRuleStyle = (ruleId) => {
+        switch (ruleId) {
+            case 1:
+                return "bg-green-50 border-green-200";
+            case 2:
+                return "bg-blue-50 border-blue-200";
+            case 3:
+                return "bg-gray-50 border-gray-200";
+            default:
+                return "bg-gray-50 border-gray-200";
+        }
     };
 
     return (
-        <div className="relative mx-auto w-full min-h-screen flex flex-col justify-center">
-            {/* Desk background */}
-            <div className="fixed inset-0 -z-10 w-full h-full">
-                <div className="absolute inset-0" style={{ backgroundImage: `url(${BgMission})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }} />
-                {/* White Overlay */}
-                <div className="absolute inset-0 bg-black/60" />
-            </div>
+        <div className="relative w-full h-screen overflow-hidden">
+            {/* Background */}
+            <img
+                src={BgMission}
+                alt="Mission"
+                className="absolute inset-0 w-full h-full object-cover object-center"
+            />
 
-            {/* Mission content */}
-            <div className="relative z-10 px-5 pt-2 pb-2 md:px-10 h-full flex flex-col justify-center gap-2">
-                {/* Mission title */}
-                <motion.div
-                    initial={{
-                        opacity: 0,
-                        y: -35,
-                    }}
-                    animate={{
-                        opacity: 1,
-                        y: 0,
-                    }}
-                    transition={{
-                        duration: 0.5,
-                    }}
-                    className="
-                        mx-auto max-w-3xl w-full
-                        rounded-[26px]
-                        border-4 border-amber-700
-                        bg-yellow-100
-                        px-4 py-2
-                        text-center shadow-2xl
-                    "
-                >
-                    <h2 className="text-2xl font-black text-amber-950 md:text-4xl sarabun-bold">
-                        ภารกิจตามหาใบเสร็จ
-                    </h2>
+            {/* Skip Button */}
+            <button
+                type="button"
+                onClick={handleSkip}
+                className={`
+                    absolute top-4 right-20 z-20
+                    rounded-full border-2 border-white/80
+                    bg-black/40 p-2
+                    text-white shadow-lg
+                    backdrop-blur-sm
+                    transition-all duration-300
+                    hover:scale-105 hover:bg-black/60
+                    active:scale-95
+                    ${currentScene < totalScenes - 1 ? "" : "invisible"}
+                `}
+            >
+                <IoMdSkipForward className="text-2xl" />
+            </button>
 
-                    <p className="mt-1 text-base font-bold text-amber-800 md:text-lg sarabun-bold">
-                        ค้นหาเอกสารการเงินให้ครบก่อนหมดเวลา
-                    </p>
+            {/* Home Button */}
+            <button
+                type="button"
+                onClick={() => navigate('/map')}
+                className={`
+                    absolute top-4 right-4 z-20
+                    rounded-full border-2 border-white/80
+                    bg-black/40 p-2
+                    text-white shadow-lg
+                    backdrop-blur-sm
+                    transition-all duration-300
+                    hover:scale-105 hover:bg-black/60
+                    active:scale-95
+                `}
+            >
+                <FaHome className="text-2xl" />
+            </button>
 
-                    {/* Rules */}
-                    <div className="mx-auto mt-2 grid w-full max-w-3xl grid-cols-1 gap-4 md:grid-cols-3 sarabun-bold">
-                        <motion.div
-                            initial={{
-                                opacity: 0,
-                                y: 30,
-                            }}
-                            animate={{
-                                opacity: 1,
-                                y: 0,
-                            }}
-                            transition={{
-                                delay: 0.15,
-                            }}
-                            className="
-                            rounded-2xl border-4 border-yellow-300
-                            bg-slate-900 p-2 text-center flex flex-col items-center
-                            text-white shadow-lg
-                        "
-                        >
-
-                            <h3 className="text-base font-black text-yellow-300">
-                                เวลา
-                            </h3>
-
-                            <p className="font-bold">
-                                60 วินาที
-                            </p>
-                        </motion.div>
-
-                        <motion.div
-                            initial={{
-                                opacity: 0,
-                                y: 30,
-                            }}
-                            animate={{
-                                opacity: 1,
-                                y: 0,
-                            }}
-                            transition={{
-                                delay: 0.3,
-                            }}
-                            className="
-                            rounded-2xl border-4 border-green-300
-                            bg-slate-900 p-2 text-center flex flex-col items-center
-                            text-white shadow-lg
-                        "
-                        >
-
-                            <h3 className="text-base font-black text-green-300">
-                                เป้าหมาย
-                            </h3>
-
-                            <p className="font-bold">
-                                หาเอกสารให้ครบ 8 ชิ้น
-                            </p>
-                        </motion.div>
-
-                        <motion.div
-                            initial={{
-                                opacity: 0,
-                                y: 30,
-                            }}
-                            animate={{
-                                opacity: 1,
-                                y: 0,
-                            }}
-                            transition={{
-                                delay: 0.45,
-                            }}
-                            className="
-                            rounded-2xl border-4 border-red-300
-                            bg-slate-900 p-2 text-center flex flex-col items-center
-                            text-white shadow-lg
-                        "
-                        >
-
-                            <h3 className="text-base font-black text-red-300">
-                                ระวัง
-                            </h3>
-
-                            <p className="font-bold">
-                                กดผิดเกิน 5 ครั้งจะแพ้
-                            </p>
-                        </motion.div>
+            {/* Game Instruction Box */}
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 w-[90%] max-w-4xl">
+                <div className="
+                    rounded-3xl
+                    border border-white/70
+                    bg-white/55
+                    px-8 py-5
+                    shadow-2xl
+                    backdrop-blur-md
+                ">
+                    {/* Header */}
+                    <div className="text-center mb-5">
+                        <h2 className="text-2xl md:text-3xl font-bold text-black sarabun-bold">
+                            {mission?.title || "ภารกิจตามหาใบเสร็จ"}
+                        </h2>
+                        <p className="mt-0 text-base md:text-lg text-black sarabun-bold">
+                            {mission?.subtitle || "ค้นหาเอกสารการเงินให้ครบก่อนหมดเวลา"}
+                        </p>
                     </div>
-                </motion.div>
 
-                {/* Target documents */}
-                <motion.div
-                    initial={{
-                        opacity: 0,
-                        scale: 0.92,
-                    }}
-                    animate={{
-                        opacity: 1,
-                        scale: 1,
-                    }}
-                    transition={{
-                        delay: 0.6,
-                    }}
-                    className="
-                        mx-auto mt-2 max-w-3xl w-full
-                        rounded-3xl border-4 border-amber-700
-                        bg-amber-50 px-6 pt-4 pb-8
-                        text-center shadow-xl
-                        sarabun-bold
-                    "
-                >
-                    <h3 className="mb-0 text-xl font-black text-amber-900">
-                        เอกสารที่ต้องหา
-                    </h3>
+                    {/* Description - เอกสารที่ต้องหา */}
+                    <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 px-5 py-4 mb-5 shadow-sm text-center">
+                        <h3 className="mb-2 text-lg font-black text-black sarabun-bold">
+                            เอกสารที่ต้องหา
+                        </h3>
 
-                    <div className="rounded-xl border-2 border-amber-200 bg-white p-0 shadow">
-                        <div className="flex justify-around items-start">
+                        <div className="grid grid-cols-3 gap-6 items-start sarabun-bold">
+
+                            {/* ใบเสร็จรับเงิน */}
                             <div className="flex flex-col items-center">
-                                <p className="h-12 flex items-center justify-center text-center font-bold text-black">
+                                <p className="h-8 flex items-center justify-center text-center font-bold text-black text-sm">
                                     ใบเสร็จรับเงิน
                                 </p>
-                                <img src={Receipt} alt="" className="w-26" />
+
+                                <div className="flex items-center justify-center -mt-1">
+                                    <img
+                                        src={Receipt}
+                                        alt="Receipt"
+                                        className="w-28 max-h-44 object-contain"
+                                    />
+                                </div>
                             </div>
 
+                            {/* ใบกำกับภาษี */}
                             <div className="flex flex-col items-center">
-                                <p className="h-12 flex items-center justify-center text-center font-bold text-black">
+                                <p className="h-8 flex items-center justify-center text-center font-bold text-black text-sm">
                                     ใบกำกับภาษี
                                 </p>
-                                <img src={TaxReceipt} alt="" className="w-30" />
+
+                                <div className="flex items-center justify-center -mt-1">
+                                    <img
+                                        src={TaxReceipt}
+                                        alt="Tax Receipt"
+                                        className="w-32 max-h-44 object-contain"
+                                    />
+                                </div>
                             </div>
 
+                            {/* ใบสำคัญรับเงิน */}
                             <div className="flex flex-col items-center">
-                                <p className="h-12 flex items-center justify-center text-center font-bold text-black">
+                                <p className="h-8 flex items-center justify-center text-center font-bold text-black text-sm">
                                     ใบสำคัญรับเงิน
                                 </p>
-                                <img src={CashReceipt} alt="" className="w-34" />
+
+                                <div className="flex items-center justify-center -mt-1">
+                                    <img
+                                        src={CashReceipt}
+                                        alt="Cash Receipt"
+                                        className="w-36 max-h-44 object-contain"
+                                    />
+                                </div>
                             </div>
+
                         </div>
                     </div>
-                </motion.div>
 
-                {/* Buttons */}
-                <motion.div
-                    initial={{
-                        opacity: 0,
-                        y: 30,
-                    }}
-                    animate={{
-                        opacity: 1,
-                        y: 0,
-                    }}
-                    transition={{
-                        delay: 0.85,
-                        duration: 0.45,
-                        ease: "easeOut",
-                    }}
-                    className="mt-8 flex items-center justify-center gap-4 sarabun-bold"
-                >
-                    <button
-                        type="button"
-                        onClick={onBack}
-                        className="button-with-icon-introScenes button-gray icon-left"
-                    >
-                        <span className="icon">◀</span>
-                        <span className="text">ย้อนกลับ</span>
-                    </button>
+                    {/* Rules */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
 
-                    <button
-                        onClick={handleStartGame}
-                        className="button-with-icon-introScenes button-green icon-right"
-                    >
-                        <span className="text">เริ่มเกม</span>
-                        <span className="icon">▶</span>
-                    </button>
-                </motion.div>
+                        {rules.map((rule) => (
+                            <div
+                                key={rule.id}
+                                className={`rounded-2xl border px-4 py-2 text-center ${getRuleStyle(rule.rule_id)}`}>
+                                {rule.image_path && (
+                                    <div className="mb-1 mx-auto flex justify-center">
+                                        <img
+                                            src={`/image/${rule.image_path}`}
+                                            alt={rule.title || "Rule"}
+                                            className="w-12 h-12 object-contain" />
+                                    </div>
+                                )}
+
+                                <p className="font-bold text-gray-800 sarabun-bold">
+                                    {rule.title || ""}
+                                </p>
+
+                                <p className="text-sm text-gray-600 mt-1 sarabun-light">
+                                    {rule.description || ""}
+                                </p>
+                            </div>
+                        ))}
+
+                    </div>
+
+                    {/* Start Button & Back */}
+                    <div className="flex w-full justify-center gap-6 items-center">
+                        <button
+                            type="button"
+                            onClick={onBack}
+                            className="circle-play-button yellow"
+                        >
+                            <div className="circle-play-button__outer">
+                                <div className="circle-play-button__shadow"></div>
+                                <div className="circle-play-button__main">
+                                    <FaPlay
+                                        className="circle-play-button__icon scale-x-[-1]"
+                                        size={26}
+                                    />
+                                </div>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            className="circle-play-button green"
+                            onClick={onNext}
+                            aria-label="เริ่มภารกิจ"
+                        >
+                            <div className="circle-play-button__outer">
+                                <div className="circle-play-button__shadow"></div>
+                                <div className="circle-play-button__main">
+                                    <FaPlay
+                                        className="circle-play-button__icon"
+                                        size={26}
+                                    />
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );

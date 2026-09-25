@@ -1,13 +1,17 @@
 import { IoMdSkipForward } from "react-icons/io";
+import { FaLightbulb } from "react-icons/fa6";
 import IntroDialog from "../../intro/IntroDialog";
 import sceneOne from "../../../../assets/unit2/Level1/intro/sceneOne.png";
 
 export default function SceneOne({
+    scene,
     onNext,
     handleSkip,
     currentScene,
     totalScenes,
 }) {
+    // ข้อมูล Dialog จาก Database
+    const dialog = scene?.introDialog?.[0];
     return (
         <div className="relative w-full h-screen overflow-hidden">
             {/* Illustration */}
@@ -37,15 +41,18 @@ export default function SceneOne({
 
             {/* Dialog */}
             <div className="absolute bottom-10 left-0 w-full z-10">
-                <IntroDialog
-                    speaker="ไกด์การเงิน"
-                    title="ตลาดนัดมหาวิทยาลัย"
-                    text="ท่ามกลางสินค้ามากมายและโปรโมชั่นดึงดูดใจ คุณต้องเรียนรู้ที่จะคิดก่อนตัดสินใจซื้อ"
-                    onNext={onNext}
-                    showBack={false}
-                    currentScene={currentScene}
-                    totalScenes={totalScenes}
-                />
+                {dialog && (
+                    <IntroDialog
+                        speaker={dialog.speaker}
+                        title={dialog.title}
+                        text={dialog.text}
+                        lesson={dialog.lesson}
+                        onNext={onNext}
+                        showBack={false}
+                        currentScene={currentScene}
+                        totalScenes={totalScenes}
+                    />
+                )}
             </div>
         </div>
     );

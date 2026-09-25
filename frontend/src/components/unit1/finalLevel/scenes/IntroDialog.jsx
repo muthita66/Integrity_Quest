@@ -12,24 +12,21 @@ export default function IntroDialog({
     return (
         <div
             className="
-                relative mx-auto w-[60%] h-[240px]
-                bg-black/40 backdrop-blur-sm border-2 border-white/50 rounded-2xl text-white
+                relative mx-auto
+                w-[60%]
+                h-[240px]
+                bg-black/40
+                backdrop-blur-sm
+                border-2
+                border-white/50
+                rounded-2xl
+                text-white
                 px-6 pb-5 pt-8
                 shadow-2xl
                 md:px-9 md:pb-7
-                sarabun-bold
-            "
-        >
-            {/* Speaker name */}
+                sarabun-bold">
             {speaker && (
-                <div
-                    className="
-                        absolute -top-7 left-6
-                        rounded-2xl border-2 border-white
-                        bg-amber-600 px-6 py-2
-                        shadow-lg
-                    "
-                >
+                <div className="absolute -top-7 left-6 rounded-2xl border-2 border-white bg-amber-600 px-6 py-2 shadow-lg">
                     <p className="text-base font-black text-white md:text-lg">
                         {speaker}
                     </p>
@@ -43,51 +40,62 @@ export default function IntroDialog({
                         {title}
                     </h2>
                 )}
-
-                <p className="min-h-[72px] text-sm font-base leading-start text-white md:text-lg">
+                <p className="text-sm font-base leading-start text-white md:text-lg">
                     {text}
                 </p>
             </div>
 
             {/* Controls */}
-            <div className="mt-6 flex items-center justify-between gap-4">
-                {showBack ? (
-                    <button
-                        type="button"
-                        onClick={onBack}
-                        className="button-with-icon-introScenes button-gray icon-left"
-                    >
-                        <span className="icon">◀</span>
-                        <span className="text">ย้อนกลับ</span>
-                    </button>
-                ) : (
-                    <div className="w-[110px]" />
-                )}
-
-                {/* Scene indicators */}
-                <div className="hidden items-center gap-2 sm:flex">
-                    {Array.from({ length: totalScenes }).map((_, index) => (
-                        <div
-                            key={index}
-                            className={`
-                                h-3 rounded-full transition-all duration-300
-                                ${index === currentScene
-                                    ? "w-8 bg-amber-500"
-                                    : "w-3 bg-slate-300"
-                                }
-                            `}
-                        />
-                    ))}
+            <div className="absolute bottom-5 left-6 right-6 md:left-9 md:right-9 h-10">
+                {/* Back Button */}
+                <div className="absolute left-0 top-1/2 -translate-y-1/2">
+                    {showBack ? (
+                        <button
+                            type="button"
+                            onClick={onBack}
+                            className="button-with-icon-introScenes button-gray icon-left">
+                            <span className="icon">◀</span>
+                            <span className="text">ย้อนกลับ</span>
+                        </button>
+                    ) : (
+                        <div className="w-[110px] h-[40px]" />
+                    )}
                 </div>
 
-                <button
-                    type="button"
-                    onClick={onNext}
-                    className="button-with-icon-introScenes button-orange icon-right"
-                >
-                    <span className="text">{nextText}</span>
-                    <span className="icon">▶</span>
-                </button>
+                {/* Scene indicators */}
+                <div
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <div className="hidden items-center gap-2 sm:flex">
+                        {Array.from({
+                            length: totalScenes,
+                        }).map((_, index) => (
+                            <div
+                                key={index}
+                                className={`
+                                    h-3
+                                    rounded-full
+                                    transition-all
+                                    duration-300
+                                    ${index === currentScene
+                                        ? "w-8 bg-amber-500"
+                                        : "w-3 bg-slate-300"
+                                    }
+                                `}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Next Button */}
+                <div className="absolute right-0 top-1/2 -translate-y-1/2">
+                    <button
+                        type="button"
+                        onClick={onNext}
+                        className="button-with-icon-introScenes button-orange icon-right">
+                        <span className="text">{nextText}</span>
+                        <span className="icon">▶</span>
+                    </button>
+                </div>
             </div>
         </div>
     );

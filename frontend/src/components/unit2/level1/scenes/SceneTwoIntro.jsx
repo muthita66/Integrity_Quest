@@ -1,14 +1,18 @@
 import { IoMdSkipForward } from "react-icons/io";
+import { FaLightbulb } from "react-icons/fa6";
 import IntroDialog from "../../intro/IntroDialog";
 import SceneTwoBg from "../../../../assets/unit2/Level1/intro/sceneTwo.png";
 
 export default function SceneTwo({
+    scene,
     onNext,
     onBack,
     handleSkip,
     currentScene,
     totalScenes,
 }) {
+    // ข้อมูล Dialog จาก Database
+    const dialog = scene?.introDialog?.[0];
     return (
         <div className="relative w-full h-screen overflow-hidden">
             {/* Illustration */}
@@ -38,16 +42,19 @@ export default function SceneTwo({
 
             {/* Dialog */}
             <div className="absolute bottom-10 left-0 w-full z-10">
-                <IntroDialog
-                    speaker="ไกด์การเงิน"
-                    title="ห้องเรียนการเงินส่วนบุคคล"
-                    text="อาจารย์มอบภารกิจให้คุณเรียนรู้การแยก สิ่งจำเป็น (Need) และ สิ่งที่ต้องการ (Want) เพื่อวางแผนการใช้เงินอย่างมีวินัยและมีเหตุผล."
-                    onNext={onNext}
-                    onBack={onBack}
-                    showBack={true}
-                    currentScene={currentScene}
-                    totalScenes={totalScenes}
-                />
+                {dialog && (
+                    <IntroDialog
+                        speaker={dialog.speaker}
+                        title={dialog.title}
+                        text={dialog.text}
+                        lesson={dialog.lesson}
+                        onNext={onNext}
+                        onBack={onBack}
+                        showBack={true}
+                        currentScene={currentScene}
+                        totalScenes={totalScenes}
+                    />
+                )}
             </div>
         </div>
     );

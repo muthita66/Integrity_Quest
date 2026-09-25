@@ -1,9 +1,9 @@
 import { CheckCircle2, Lock, RotateCcw, XCircle } from "lucide-react";
-import { CASES } from "../data/cases";
 import ProgressTrack from "./ProgressTrack";
 import BgGame from "../../../../assets/unit1/finalLevel/bgGame1.png"
 
 export default function CaseSelect({
+    cases,
     caseIdx,
     results,
     unlockedCaseCount,
@@ -28,7 +28,7 @@ export default function CaseSelect({
                     <ProgressTrack caseIdx={caseIdx} results={results} />
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
-                        {CASES.map((caseItem, index) => {
+                        {cases.map((caseItem, index) => {
                             const isLocked = index > unlockedCaseCount;
                             const solved = results[caseItem.id];
 

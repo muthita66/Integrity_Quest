@@ -1,11 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import { IoMdSkipForward } from "react-icons/io";
 
 import "../../../../styles/unit1/Level1/MirrorIntro.css";
 
 import bgGameLevel1 from "../../../../assets/unit1/level1/bg_game.png";
-import IntroSound from "../../../../assets/sounds/IntroSound.mp3";
-import uiSoundSfx from "../../../../assets/sounds/ui_sounds.mp3";
 
 import SceneOne from "./SceneOne";
 import SceneTwo from "./SceneTwo";
@@ -24,8 +22,11 @@ const SHIMMER_DOTS = [
 ];
 
 export default function IntroScenes({ onComplete }) {
-    const [hasStarted, setHasStarted] = useState(false);
     const [currentScene, setCurrentScene] = useState(0);
+
+    // ข้อมูล Scene จาก Database
+    const [sceneData, setSceneData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const scenes = [
         SceneOne,
@@ -36,31 +37,33 @@ export default function IntroScenes({ onComplete }) {
 
     const CurrentSceneComponent = scenes[currentScene];
 
-    const textAudioRef = useRef(new Audio(IntroSound));
-    const uiSoundSfxAudioRef = useRef(new Audio(uiSoundSfx));
-
-    const handleInitialClick = () => {
-        if (!hasStarted) {
-            textAudioRef.current.play().then(() => {
-                textAudioRef.current.pause();
-                textAudioRef.current.currentTime = 0;
-            }).catch(() => { });
-
-            uiSoundSfxAudioRef.current.play().then(() => {
-                uiSoundSfxAudioRef.current.pause();
-                uiSoundSfxAudioRef.current.currentTime = 0;
-            }).catch(() => { });
-
-            setHasStarted(true);
-        }
-    };
+    // ดึง Scene + Dialog จาก Database (level_id = 3 คือ finalLevel)
+    useEffect(() => {
+        const fetchScenes = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch(
+                    "http://localhost:5000/api/introDialog/level/3"
+                );
+                if (!response.ok) {
+                    throw new Error("ไม่สามารถดึงข้อมูล Scene ได้");
+                }
+                const data = await response.json();
+                console.log("FinalLevel Scene Data:", data);
+                setSceneData(data);
+            } catch (error) {
+                console.error("Error fetching final level scenes:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchScenes();
+    }, []);
 
     const handleNext = () => {
         if (currentScene < scenes.length - 1) {
             setCurrentScene((prev) => prev + 1);
         } else {
-            textAudioRef.current.pause();
-            textAudioRef.current.currentTime = 0;
             onComplete && onComplete();
         }
     };
@@ -76,28 +79,26 @@ export default function IntroScenes({ onComplete }) {
     };
 
     const handleStartGame = () => {
-        textAudioRef.current.pause();
-        textAudioRef.current.currentTime = 0;
         onComplete && onComplete();
     };
 
     return (
-        <main
-            className="mirror-scene min-h-screen relative overflow-hidden sarabun-bold"
-            style={{ cursor: hasStarted ? "default" : "pointer" }}
-            onClick={!hasStarted ? handleInitialClick : undefined}
-        >
+        <main className="mirror-scene min-h-screen relative overflow-hidden sarabun-bold">
             <>
                 {/* Scene */}
                 <section className="relative z-20 flex items-start justify-center">
                     <div className="w-full">
-                        <CurrentSceneComponent
-                            onNext={handleNext}
-                            onBack={handleBack}
-                            currentScene={currentScene}
-                            totalScenes={scenes.length}
-                            onStartGame={handleStartGame}
-                        />
+                        {!loading && sceneData.length > 0 && (
+                            <CurrentSceneComponent
+                                scene={sceneData[currentScene]}
+                                onNext={handleNext}
+                                onBack={handleBack}
+                                handleSkip={handleSkip}
+                                currentScene={currentScene}
+                                totalScenes={scenes.length}
+                                onStartGame={handleStartGame}
+                            />
+                        )}
                     </div>
                 </section>
             </>

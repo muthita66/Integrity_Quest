@@ -1,13 +1,9 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { IoMdSkipForward } from "react-icons/io";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import "../../../styles/unit1/Level1/MirrorIntro.css";
 
-import bgMarket from "../../../assets/unit2/Level1/intro/bgmarket.jpg";
-
-import IntroSound from "../../../assets/sounds/IntroSound.mp3";
-import uiSoundSfx from "../../../assets/sounds/ui_sounds.mp3";
+import bgMarket from "../../../assets/unit2/Level1/intro/bgmarket.png";
 
 import SceneOne from "./scenes/SceneOneIntro";
 import SceneTwo from "./scenes/SceneTwoIntro";
@@ -24,42 +20,67 @@ const SHIMMER_DOTS = [
     { left: "90%", delay: "4s", duration: "11.5s", size: 3 },
 ];
 
+const scenes = [
+    SceneOne,
+    SceneTwo,
+    SceneThree,
+    SceneMission,
+];
+
 export default function Unit2IntroPage() {
     const navigate = useNavigate();
-    const [hasStarted, setHasStarted] = useState(false);
-    const [currentScene, setCurrentScene] = useState(0);
+    const { state } = useLocation();
 
-    const scenes = [
-        SceneOne,
-        SceneTwo,
-        SceneThree,
-        SceneMission,
-    ];
+    const initialScene = state?.startAtMission ? scenes.length - 1 : 0;
+
+    const [currentScene, setCurrentScene] = useState(initialScene);
+
+    // Scene Data จาก Database
+    const [sceneData, setSceneData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const CurrentSceneComponent = scenes[currentScene];
 
-    const textAudioRef = useRef(new Audio(IntroSound));
-    const uiSoundSfxAudioRef = useRef(new Audio(uiSoundSfx));
+    // fetch Scene Data จาก Database
+    useEffect(() => {
+        const fetchScenes = async () => {
+            try {
+                setLoading(true);
 
-    const handleInitialClick = () => {
-        if (!hasStarted) {
-            textAudioRef.current.play().then(() => {
-                textAudioRef.current.pause();
-                textAudioRef.current.currentTime = 0;
-            }).catch(() => { });
+                const response = await fetch(
+                    "http://localhost:5000/api/introDialog/level/5"
+                );
 
-            uiSoundSfxAudioRef.current.play().then(() => {
-                uiSoundSfxAudioRef.current.pause();
-                uiSoundSfxAudioRef.current.currentTime = 0;
-            }).catch(() => { });
+                if (!response.ok) {
+                    throw new Error(
+                        "ไม่สามารถดึงข้อมูล Scene ของ Unit 2 Level 1 ได้"
+                    );
+                }
 
-            setHasStarted(true);
-        }
-    };
+                const data = await response.json();
+
+                console.log("Unit 2 Level 1 Scene Data:", data);
+
+                setSceneData(data);
+
+            } catch (error) {
+                console.error(
+                    "Error fetching Unit 2 Level 1 scenes:",
+                    error
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchScenes();
+    }, []);
 
     const handleNext = () => {
         if (currentScene < scenes.length - 1) {
             setCurrentScene((prev) => prev + 1);
+        } else {
+            navigate("/unit2/level1");
         }
     };
 
@@ -74,11 +95,7 @@ export default function Unit2IntroPage() {
     };
 
     return (
-        <main
-            className="mirror-scene min-h-screen relative overflow-hidden"
-            style={{ cursor: hasStarted ? "default" : "pointer" }}
-            onClick={!hasStarted ? handleInitialClick : undefined}
-        >
+        <main className="mirror-scene min-h-screen relative overflow-hidden">
             {/* Background */}
             <div
                 className="mirror-scene__bg absolute inset-0"
@@ -87,7 +104,7 @@ export default function Unit2IntroPage() {
             <div className="mirror-scene__vignette absolute inset-0" />
 
             {/* Sweep light */}
-            {hasStarted && <div className="mirror-scene__sweep" />}
+            <div className="mirror-scene__sweep" />
 
             {/* Particles */}
             <div className="mirror-scene__particles">
@@ -109,13 +126,16 @@ export default function Unit2IntroPage() {
                 {/* Scene */}
                 <section className="relative z-20 flex items-start justify-center">
                     <div className="w-full">
-                        <CurrentSceneComponent
-                            onNext={handleNext}
-                            onBack={handleBack}
-                            handleSkip={handleSkip}
-                            currentScene={currentScene}
-                            totalScenes={scenes.length}
-                        />
+                        {!loading && sceneData.length > 0 && (
+                            <CurrentSceneComponent
+                                scene={sceneData[currentScene]}
+                                onNext={handleNext}
+                                onBack={handleBack}
+                                handleSkip={handleSkip}
+                                currentScene={currentScene}
+                                totalScenes={scenes.length}
+                            />
+                        )}
                     </div>
                 </section>
             </>

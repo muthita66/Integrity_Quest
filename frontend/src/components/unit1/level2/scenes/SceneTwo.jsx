@@ -1,16 +1,18 @@
 import IntroDialog from "./IntroDialog";
 import { IoMdSkipForward } from "react-icons/io";
-import { FaLightbulb } from "react-icons/fa6";
 
 import SceneTwoImg from "../../../../assets/unit1/level2/intro/scene2.png";
 
 export default function SceneTwo({
+    scene,
     onNext,
     onBack,
     handleSkip,
     currentScene,
     totalScenes,
 }) {
+    const dialog = scene?.introDialog?.[0];
+
     return (
         <div>
             {/* Illustration */}
@@ -43,32 +45,13 @@ export default function SceneTwo({
             {/* Dialog */}
             <div className="absolute bottom-10 left-0 w-full z-10">
                 <IntroDialog
-                    speaker="ผู้พิทักษ์แห่งความซื่อสัตย์"
-                    title="ทำไมคนถึงโกง?"
-                    text={
-                        <>
-                            <span>
-                                บางครั้งคนเราเลือกโกงเพราะต้องการผลประโยชน์
-                                หรือหลีกเลี่ยงผลเสียที่อาจเกิดขึ้น
-                            </span>
-                            <br />
-
-                            <span>
-                                แต่เหตุผลของการตัดสินใจนั้น อาจสะท้อนระดับการคิดทางศีลธรรมของเรา
-                            </span>
-                            <br />
-
-                            <span className="mt-2 flex items-start gap-2 text-yellow-300">
-                                <FaLightbulb className="mt-1 shrink-0" />
-                                <span>
-                                    <span className="font-bold">เรียนรู้:</span>{" "}
-                                    ทำความเข้าใจเหตุผลเบื้องหลังการโกง
-                                </span>
-                            </span>
-                        </>
-                    }
+                    speaker={dialog.speaker}
+                    title={dialog.title}
+                    text={dialog.text}
+                    lesson={dialog.lesson}
                     onNext={onNext}
                     onBack={onBack}
+                    showBack={currentScene > 0}
                     currentScene={currentScene}
                     totalScenes={totalScenes}
                 />

@@ -11,145 +11,47 @@ import bubblePopSound from "../../../../assets/sounds/bubble_pop.mp3";
 
 import useParticles from "./useParticles";
 
-const TOTAL_BUBBLES = 12;
-const MIN_GOOD_BUBBLES = 4;
-const MAX_GOOD_BUBBLES = 6;
+// Game Constants
 const SCORE_PER_BAD_BUBBLE = 5;
-const MINIMUM_BOSS_SCORE = 20;
 
 const bubbleImages = [
     bubble1,
     bubble2,
 ];
 
-const baseBubbles = [
-    {
-        id: 1,
-        text: "ใครๆ ก็ทำกัน",
-        type: "bad",
-    },
-    {
-        id: 2,
-        text: "ยืมก่อนเดี๋ยวคืน",
-        type: "bad",
-    },
-    {
-        id: 3,
-        text: "ไม่มีใครรู้หรอก",
-        type: "bad",
-    },
-    {
-        id: 4,
-        text: "ช่วยเพื่อนเฉยๆ",
-        type: "bad",
-    },
-    {
-        id: 5,
-        text: "โกงนิดเดียวไม่เป็นไร",
-        type: "bad",
-    },
-    {
-        id: 6,
-        text: "ครั้งเดียวเอง",
-        type: "bad",
-    },
-    {
-        id: 7,
-        text: "คะแนนสำคัญกว่า",
-        type: "bad",
-    },
-    {
-        id: 8,
-        text: "อาจารย์ไม่ตรวจหรอก",
-        type: "bad",
-    },
-    {
-        id: 9,
-        text: "เพื่อนก็ลอกกันหมด",
-        type: "bad",
-    },
-    {
-        id: 10,
-        text: "แค่ช่วยตอบคำถาม",
-        type: "bad",
-    },
-    {
-        id: 11,
-        text: "เอาเปรียบนิดหน่อยเอง",
-        type: "bad",
-    },
-    {
-        id: 12,
-        text: "ไม่มีคนเสียหาย",
-        type: "bad",
-    },
-    {
-        id: 13,
-        text: "เรื่องเล็กน่า",
-        type: "bad",
-    },
-    {
-        id: 14,
-        text: "ไม่โดนจับก็ไม่ผิด",
-        type: "bad",
-    },
-    {
-        id: 15,
-        text: "ซื่อสัตย์ไว้ดีกว่า",
-        type: "good",
-    },
-    {
-        id: 16,
-        text: "ทำถูกแม้ไม่มีคนเห็น",
-        type: "good",
-    },
-    {
-        id: 17,
-        text: "ยอมเสียเปรียบดีกว่าโกง",
-        type: "good",
-    },
-    {
-        id: 18,
-        text: "ความไว้วางใจสำคัญกว่า",
-        type: "good",
-    },
-    {
-        id: 19,
-        text: "กล้ายอมรับความจริง",
-        type: "good",
-    },
-    {
-        id: 20,
-        text: "ทำสิ่งที่ถูกต้องเสมอ",
-        type: "good",
-    },
-];
 
+// Shuffle
 const shuffleArray = (array) => {
-    return [...array].sort(() => Math.random() - 0.5);
+    return [...array].sort(
+        () => Math.random() - 0.5
+    );
 };
 
+
+// Generate Bubble Positions
 const generateBalancedPositions = () => {
     const grid = [
-        // แถวบน
         {
             minX: 5,
             maxX: 20,
             minY: 15,
             maxY: 25,
         },
+
         {
             minX: 25,
             maxX: 35,
             minY: 20,
             maxY: 30,
         },
+
         {
             minX: 65,
             maxX: 75,
             minY: 20,
             maxY: 30,
         },
+
         {
             minX: 80,
             maxX: 90,
@@ -157,25 +59,27 @@ const generateBalancedPositions = () => {
             maxY: 25,
         },
 
-        // แถวกลาง
         {
             minX: 5,
             maxX: 20,
             minY: 40,
             maxY: 50,
         },
+
         {
             minX: 30,
             maxX: 45,
             minY: 45,
             maxY: 55,
         },
+
         {
             minX: 55,
             maxX: 70,
             minY: 45,
             maxY: 55,
         },
+
         {
             minX: 80,
             maxX: 90,
@@ -183,25 +87,27 @@ const generateBalancedPositions = () => {
             maxY: 50,
         },
 
-        // แถวล่าง
         {
             minX: 10,
             maxX: 25,
             minY: 65,
             maxY: 75,
         },
+
         {
             minX: 35,
             maxX: 45,
             minY: 70,
             maxY: 80,
         },
+
         {
             minX: 55,
             maxX: 65,
             minY: 70,
             maxY: 80,
         },
+
         {
             minX: 75,
             maxX: 85,
@@ -213,79 +119,96 @@ const generateBalancedPositions = () => {
     const positions = grid.map((cell) => ({
         x:
             cell.minX +
-            Math.random() * (cell.maxX - cell.minX),
+            Math.random() *
+            (cell.maxX - cell.minX),
+
         y:
             cell.minY +
-            Math.random() * (cell.maxY - cell.minY),
+            Math.random() *
+            (cell.maxY - cell.minY),
     }));
 
     return shuffleArray(positions);
 };
 
-const generateBubbles = () => {
-    const goodBubbles = shuffleArray(
-        baseBubbles.filter(
-            (bubble) => bubble.type === "good"
-        )
-    );
-
-    const badBubbles = shuffleArray(
-        baseBubbles.filter(
-            (bubble) => bubble.type === "bad"
-        )
-    );
-
-    const goodRange =
-        MAX_GOOD_BUBBLES - MIN_GOOD_BUBBLES + 1;
-
-    const numberOfGoodBubbles =
-        Math.floor(Math.random() * goodRange) +
-        MIN_GOOD_BUBBLES;
-
-    const numberOfBadBubbles =
-        TOTAL_BUBBLES - numberOfGoodBubbles;
-
-    const selectedBubbles = shuffleArray([
-        ...goodBubbles.slice(0, numberOfGoodBubbles),
-        ...badBubbles.slice(0, numberOfBadBubbles),
-    ]);
+const formatBubbles = (baseBubbles) => {
+    if (
+        !baseBubbles || baseBubbles.length === 0
+    ) {
+        return [];
+    }
 
     const positions = generateBalancedPositions();
 
-    return selectedBubbles.map((bubble, index) => ({
-        ...bubble,
+    return baseBubbles.map(
+        (bubble, index) => ({
+            id: bubble.bubble_id,
 
-        image:
-            bubbleImages[
-            Math.floor(
-                Math.random() * bubbleImages.length
+            playBubbleId:
+                bubble.play_bubble_id,
+
+            text:
+                bubble.bubble_text,
+
+            type: String(
+                bubble.bubble_type || ""
             )
-            ],
+                .trim()
+                .toLowerCase(),
 
-        x: positions[index].x,
-        y: positions[index].y,
+            // รูปภาพ
+            image:
+                bubbleImages[
+                Math.floor(
+                    Math.random() *
+                    bubbleImages.length
+                )
+                ],
 
-        moveX: (Math.random() - 0.5) * 40,
-        moveY: (Math.random() - 0.5) * 40,
+            // ตำแหน่ง
+            x:
+                positions[index]?.x ?? 50,
 
-        duration: Math.random() * 2 + 3,
-    }));
+            y:
+                positions[index]?.y ?? 50,
+
+            // Animation
+            moveX:
+                (Math.random() - 0.5) *
+                40,
+
+            moveY:
+                (Math.random() - 0.5) *
+                40,
+
+            duration:
+                Math.random() * 2 + 3,
+        })
+    );
 };
 
-export default function useBubbleGame() {
-    const [bubbles, setBubbles] = useState(
-        () => generateBubbles()
-    );
-
+// useBubbleGame
+export default function useBubbleGame(
+    levelId
+) {
+    const [baseBubbles, setBaseBubbles] = useState([]);
+    const [bubbles, setBubbles] = useState([]);
+    const [playId, setPlayId] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [score, setScore] = useState(0);
-
-    const [gameStatus, setGameStatus] =
-        useState("playing");
-
-    const [showBoss, setShowBoss] =
-        useState(false);
-
+    const [gameStatus, setGameStatus] = useState("playing");
+    const [showBoss, setShowBoss] = useState(false);
     const popSoundRef = useRef(null);
+
+    // เก็บ play_id ล่าสุดไว้ใน ref ด้วย เพื่อให้ restartGame() อ่านค่า
+    // ล่าสุดได้เสมอ ไม่ติด stale closure จาก useCallback([levelId])
+    const playIdRef = useRef(null);
+
+    // กันเรียก startGame ซ้ำซ้อน (React StrictMode เรียก effect 2 รอบ
+    // ตอน dev, หรือกดปุ่ม Retry ถี่ ๆ) ซึ่งเคยทำให้ Backend สร้าง
+    // game_play_history ซ้ำเป็น 2 แถวจาก request ที่ยิงพร้อมกัน
+    const isStartingRef = useRef(false);
 
     const {
         particles,
@@ -293,84 +216,357 @@ export default function useBubbleGame() {
         clearParticles,
     } = useParticles();
 
+    const getToken = () => {
+        return localStorage.getItem("token");
+    };
+
+    // Start Game
+    const startGame = useCallback(
+        async (retryPlayId = null) => {
+
+            if (!levelId) {
+                return;
+            }
+
+            // ถ้ากำลังเริ่มเกมอยู่ ไม่ให้เรียกซ้ำ
+            if (isStartingRef.current) {
+                return;
+            }
+
+            isStartingRef.current = true;
+
+            try {
+
+                setIsLoading(true);
+                setError(null);
+
+                const token = getToken();
+
+                if (!token) {
+                    throw new Error(
+                        "ไม่พบ Token กรุณา Login ใหม่"
+                    );
+                }
+
+                const response =
+                    await fetch(
+                        "http://localhost:5000/api/game-play/start",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json",
+
+                                Authorization:
+                                    `Bearer ${token}`,
+                            },
+
+                            body: JSON.stringify({
+                                level_id:
+                                    levelId,
+
+                                ...(retryPlayId
+                                    ? { play_id: retryPlayId }
+                                    : {}),
+                            }),
+                        }
+                    );
+
+                if (!response.ok) {
+
+                    const errorData =
+                        await response
+                            .json()
+                            .catch(
+                                () => ({})
+                            );
+
+                    throw new Error(
+                        errorData.message ||
+                        `ไม่สามารถเริ่มเกมได้ (${response.status})`
+                    );
+                }
+
+                const result =
+                    await response.json();
+
+                console.log(
+                    "เริ่ม Game Play:",
+                    result
+                );
+
+                const gameData =
+                    result.data;
+
+                if (
+                    !gameData ||
+                    !gameData.play_id
+                ) {
+                    throw new Error(
+                        "ข้อมูล Game Play ไม่ถูกต้อง"
+                    );
+                }
+
+                setPlayId(gameData.play_id);
+                playIdRef.current = gameData.play_id;
+
+                const serverBubbles = gameData.bubbles || [];
+
+                if (
+                    serverBubbles.length === 0
+                ) {
+                    throw new Error(
+                        "ไม่พบ Bubble สำหรับเกมนี้"
+                    );
+                }
+
+                console.log(
+                    "Bubble จาก Game Play:",
+                    serverBubbles
+                );
+
+                setBaseBubbles(
+                    serverBubbles
+                );
+
+                const formattedBubbles = formatBubbles(serverBubbles);
+
+                setBubbles(
+                    formattedBubbles
+                );
+
+                setScore(0);
+                setGameStatus("playing");
+                setShowBoss(false);
+
+            } catch (err) {
+                console.error("เริ่มเกมไม่สำเร็จ:", err);
+                setError(err.message || "ไม่สามารถเริ่มเกมได้");
+
+            } finally {
+                setIsLoading(false);
+                isStartingRef.current = false;
+            }
+        },
+        [levelId]
+    );
+
+    useEffect(() => {
+        startGame();
+    }, [startGame]);
+
     const playPopSound = useCallback(() => {
-        if (!popSoundRef.current) {
+        if (
+            !popSoundRef.current
+        ) {
             popSoundRef.current =
-                new Audio(bubblePopSound);
+                new Audio(
+                    bubblePopSound
+                );
         }
 
         const audio = popSoundRef.current;
 
         audio.currentTime = 0;
 
-        audio.play().catch((error) => {
-            console.warn(
-                "ไม่สามารถเล่นเสียงฟองได้:",
-                error
-            );
-        });
+        audio.play().catch(
+            (error) => {
+                console.warn("ไม่สามารถเล่นเสียงฟองได้:", error);
+            }
+        );
+
     }, []);
 
-    const handleShoot = useCallback(
-        (bubble) => {
-            if (gameStatus !== "playing") {
-                return;
-            }
+    const handleShoot =
+        useCallback(
+            async (bubble) => {
+                if (
+                    gameStatus !== "playing"
+                ) {
+                    return;
+                }
 
-            if (showBoss) {
-                return;
-            }
+                if (showBoss) {
+                    return;
+                }
 
-            playPopSound();
-            createParticles(bubble);
+                if (
+                    !bubble.playBubbleId
+                ) {
 
-            // ยิงแนวคิดที่ถูกต้องจะถือว่าแพ้
-            if (bubble.type === "good") {
-                setGameStatus("lose");
-                return;
-            }
+                    console.error(
+                        "ไม่พบ playBubbleId:",
+                        bubble
+                    );
 
-            // ยิงฟองข้ออ้างสำเร็จ
-            setScore(
-                (previousScore) =>
-                    previousScore +
-                    SCORE_PER_BAD_BUBBLE
+                    return;
+                }
+
+                playPopSound();
+
+                createParticles(
+                    bubble
+                );
+
+                try {
+
+                    const token =
+                        getToken();
+
+                    if (!token) {
+                        throw new Error(
+                            "ไม่พบ Token กรุณา Login ใหม่"
+                        );
+                    }
+
+                    const response =
+                        await fetch(
+                            "http://localhost:5000/api/game-play/bubble/shoot",
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json",
+
+                                    Authorization:
+                                        `Bearer ${token}`,
+                                },
+
+                                body:
+                                    JSON.stringify({
+                                        play_bubble_id:
+                                            bubble.playBubbleId,
+                                    }),
+                            }
+                        );
+
+                    const result =
+                        await response
+                            .json();
+
+                    console.log("ผลการยิง Bubble:", result);
+
+                    if (
+                        !response.ok
+                    ) {
+
+                        throw new Error(
+                            result.message || "ไม่สามารถบันทึกการยิง Bubble ได้"
+                        );
+                    }
+
+                    const data = result.data;
+
+                    // ยิงผิด
+                    if (
+                        data.game_status === "FAILED"
+                    ) {
+
+                        setBubbles(
+                            (previousBubbles) =>
+                                previousBubbles.filter(
+                                    (item) =>
+                                        item.id !== bubble.id
+                                )
+                        );
+
+                        setGameStatus("lose");
+                        return;
+                    }
+
+                    // ยิงถูก
+                    // หมายเหตุ: Level 2 ไม่มี Score แล้ว (Backend ส่ง
+                    // score: 0 เสมอ) ตัว Bubble แค่หายไปจากจอ ไม่ต้อง
+                    // อัปเดต setScore จาก data.score อีกต่อไป
+                    if (
+                        data.is_correct ===
+                        true
+                    ) {
+
+                        // เอา Bubble ออกจากหน้าจอ
+                        setBubbles(
+                            (previousBubbles) =>
+                                previousBubbles.filter(
+                                    (item) =>
+                                        item.id !==
+                                        bubble.id
+                                )
+                        );
+                    }
+
+                } catch (err) {
+
+                    console.error(
+                        "ยิง Bubble ไม่สำเร็จ:",
+                        err
+                    );
+
+                    // ถ้า API ล้มเหลว
+                    // ไม่เอา Bubble ออกจากเกม
+                    setError(
+                        err.message ||
+                        "ไม่สามารถบันทึกการยิง Bubble ได้"
+                    );
+                }
+
+            },
+            [
+                gameStatus,
+                showBoss,
+                playPopSound,
+                createParticles,
+            ]
+        );
+
+    // Restart Game
+    const restartGame =
+        useCallback(
+            async () => {
+                clearParticles();
+                setBubbles([]);
+                setScore(0);
+                setGameStatus(
+                    "playing"
+                );
+                setShowBoss(false);
+                setError(null);
+
+                // Retry ใช้ play_id เดิม ไม่สร้าง Game Play ใหม่
+                // อ่านจาก ref เพื่อกัน stale closure
+                await startGame(playIdRef.current);
+
+            },
+            [
+                clearParticles,
+                startGame,
+            ]
+        );
+
+    // Boss สำเร็จ
+    const finishBoss =
+        useCallback(() => {
+            setShowBoss(false);
+            setGameStatus(
+                "win"
             );
 
-            setBubbles((previousBubbles) =>
-                previousBubbles.filter(
-                    (item) => item.id !== bubble.id
-                )
-            );
-        },
-        [
-            createParticles,
-            gameStatus,
-            playPopSound,
-            showBoss,
-        ]
-    );
+        }, []);
 
-    const restartGame = useCallback(() => {
-        clearParticles();
+    // Boss ไม่ผ่าน
+    const failBoss =
+        useCallback(() => {
+            restartGame();
+        }, [restartGame]);
 
-        setBubbles(generateBubbles());
-        setScore(0);
-        setGameStatus("playing");
-        setShowBoss(false);
-    }, [clearParticles]);
-
-    const finishBoss = useCallback(() => {
-        setShowBoss(false);
-        setGameStatus("win");
-    }, []);
-
-    const failBoss = useCallback(() => {
-        restartGame();
-    }, [restartGame]);
-
+    // ตรวจสอบ Bubble
     useEffect(() => {
-        if (gameStatus !== "playing") {
+
+        if (
+            gameStatus !==
+            "playing"
+        ) {
             return;
         }
 
@@ -378,34 +574,40 @@ export default function useBubbleGame() {
             return;
         }
 
-        const remainingBadBubbles =
-            bubbles.filter(
-                (bubble) => bubble.type === "bad"
-            );
+        // เปิด Boss เมื่อยิง Bad Bubble ครบแล้ว
+        // Good Bubble ที่เหลือไม่ต้องยิง เพราะถ้ายิงจะทำให้แพ้
+        const hasBadBubbles = bubbles.some(
+            (bubble) => bubble.type === "bad"
+        );
 
         if (
-            remainingBadBubbles.length === 0 &&
-            score >= MINIMUM_BOSS_SCORE
+            !hasBadBubbles &&
+            baseBubbles.length > 0
         ) {
             setShowBoss(true);
         }
+
     }, [
         bubbles,
+        baseBubbles,
         gameStatus,
-        score,
         showBoss,
     ]);
 
+    // Return
     return {
         bubbles,
         score,
         gameStatus,
         showBoss,
         particles,
-
+        isLoading,
+        error,
+        playId,
         handleShoot,
         restartGame,
         finishBoss,
         failBoss,
+        startGame,
     };
 }

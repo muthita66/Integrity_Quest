@@ -1,158 +1,213 @@
-import { FaEnvelope, FaKey, FaUserAstronaut, FaKhanda } from "react-icons/fa";
+import { FiUser, FiMail, FiLock, FiKey } from "react-icons/fi";
 
 import FormInput from "./FormInput";
 import FormSelect from "./FormSelect";
 import AuthButton from "./AuthButton";
+import RoleToggle, { getRoleTheme } from "./RoleToggle";
 
 export default function RegisterForm({
     registerData,
     faculties,
     filteredMajors,
+    departments = [],
     handleRegisterChange,
     handleRegisterSubmit,
     setIsLogin,
+    role,
+    setRole,
 }) {
+    const isTeacher = role === "teacher";
+    const theme = getRoleTheme(role);
+
+    // ภาควิชาของคณะที่เลือก (อาจารย์)
+    const teacherDepartments = registerData.faculty
+        ? departments.filter(
+            (dept) =>
+                Number(dept.faculty_id) ===
+                Number(registerData.faculty)
+        )
+        : [];
+
+    // props ร่วมของทุกช่อง
+    const field = (name) => ({
+        name,
+        value: registerData[name],
+        onChange: handleRegisterChange,
+        focusClass: theme.focus,
+    });
+
     return (
-        <form onSubmit={handleRegisterSubmit}>
-            <div className="grid md:grid-cols-2 gap-8">
-                {/* LEFT */}
+        <form onSubmit={handleRegisterSubmit} className="space-y-5">
+            {/* ROLE */}
+            <RoleToggle role={role} setRole={setRole} />
+
+            <div className="grid gap-4 md:grid-cols-2">
+                {/* LEFT : ข้อมูลบัญชี */}
                 <div className="space-y-4">
                     <FormInput
-                        icon={FaUserAstronaut}
-                        name="username"
-                        value={registerData.username}
-                        onChange={handleRegisterChange}
-                        placeholder="USERNAME"
+                        icon={FiUser}
+                        placeholder="Username"
+                        {...field("username")}
                     />
 
-                    <FormInput
-                        name="firstName"
-                        value={registerData.firstName}
-                        onChange={handleRegisterChange}
-                        placeholder="ชื่อ"
-                    />
+                    <div className="grid grid-cols-2 gap-3">
+                        <FormInput
+                            noIcon
+                            placeholder="ชื่อ"
+                            {...field("firstName")}
+                        />
+                        <FormInput
+                            noIcon
+                            placeholder="นามสกุล"
+                            {...field("lastName")}
+                        />
+                    </div>
 
                     <FormInput
-                        name="lastName"
-                        value={registerData.lastName}
-                        onChange={handleRegisterChange}
-                        placeholder="นามสกุล"
-                    />
-
-                    <FormInput
-                        icon={FaEnvelope}
+                        icon={FiMail}
                         type="email"
-                        name="email"
-                        value={registerData.email}
-                        onChange={handleRegisterChange}
-                        placeholder="EMAIL"
+                        placeholder="Email"
+                        {...field("email")}
                     />
 
                     <FormInput
-                        icon={FaKey}
+                        icon={FiLock}
                         type="password"
-                        name="password"
-                        value={registerData.password}
-                        onChange={handleRegisterChange}
-                        placeholder="PASSWORD"
+                        placeholder="Password"
+                        {...field("password")}
                     />
+
+                    <FormInput
+                        icon={FiLock}
+                        type="password"
+                        placeholder="Confirm Password"
+                        {...field("confirmPassword")}
+                    />
+
+                    {registerData.confirmPassword &&
+                        registerData.confirmPassword !==
+                        registerData.password && (
+                            <p className="-mt-2 text-xs text-red-500">
+                                รหัสผ่านไม่ตรงกัน
+                            </p>
+                        )}
                 </div>
 
-                {/* RIGHT */}
-                <div className="bg-yellow-50 border-2 border-orange-300 rounded-2xl p-5 shadow-md space-y-4">
-                    {/* Gender */}
-                    <FormSelect
-                        name="gender"
-                        value={registerData.gender}
-                        onChange={handleRegisterChange}
-                    >
-                        <option value="">GENDER</option>
+                {/* RIGHT : ข้อมูลเฉพาะนักเรียน / อาจารย์ */}
+                <div className="space-y-4">
+                    <FormSelect {...field("gender")}>
+                        <option value="">เพศ</option>
                         <option value="male">ชาย</option>
                         <option value="female">หญิง</option>
                         <option value="other">อื่น ๆ</option>
                     </FormSelect>
 
-                    {/* Age */}
-                    <FormInput
-                        type="number"
-                        name="age"
-                        value={registerData.age}
-                        onChange={handleRegisterChange}
-                        placeholder="AGE"
-                        noIcon
-                        bg="white"
-                    />
+                    {isTeacher ? (
+                        <>
+                            <FormSelect {...field("faculty")}>
+                                <option value="">คณะ</option>
+                                {faculties.map((faculty) => (
+                                    <option
+                                        key={faculty.faculty_id}
+                                        value={faculty.faculty_id}
+                                    >
+                                        {faculty.faculty_name}
+                                    </option>
+                                ))}
+                            </FormSelect>
 
-                    {/* Faculty */}
-                    <FormSelect
-                        name="faculty"
-                        value={registerData.faculty}
-                        onChange={handleRegisterChange}
-                    >
-                        <option value="">FACULTY</option>
+                            <FormSelect {...field("department")}>
+                                <option value="">
+                                    {registerData.faculty
+                                        ? "ภาควิชา"
+                                        : "ภาควิชา (เลือกคณะก่อน)"}
+                                </option>
+                                {teacherDepartments.map((dept) => (
+                                    <option
+                                        key={dept.dept_id}
+                                        value={dept.dept_id}
+                                    >
+                                        {dept.dept_name}
+                                    </option>
+                                ))}
+                            </FormSelect>
 
-                        {faculties.map((faculty) => (
-                            <option
-                                key={faculty.faculty_id}
-                                value={faculty.faculty_id}
-                            >
-                                {faculty.faculty_name}
-                            </option>
-                        ))}
-                    </FormSelect>
+                            <FormInput
+                                noIcon
+                                placeholder="ตำแหน่ง เช่น อาจารย์, ผศ."
+                                {...field("position")}
+                            />
 
-                    {/* Year */}
-                    <FormSelect
-                        name="year"
-                        value={registerData.year}
-                        onChange={handleRegisterChange}
-                    >
-                        <option value="">YEAR</option>
-                        <option value="1">ปี 1</option>
-                        <option value="2">ปี 2</option>
-                        <option value="3">ปี 3</option>
-                        <option value="4">ปี 4</option>
-                    </FormSelect>
+                            <FormInput
+                                icon={FiKey}
+                                type="password"
+                                placeholder="รหัสอาจารย์"
+                                {...field("inviteCode")}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <FormInput
+                                type="number"
+                                noIcon
+                                placeholder="อายุ"
+                                {...field("age")}
+                            />
 
-                    {/* Major */}
-                    <FormSelect
-                        name="major"
-                        value={registerData.major}
-                        onChange={handleRegisterChange}
-                    >
-                        <option value="">MAJOR</option>
+                            <FormSelect {...field("faculty")}>
+                                <option value="">คณะ</option>
+                                {faculties.map((faculty) => (
+                                    <option
+                                        key={faculty.faculty_id}
+                                        value={faculty.faculty_id}
+                                    >
+                                        {faculty.faculty_name}
+                                    </option>
+                                ))}
+                            </FormSelect>
 
-                        {filteredMajors.map((major) => (
-                            <option
-                                key={major.major_id}
-                                value={major.major_id}
-                            >
-                                {major.major_name}
-                            </option>
-                        ))}
-                    </FormSelect>
+                            <FormSelect {...field("major")}>
+                                <option value="">สาขา</option>
+                                {filteredMajors.map((major) => (
+                                    <option
+                                        key={major.major_id}
+                                        value={major.major_id}
+                                    >
+                                        {major.major_name}
+                                    </option>
+                                ))}
+                            </FormSelect>
+
+                            <FormSelect {...field("year")}>
+                                <option value="">ชั้นปี</option>
+                                <option value="1">ปี 1</option>
+                                <option value="2">ปี 2</option>
+                                <option value="3">ปี 3</option>
+                                <option value="4">ปี 4</option>
+                            </FormSelect>
+                        </>
+                    )}
                 </div>
             </div>
 
             {/* SIGN UP */}
             <AuthButton
                 type="submit"
-                icon={FaKhanda}
-                title="SIGN UP"
-                subtitle="START ADVENTURE!"
-                className="w-full mt-8 bg-gradient-to-b from-blue-400 to-blue-600 text-white"
+                title={isTeacher ? "Sign Up as Teacher" : "Sign Up"}
+                className={theme.button}
             />
 
-            {/* BACK */}
-            <div className="flex justify-center mt-5">
+            {/* LOGIN LINK */}
+            <p className="text-center text-sm text-gray-500">
+                Already have an account?{" "}
                 <button
                     type="button"
                     onClick={() => setIsLogin(true)}
-                    className="bg-gradient-to-b from-yellow-300 to-orange-400 px-6 py-3 rounded-xl font-bold shadow hover:scale-105 transition"
+                    className={`font-semibold hover:underline ${theme.link}`}
                 >
-                    กลับไปหน้า LOGIN
+                    Log in
                 </button>
-            </div>
+            </p>
         </form>
     );
 }
