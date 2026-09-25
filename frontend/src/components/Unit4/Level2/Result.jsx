@@ -124,7 +124,7 @@ export default function Level2Intro() {
                     {/* 🎰 ปุ่มลองเล่น 3D แสงไฟกะพริบ */}
                     <button
                         className="hyper-casino-btn"
-                        onClick={() => navigate("/unit4/slotTutorial")}
+                        onClick={() => navigate("/unit4/level2/game")}
                     >
                         🎰 ลองเล่นเลย! 🎰
                     </button>

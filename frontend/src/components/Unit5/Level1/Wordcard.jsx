@@ -1,21 +1,31 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import GraphemeSplitter from "grapheme-splitter";
 
-const splitter = new GraphemeSplitter();
+// Keep the component dependency-free while still handling Thai combining marks.
+const segmenter = typeof Intl !== "undefined" && Intl.Segmenter
+    ? new Intl.Segmenter("th", { granularity: "grapheme" })
+    : null;
+
+const splitGraphemes = (value) => segmenter
+    ? Array.from(segmenter.segment(value), ({ segment }) => segment)
+    : Array.from(value);
+
 const rotations = [-1, 1, -0.5, 1.5, 0, -1];
 
 export default function WordCard({ word, completed, onCorrect }) {
-    const chars = splitter.splitGraphemes(word.answer);
+    const chars = splitGraphemes(word.answer);
+    const remainingAnswer = chars.slice(word.revealed).join("");
     const [inputValue, setInputValue] = useState("");
+    const [error, setError] = useState(false);
 
     useEffect(() => {
-        if (inputValue.trim() === word.answer && !completed) {
+        const answer = inputValue.trim();
+        if ((answer === word.answer || answer === remainingAnswer) && !completed) {
             onCorrect(word.id);
         }
-    }, [inputValue, completed, onCorrect, word.id, word.answer]);
+    }, [inputValue, completed, onCorrect, word.id, word.answer, remainingAnswer]);
 
-    const typedChars = splitter.splitGraphemes(inputValue);
+    const typedChars = splitGraphemes(inputValue);
 
     return (
         <motion.div
@@ -24,9 +34,10 @@ export default function WordCard({ word, completed, onCorrect }) {
             transition={{ duration: 0.25 }}
             className={`
                 relative
-                w-[225px]
-                h-[175px]
-                p-5
+                w-full
+                max-w-[225px]
+                h-[150px]
+                p-4
                 rounded-sm
                 shadow-[3px_5px_12px_rgba(0,0,0,0.45)]
                 transition-all
@@ -58,7 +69,7 @@ export default function WordCard({ word, completed, onCorrect }) {
             ) : (
                 <>
                     {/* ช่องตัวอักษร */}
-                    <div className="flex flex-wrap justify-center gap-2 mb-4 mt-1">
+                <div className="flex flex-wrap justify-center gap-1.5 mb-3 mt-1">
                         {chars.map((char, index) => {
                             const revealed = index < word.revealed;
 
@@ -66,8 +77,8 @@ export default function WordCard({ word, completed, onCorrect }) {
                                 <div
                                     key={index}
                                     className="
-                                        w-9
-                                        h-10
+                                        w-8
+                                        h-8
                                         bg-white
                                         border-b-[3px]
                                         border-[#7b6145]
@@ -75,7 +86,7 @@ export default function WordCard({ word, completed, onCorrect }) {
                                         flex
                                         items-center
                                         justify-center
-                                        text-[26px]
+                                        text-[21px]
                                         font-black
                                         text-[#120700]
                                         shadow-sm
@@ -92,9 +103,19 @@ export default function WordCard({ word, completed, onCorrect }) {
                     {/* Input */}
                     <input
                         value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="พิมพ์คำตอบ..."
-                        className="
+                        onChange={(e) => {
+                            setInputValue(e.target.value);
+                            setError(false);
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && inputValue.trim() !== word.answer && inputValue.trim() !== remainingAnswer) {
+                                setError(true);
+                            }
+                        }}
+                        aria-label={`คำตอบของคำใบ้: ${word.clue}`}
+                        aria-invalid={error}
+                        placeholder={`พิมพ์ ${remainingAnswer.length} ตัวอักษรที่เหลือ`}
+                        className={`
                             w-full
                             py-2
                             px-2
@@ -110,8 +131,12 @@ export default function WordCard({ word, completed, onCorrect }) {
                             shadow-inner
                             focus:outline-none
                             focus:bg-white
-                        "
+                            focus:ring-2
+                            focus:ring-amber-400/70
+                            ${error ? "border-red-500 bg-red-50" : "border-[#c9b89e]"}
+                        `}
                     />
+                    {error && <p className="mt-1 text-center text-[11px] font-bold text-red-700">ยังไม่ตรงกับคำใบ้ ลองอีกครั้ง</p>}
                 </>
             )}
         </motion.div>

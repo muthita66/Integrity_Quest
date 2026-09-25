@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import Confetti from "react-confetti";
@@ -11,12 +12,14 @@ import rankD from "../../../assets/unit4/d.png";
 import {
   FaShieldAlt,
   FaRedoAlt,
-  FaHome,
+  FaBookOpen,
   FaCheckCircle,
   FaTimesCircle,
 } from "react-icons/fa";
 
 import { RiHeartPulseFill } from "react-icons/ri";
+import BookLayout from "../BookLayout";
+import "../Level3/level3.css";
 export default function ResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -69,6 +72,26 @@ export default function ResultPage() {
   };
 
   const { color, image, message } = getRank();
+
+  useEffect(() => {
+    try {
+      const save = JSON.parse(localStorage.getItem("unit4")) || {};
+      localStorage.setItem("unit4", JSON.stringify({
+        ...save,
+        level3: true,
+        level3done: true,
+        level3Points: Math.min(160, Math.max(0, Math.round((score / 100) * 160))),
+      }));
+    } catch {
+      localStorage.setItem("unit4", JSON.stringify({
+        level1: true,
+        level2: true,
+        level3: true,
+        level3done: true,
+        level3Points: Math.min(160, Math.max(0, Math.round((score / 100) * 160))),
+      }));
+    }
+  }, [score]);
 
   return (
     <>
@@ -415,92 +438,58 @@ export default function ResultPage() {
 }
       `}</style>
 
-      <div className="result-container">
-        <motion.div
-          className="hero-section"
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <p className="rank-label">
-            YOUR REWARD
-          </p>
+      <BookLayout
+        variant="result"
+        title="บทที่ 3 — ภารกิจสุดท้าย"
+        subtitle="Firewall Defender"
+        rightLabel="สรุปผลภารกิจ"
+        rightNote="CASE CLOSED"
+        onBack={() => navigate("/unit4/book")}
+        leftPage={
+          <div className="result-book-panel result-book-panel--left">
+            <motion.div
+              className="hero-section"
+              initial={{ opacity: 0, y: -24 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <p className="rank-label">YOUR REWARD</p>
+              <img src={image} alt="reward" className="rank-image" />
+              <p className="rank-message">{message}</p>
+              <div className="progress-bar"><div className="progress-fill" /></div>
+              <p className="score-text">คะแนนรวม {score}/100</p>
+            </motion.div>
 
-          <img
-            src={image}
-            alt="reward"
-            className="rank-image"
-          />
-
-          <p className="rank-message">
-            {message}
-          </p>
-
-          <div className="progress-bar">
-            <div className="progress-fill" />
           </div>
-
-          <p className="score-text">
-            คะแนนรวม {score}/100
-          </p>
-        </motion.div>
-
-        <motion.div
-          className="stats-grid"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <div className="stat-card">
-            <RiHeartPulseFill />
-
-            <h3>{hp}%</h3>
-
-            <p>Server HP</p>
+        }
+        rightPage={
+          <div className="result-book-panel result-book-panel--right">
+            <div className="result-book-stat-heading">MISSION REPORT <span>FINAL CHECK</span></div>
+            <div className="result-book-mini-grid">
+              <div className="stat-card">
+                <RiHeartPulseFill /><h3>{hp}%</h3><p>Server HP</p>
+              </div>
+              <div className="stat-card">
+                <FaShieldAlt /><h3>MAX</h3><p>Firewall</p>
+              </div>
+              <div className="stat-card correct-card">
+                <FaCheckCircle /><h3>{correctAnswers}</h3><p>ตอบถูก</p>
+              </div>
+              <div className="stat-card wrong-card">
+                <FaTimesCircle /><h3>{wrongAnswers}</h3><p>ตอบผิด</p>
+              </div>
+            </div>
+            <div className="result-book-summary">ระบบได้รับการปกป้องแล้ว · ขอบคุณที่ช่วยตรวจสอบภัยดิจิทัล</div>
+            <div className="result-buttons">
+              <button className="btn retry-btn" onClick={() => navigate("/unit4/level3/game")}>
+                <FaRedoAlt /> เล่นอีกครั้ง
+              </button>
+              <button className="btn home-btn" onClick={() => navigate("/unit4/book")}>
+                <FaBookOpen /> กลับสารบัญ
+              </button>
+            </div>
           </div>
-
-          <div className="stat-card">
-            <FaShieldAlt />
-
-            <h3>MAX</h3>
-
-            <p>Firewall</p>
-          </div>
-
-          <div className="stat-card correct-card">
-            <FaCheckCircle />
-
-            <h3>{correctAnswers}</h3>
-
-            <p>ตอบถูก</p>
-          </div>
-
-          <div className="stat-card wrong-card">
-            <FaTimesCircle />
-
-            <h3>{wrongAnswers}</h3>
-
-            <p>ตอบผิด</p>
-          </div>
-        </motion.div>
-
-        <div className="result-buttons">
-          <button
-            className="btn retry-btn"
-            onClick={() => navigate("/unit4/finalMission")}
-          >
-            <FaRedoAlt />
-            เล่นอีกครั้ง
-          </button>
-
-          <button
-            className="btn home-btn"
-            onClick={() => navigate("/map")}
-          >
-            <FaHome />
-            กลับหน้าหลัก
-          </button>
-        </div>
-      </div>
+        }
+      />
     </>
   );
 }

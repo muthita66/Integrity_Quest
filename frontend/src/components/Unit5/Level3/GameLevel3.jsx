@@ -107,7 +107,7 @@ const PROJECTS = [
 
 const GAME_SECONDS = 120;
 
-export default function IntegrityInspector({ nextRoute = "/unit5/gamelevel1" }) {
+export default function IntegrityInspector({ nextRoute = "/unit6/intro" }) {
     const navigate = useNavigate();
 
     const [index, setIndex] = useState(0);
@@ -297,7 +297,7 @@ export default function IntegrityInspector({ nextRoute = "/unit5/gamelevel1" }) 
                                     <span>เริ่มใหม่อีกครั้ง</span>
                                 </div>
                             </button>
-                            <button className="btn green" onClick={() => navigate("/map")}>
+                            <button className="btn green" onClick={() => navigate(nextRoute)}>
                                 <FaPlay />
                                 <div>
                                     <strong>ด่านต่อไป</strong>

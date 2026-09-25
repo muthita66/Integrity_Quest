@@ -9,7 +9,7 @@ export default function ClueCard({ word, completed }) {
       animate={{ opacity: 1, scale: 1 }}
       // ปรับขนาดเป็น w-[210px] h-[155px] เท่ากับการ์ดคำตอบเพื่อให้สมดุลและห่างกันกำลังดี
       className={`
-                relative w-[210px] h-[155px] p-4 shadow-[3px_5px_10px_rgba(0,0,0,0.4)] transition-all duration-300 rounded-sm flex items-center justify-center
+                relative w-full max-w-[225px] h-[150px] p-4 shadow-[3px_5px_10px_rgba(0,0,0,0.4)] transition-all duration-300 rounded-sm flex items-center justify-center
                 ${completed ? "bg-[#ebdcc9] border-l-8 border-l-[#8b5a2b] border-y border-r border-[#cfbfa8]" : "bg-[#f9f3eb] border-l-8 border-l-[#543525] border-y border-r border-[#e3d7c5]"}
             `}
       style={{

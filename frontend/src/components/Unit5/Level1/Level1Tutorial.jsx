@@ -8,7 +8,13 @@ import {
     FaFolderOpen,
 } from "react-icons/fa";
 
-import bgOffice from "../../assets/unit5/station.png";
+import bgOffice from "../../../assets/unit5/station.png";
+
+const PARTICLES = [
+    [8, 18, 7], [18, 72, 9], [31, 35, 8], [46, 82, 6],
+    [58, 22, 10], [71, 64, 8], [84, 28, 7], [93, 78, 9],
+    [12, 48, 6], [39, 12, 8], [64, 46, 7], [77, 88, 6],
+];
 
 export default function Tutorial() {
     const navigate = useNavigate();
@@ -54,24 +60,22 @@ export default function Tutorial() {
             }}
         >
             {/* Overlay */}
-            <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px]" />
+            <div className="absolute inset-0 bg-[#170d08]/65 backdrop-blur-[3px]" />
 
             {/* Floating Particles */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(15)].map((_, i) => (
+                {PARTICLES.map(([left, top, duration], i) => (
                     <motion.div
                         key={i}
                         className="absolute w-2 h-2 rounded-full bg-amber-300/30"
-                        initial={{
-                            x: Math.random() * 1600,
-                            y: Math.random() * 900,
-                        }}
+                        style={{ left: `${left}%`, top: `${top}%` }}
+                        initial={{ opacity: 0.2 }}
                         animate={{
-                            y: [null, -120],
+                            y: [0, -120],
                             opacity: [0.2, 0.8, 0.2],
                         }}
                         transition={{
-                            duration: 6 + Math.random() * 5,
+                            duration,
                             repeat: Infinity,
                         }}
                     />
@@ -87,10 +91,10 @@ export default function Tutorial() {
                 z-10
                 max-w-5xl
                 w-full
-                bg-white/10
+                bg-[#24170f]/90
                 backdrop-blur-xl
                 border
-                border-white/20
+                border-amber-300/35
                 rounded-[32px]
                 overflow-hidden
                 shadow-[0_20px_80px_rgba(0,0,0,.45)]
@@ -100,7 +104,7 @@ export default function Tutorial() {
                 <div
                     className="
                     relative
-                    bg-black/20
+                    bg-gradient-to-r from-[#3a2416] to-[#24150d]
                     backdrop-blur-md
                     border-b
                     border-white/10
@@ -116,7 +120,7 @@ export default function Tutorial() {
                             px-4
                             py-2
                             rounded-full
-                            bg-amber-500/20
+                            bg-amber-400/15
                             border
                             border-amber-400/30
                             text-amber-200
@@ -129,7 +133,10 @@ export default function Tutorial() {
                             คู่มือภารกิจ
                         </div>
 
-                        <p className="text-white/80">
+                        <h1 className="mb-2 text-3xl md:text-4xl font-black tracking-wide text-[#fff4dc]">
+                            เตรียมตัวก่อนเริ่มภารกิจ
+                        </h1>
+                        <p className="text-[#e6d4bd]">
                             ศึกษาวิธีเล่นก่อนเริ่มสืบสวนคดีคอร์รัปชัน
                         </p>
                     </div>
@@ -159,10 +166,9 @@ export default function Tutorial() {
                                 className="
                                 relative
                                 overflow-hidden
-                                bg-white/5
-                                backdrop-blur-md
+                                bg-gradient-to-br from-[#fffaf0] to-[#f3e1bd]
                                 border
-                                border-white/10
+                                border-[#d4a94f]/55
                                 rounded-2xl
                                 p-6
                                 shadow-lg
@@ -171,9 +177,9 @@ export default function Tutorial() {
                                 <div
                                     className="
                                     absolute
-                                    top-4
+                                    top-5
                                     right-4
-                                    text-white/10
+                                    text-[#8b651e]/20
                                     text-5xl
                                     "
                                 >
@@ -185,8 +191,8 @@ export default function Tutorial() {
                                     w-10
                                     h-10
                                     rounded-full
-                                    bg-amber-700
-                                    text-white
+                                    bg-gradient-to-br from-[#e5b653] to-[#a86b14]
+                                    text-[#3a2208]
                                     flex
                                     items-center
                                     justify-center
@@ -197,11 +203,11 @@ export default function Tutorial() {
                                     {index + 1}
                                 </div>
 
-                                <h3 className="text-xl font-bold text-white mb-2">
+                                <h3 className="text-xl font-black text-[#3a2416] mb-2">
                                     {step.title}
                                 </h3>
 
-                                <p className="text-white/70">
+                                <p className="text-[#725d46] leading-relaxed">
                                     {step.desc}
                                 </p>
 
@@ -229,22 +235,22 @@ export default function Tutorial() {
                         className="
                         mt-6
                         rounded-2xl
-                        bg-amber-500/10
+                        bg-gradient-to-r from-[#5a3b1e] to-[#3b2819]
                         backdrop-blur-md
                         border
-                        border-amber-400/20
+                        border-amber-300/35
                         p-6
                         "
                     >
                         <div className="flex items-center gap-3 mb-3">
                             <FaFolderOpen className="text-amber-300 text-2xl" />
 
-                            <h2 className="font-bold text-2xl text-white">
+                            <h2 className="font-black text-2xl text-[#fff1cf]">
                                 เป้าหมายภารกิจ
                             </h2>
                         </div>
 
-                        <p className="text-white/80">
+                        <p className="text-[#e6d4bd] leading-relaxed">
                             ค้นหาคำศัพท์ที่เกี่ยวข้องกับการคอร์รัปชัน
                             เพื่อรวบรวมหลักฐานและเปิดโปงความจริง
                         </p>
@@ -268,10 +274,10 @@ export default function Tutorial() {
                             py-4
                             rounded-2xl
                             bg-gradient-to-r
-                            from-amber-700
-                            via-orange-700
-                            to-amber-900
-                            text-white
+                            from-[#e4b34f]
+                            via-[#c27d1e]
+                            to-[#8c5110]
+                            text-[#2e1a07]
                             font-bold
                             text-xl
                             shadow-xl

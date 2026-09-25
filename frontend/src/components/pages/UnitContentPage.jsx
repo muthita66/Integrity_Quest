@@ -1,67 +1,98 @@
-import React, { useEffect, useState } from "react";
-import bgGame from "../../assets/bg_game.png";
-import { useParams, useNavigate } from "react-router-dom";
-import { FaCircleArrowRight, FaHouse } from "react-icons/fa6";
+import React, {
+    useEffect,
+    useState,
+} from "react";
 
-const API_BASE_URL = "http://localhost:5000";
+import bgGame from "../../assets/bg_game.png";
+
+import {
+    useParams,
+    useNavigate,
+} from "react-router-dom";
+
+import {
+    FaCircleArrowRight,
+    FaHouse,
+} from "react-icons/fa6";
+
+const API_BASE_URL =
+    "http://localhost:5000";
 
 export default function UnitContentPage() {
     const navigate = useNavigate();
 
-    const [header, setHeader] = useState(null);
-    const [cards, setCards] = useState([]);
+    const [header, setHeader] =
+        useState(null);
+
+    const [cards, setCards] =
+        useState([]);
 
     // ============================================================
     // User Progress
     // ============================================================
 
-    const [levelProgress, setLevelProgress] = useState([]);
-    const [unitLocked, setUnitLocked] = useState(true);
-    const [loadingProgress, setLoadingProgress] = useState(true);
-    const [progressError, setProgressError] = useState("");
+    const [levelProgress, setLevelProgress] =
+        useState([]);
 
-    const { unitId } = useParams();
+    const [unitLocked, setUnitLocked] =
+        useState(true);
+
+    const [loadingProgress, setLoadingProgress] =
+        useState(true);
+
+    const [progressError, setProgressError] =
+        useState("");
+
+    const { unitId } =
+        useParams();
 
     // เช่น /unit/unit2 -> "unit2" -> 2
     const parsedUnitId = unitId
         ? unitId.replace(/\D/g, "")
         : "";
 
-    const currentUnitId = Number(parsedUnitId) || 1;
+    const currentUnitId =
+        Number(parsedUnitId) || 1;
 
     // ============================================================
     // โหลด Unit Content
     // ============================================================
 
     useEffect(() => {
-        const fetchUnitContent = async () => {
-            try {
-                const response = await fetch(
-                    `${API_BASE_URL}/api/unitContent/${currentUnitId}/contents`
-                );
+        const fetchUnitContent =
+            async () => {
+                try {
+                    const response =
+                        await fetch(
+                            `${API_BASE_URL}/api/unitContent/${currentUnitId}/contents`
+                        );
 
-                if (!response.ok) {
-                    throw new Error(
-                        `HTTP Error ${response.status}`
+                    if (!response.ok) {
+                        throw new Error(
+                            `HTTP Error ${response.status}`
+                        );
+                    }
+
+                    const data =
+                        await response.json();
+
+                    console.log(
+                        "Unit Content:",
+                        data
                     );
+
+                    setHeader(data.header);
+                    setCards(data.cards || []);
+                } catch (error) {
+                    console.error(
+                        "Get Unit Content Error:",
+                        error
+                    );
+
+                    setHeader(null);
+                    setCards([]);
                 }
-
-                const data = await response.json();
-
-                console.log("Unit Content:", data);
-
-                setHeader(data.header);
-                setCards(data.cards || []);
-            } catch (error) {
-                console.error(
-                    "Get Unit Content Error:",
-                    error
-                );
-
-                setHeader(null);
-                setCards([]);
-            }
-        };
+            };
 
         fetchUnitContent();
     }, [currentUnitId]);
@@ -73,85 +104,92 @@ export default function UnitContentPage() {
     useEffect(() => {
         let isMounted = true;
 
-        const fetchUserProgress = async () => {
-            try {
-                setLoadingProgress(true);
-                setProgressError("");
+        const fetchUserProgress =
+            async () => {
+                try {
+                    setLoadingProgress(true);
+                    setProgressError("");
 
-                const token =
-                    localStorage.getItem("token");
+                    const token =
+                        localStorage.getItem(
+                            "token"
+                        );
 
-                if (!token) {
-                    throw new Error(
-                        "ไม่พบ Token กรุณาเข้าสู่ระบบก่อน"
-                    );
-                }
-
-                const response = await fetch(
-                    `${API_BASE_URL}/api/user-progress`,
-                    {
-                        method: "GET",
-                        headers: {
-                            Authorization:
-                                `Bearer ${token}`,
-                        },
+                    if (!token) {
+                        throw new Error(
+                            "ไม่พบ Token กรุณาเข้าสู่ระบบก่อน"
+                        );
                     }
-                );
 
-                const data = await response.json();
+                    const response =
+                        await fetch(
+                            `${API_BASE_URL}/api/user-progress`,
+                            {
+                                method: "GET",
+                                headers: {
+                                    Authorization:
+                                        `Bearer ${token}`,
+                                },
+                            }
+                        );
 
-                if (!response.ok) {
-                    throw new Error(
-                        data.message ||
-                        "ไม่สามารถโหลด Progress ได้"
-                    );
-                }
+                    const data =
+                        await response.json();
 
-                const currentUnit =
-                    Array.isArray(data.data)
-                        ? data.data.find(
-                            (unit) =>
-                                Number(unit.unit_id) ===
-                                currentUnitId
-                        )
-                        : null;
+                    if (!response.ok) {
+                        throw new Error(
+                            data.message ||
+                            "ไม่สามารถโหลด Progress ได้"
+                        );
+                    }
 
-                console.log(
-                    "Current Unit Progress:",
-                    currentUnit
-                );
+                    const currentUnit =
+                        Array.isArray(data.data)
+                            ? data.data.find(
+                                (unit) =>
+                                    Number(
+                                        unit.unit_id
+                                    ) === currentUnitId
+                            )
+                            : null;
 
-                if (isMounted) {
-                    setLevelProgress(
-                        currentUnit?.levels || []
-                    );
-
-                    // ไม่พบบทนี้ (ยังไม่เปิด) = ล็อก
-                    setUnitLocked(
-                        !currentUnit ||
-                        currentUnit.is_locked === true
-                    );
-                }
-            } catch (error) {
-                console.error(
-                    "Get User Progress Error:",
-                    error
-                );
-
-                if (isMounted) {
-                    setProgressError(
-                        error.message ||
-                        "ไม่สามารถโหลด Progress ได้"
+                    console.log(
+                        "Current Unit Progress:",
+                        currentUnit
                     );
 
-                    setLevelProgress([]);
+                    if (isMounted) {
+                        setLevelProgress(
+                            currentUnit?.levels || []
+                        );
+
+                        // ไม่พบบทนี้
+                        // (ยังไม่เปิด) = ล็อก
+                        setUnitLocked(
+                            !currentUnit ||
+                            currentUnit.is_locked === true
+                        );
+                    }
+                } catch (error) {
+                    console.error(
+                        "Get User Progress Error:",
+                        error
+                    );
+
+                    if (isMounted) {
+                        setProgressError(
+                            error.message ||
+                            "ไม่สามารถโหลด Progress ได้"
+                        );
+
+                        setLevelProgress([]);
+                    }
+                } finally {
+                    if (isMounted) {
+                        setLoadingProgress(false);
+                    }
                 }
-            } finally {
-                if (isMounted) {
-                    setLoadingProgress(false);
-                }
-            }
-        };
+            };
 
         fetchUserProgress();
 
@@ -164,11 +202,12 @@ export default function UnitContentPage() {
     // เรียง Level
     // ============================================================
 
-    const sortedLevels = [...levelProgress].sort(
-        (a, b) =>
-            Number(a.order_no || 0) -
-            Number(b.order_no || 0)
-    );
+    const sortedLevels =
+        [...levelProgress].sort(
+            (a, b) =>
+                Number(a.order_no || 0) -
+                Number(b.order_no || 0)
+        );
 
     // ============================================================
     // หา Level ที่ควรเล่นต่อ
@@ -178,19 +217,19 @@ export default function UnitContentPage() {
     // LOCKED = ยังเล่นไม่ได้
     // ============================================================
 
-    // กติกาเดียวกับก้อนหินบนแผนที่ (FloatingStonePath):
-    //   - บทล็อก → เล่นไม่ได้ทุก Level
-    //   - Level แรกของบทที่ปลดล็อกแล้ว → เล่นได้เสมอ
-    //     (ยังไม่มีแถวใน user_level_progress ก็เล่นได้)
-    //   - Level อื่น → ต้อง is_locked = false
-    const isLevelPlayable = (level, index) =>
-        !unitLocked &&
-        (index === 0 || level.is_locked === false);
+    const isLevelPlayable =
+        (level, index) =>
+            !unitLocked &&
+            (index === 0 ||
+                level.is_locked === false);
 
     const nextPlayableLevel =
         sortedLevels.find(
             (level, index) =>
-                isLevelPlayable(level, index) &&
+                isLevelPlayable(
+                    level,
+                    index
+                ) &&
                 level.status !== "PASS" &&
                 level.status !== "PERFECT"
         ) || null;
@@ -207,7 +246,8 @@ export default function UnitContentPage() {
         loadingProgress ||
         !!progressError ||
         unitLocked ||
-        (!nextPlayableLevel && !allLevelsCompleted);
+        (!nextPlayableLevel &&
+            !allLevelsCompleted);
 
     // ============================================================
     // Route ของแต่ละ Level
@@ -283,6 +323,25 @@ export default function UnitContentPage() {
             }
         }
 
+        // --------------------------------------------------------
+        // Unit 4–6
+        //
+        // ถ้ายังไม่มี route จาก level_id
+        // จะใช้ route เริ่มต้นของ Unit
+        // --------------------------------------------------------
+
+        if (unitId === 4) {
+            return "/unit4/intro";
+        }
+
+        if (unitId === 5) {
+            return "/unit5/intro";
+        }
+
+        if (unitId === 6) {
+            return "/unit6/intro";
+        }
+
         return null;
     };
 
@@ -299,50 +358,79 @@ export default function UnitContentPage() {
             alert(
                 "ไม่สามารถตรวจสอบ Progress ได้\nกรุณาลองใหม่อีกครั้ง"
             );
+
             return;
         }
 
-        let levelToStart = nextPlayableLevel;
+        let levelToStart =
+            nextPlayableLevel;
 
         // ถ้าผ่าน Unit ครบทุก Level แล้ว
-        // ให้สามารถเล่นซ้ำได้ โดยเริ่มจาก Level แรก
+        // ให้สามารถเล่นซ้ำได้
+        // โดยเริ่มจาก Level แรก
         if (allLevelsCompleted) {
-            levelToStart = sortedLevels[0];
+            levelToStart =
+                sortedLevels[0];
         }
 
-        if (!levelToStart) {
-            alert(
-                "🔒 ยังไม่มี Level ที่สามารถเล่นได้"
+        // --------------------------------------------------------
+        // ถ้ามี Level Progress
+        // --------------------------------------------------------
+
+        if (levelToStart) {
+            const levelId =
+                Number(
+                    levelToStart.level_id
+                );
+
+            const route =
+                getLevelRoute(
+                    currentUnitId,
+                    levelId
+                );
+
+            console.log(
+                "Starting Level:",
+                nextPlayableLevel
             );
+
+            console.log(
+                "Navigate Route:",
+                route
+            );
+
+            if (route) {
+                navigate(route);
+                return;
+            }
+        }
+
+        // --------------------------------------------------------
+        // Fallback สำหรับ Unit 4–6
+        // --------------------------------------------------------
+
+        if (currentUnitId === 4) {
+            navigate("/unit4/intro");
             return;
         }
 
-        const levelId =
-            Number(levelToStart.level_id);
-
-        const route = getLevelRoute(
-            currentUnitId,
-            levelId
-        );
-
-        console.log(
-            "Starting Level:",
-            nextPlayableLevel
-        );
-
-        console.log(
-            "Navigate Route:",
-            route
-        );
-
-        if (!route) {
-            alert(
-                `ไม่พบ Route ของ Level ${levelId}\nกรุณาตรวจสอบ App.jsx`
-            );
+        if (currentUnitId === 5) {
+            navigate("/unit5/intro");
             return;
         }
 
-        navigate(route);
+        if (currentUnitId === 6) {
+            navigate("/unit6/intro");
+            return;
+        }
+
+        // --------------------------------------------------------
+        // ไม่พบ Route
+        // --------------------------------------------------------
+
+        alert(
+            `ไม่พบ Route ของ Unit ${currentUnitId}\nกรุณาตรวจสอบ App.jsx`
+        );
     };
 
     // ============================================================
@@ -352,47 +440,49 @@ export default function UnitContentPage() {
     return (
         <div
             className="
-                min-h-screen
-                flex
-                items-center
-                justify-center
-                bg-cover
-                bg-center
-                bg-fixed
-                sarabun-medium
-                relative
-            "
+        min-h-screen
+        flex
+        items-center
+        justify-center
+        bg-cover
+        bg-center
+        bg-fixed
+        sarabun-medium
+        relative
+      "
             style={{
                 backgroundImage:
                     `url(${bgGame})`,
             }}
         >
             {/* Overlay */}
+
             <div
                 className="
-                    absolute
-                    inset-0
-                    bg-white/40
-                    backdrop-blur-[2px]
-                "
+          absolute
+          inset-0
+          bg-white/40
+          backdrop-blur-[2px]
+        "
             />
 
             {/* Header Unit */}
+
             <div
                 className="
-                    absolute
-                    top-0
-                    left-0
-                    z-20
-                    bg-orange-600
-                    text-white
-                    sarabun-semibold
-                    px-6
-                    py-2
-                    rounded-br-2xl
-                    text-lg
-                    shadow-md
-                "
+          absolute
+          top-0
+          left-0
+          z-20
+          bg-orange-600
+          text-white
+          sarabun-semibold
+          px-6
+          py-2
+          rounded-br-2xl
+          text-lg
+          shadow-md
+        "
             >
                 Unit {currentUnitId}:{" "}
                 {header?.name_th ||
@@ -401,63 +491,66 @@ export default function UnitContentPage() {
             </div>
 
             {/* Home Button */}
+
             <button
                 onClick={() =>
                     navigate("/map")
                 }
                 className="
-                    absolute
-                    top-3
-                    right-4
-                    z-20
-                    flex
-                    items-center
-                    gap-2
-                    bg-white/80
-                    hover:bg-orange-600
-                    hover:text-white
-                    text-orange-600
-                    border-2
-                    border-orange-600
-                    px-2
-                    py-2
-                    rounded-full
-                    text-sm
-                    shadow-md
-                    transition-all
-                    duration-200
-                    hover:scale-105
-                "
+          absolute
+          top-3
+          right-4
+          z-20
+          flex
+          items-center
+          gap-2
+          bg-white/80
+          hover:bg-orange-600
+          hover:text-white
+          text-orange-600
+          border-2
+          border-orange-600
+          px-2
+          py-2
+          rounded-full
+          text-sm
+          shadow-md
+          transition-all
+          duration-200
+          hover:scale-105
+        "
             >
                 <FaHouse size={24} />
             </button>
 
             {/* Main Content */}
+
             <div
                 className="
-                    relative
-                    z-10
-                    w-full
-                    px-6
-                    py-8
-                "
+          relative
+          z-10
+          w-full
+          px-6
+          py-8
+        "
             >
                 {/* Title */}
+
                 <div
                     className="
-                        text-center
-                        mt-2
-                        mb-4
-                    "
+            text-center
+            mt-2
+            mb-4
+          "
                 >
                     <h1
                         className="
-                            text-3xl
-                            sarabun-bold
-                            text-gray-800
-                            tracking-wide
-                            uppercase
-                        "
+              text-3xl
+              sarabun-bold
+              text-gray-800
+              tracking-wide
+              uppercase
+            "
                     >
                         {header?.title ||
                             header?.name_en}
@@ -465,16 +558,17 @@ export default function UnitContentPage() {
                 </div>
 
                 {/* Cards */}
+
                 <div
                     className="
-                        grid
-                        grid-cols-1
-                        md:grid-cols-3
-                        gap-4
-                        max-w-[1300px]
-                        h-[550px]
-                        mx-auto
-                    "
+            grid
+            grid-cols-1
+            md:grid-cols-3
+            gap-4
+            max-w-[1300px]
+            h-[550px]
+            mx-auto
+          "
                 >
                     {cards.length > 0 ? (
                         cards.map((item) => (
@@ -483,78 +577,76 @@ export default function UnitContentPage() {
                                     item.content_id
                                 }
                                 className="
-                                    border-[3px]
-                                    border-black
-                                    bg-white/90
-                                    rounded-2xl
-                                    px-4
-                                    py-4
-                                    flex
-                                    flex-col
-                                    items-center
-                                    justify-between
-                                    min-h-[450px]
-                                    shadow-lg
-                                "
+                  border-[3px]
+                  border-black
+                  bg-white/90
+                  rounded-2xl
+                  px-4
+                  py-4
+                  flex
+                  flex-col
+                  items-center
+                  justify-between
+                  min-h-[450px]
+                  shadow-lg
+                "
                             >
                                 <h2
                                     className="
-                                        text-xl
-                                        sarabun-bold
-                                        text-center
-                                        border-b
-                                        pb-1
-                                        w-full
-                                    "
+                    text-xl
+                    sarabun-bold
+                    text-center
+                    border-b
+                    pb-1
+                    w-full
+                  "
                                 >
                                     {item.title}
                                 </h2>
 
                                 <p
                                     className="
-                                        mt-2
-                                        sarabun-light
-                                        text-md
-                                        text-center
-                                        text-black
-                                        whitespace-pre-line
-                                    "
+                    mt-2
+                    sarabun-light
+                    text-md
+                    text-center
+                    text-black
+                    whitespace-pre-line
+                  "
                                 >
                                     {item.description}
                                 </p>
 
                                 <div
                                     className="
-                                        flex-grow
-                                        flex
-                                        items-center
-                                        justify-center
-                                        my-4
-                                        w-full
-                                    "
+                    flex-grow
+                    flex
+                    items-center
+                    justify-center
+                    my-4
+                    w-full
+                  "
                                 >
                                     <img
                                         src={`/image/${item.image_url}`}
-                                        alt={
-                                            item.title
-                                        }
+                                        alt={item.title}
                                         className="
-                                            max-h-64
-                                            max-w-full
-                                            object-contain
-                                        "
+                      max-h-64
+                      max-w-full
+                      object-contain
+                    "
                                     />
                                 </div>
 
                                 <p
                                     className="
-                                        sarabun-light
-                                        text-sm
-                                        text-center
-                                        justify-center
-                                        text-black
-                                        whitespace-pre-line
-                                    "
+                    sarabun-light
+                    text-sm
+                    text-center
+                    justify-center
+                    text-black
+                    whitespace-pre-line
+                  "
                                 >
                                     {item.reflection}
                                 </p>
@@ -563,12 +655,12 @@ export default function UnitContentPage() {
                     ) : (
                         <div
                             className="
-                                col-span-full
-                                text-center
-                                py-12
-                                text-gray-700
-                                font-bold
-                            "
+                col-span-full
+                text-center
+                py-12
+                text-gray-700
+                font-bold
+              "
                         >
                             กำลังโหลดข้อมูลบทเรียน...
                         </div>
@@ -576,18 +668,19 @@ export default function UnitContentPage() {
                 </div>
 
                 {/* Progress Status */}
+
                 {!loadingProgress &&
                     !progressError &&
                     nextPlayableLevel && (
                         <div
                             className="
-                                flex
-                                justify-center
-                                mt-2
-                                text-sm
-                                font-bold
-                                text-gray-800
-                            "
+                flex
+                justify-center
+                mt-2
+                text-sm
+                font-bold
+                text-gray-800
+              "
                         >
                             🔓 พร้อมเล่น:{" "}
                             {nextPlayableLevel.title}
@@ -599,13 +692,13 @@ export default function UnitContentPage() {
                     allLevelsCompleted && (
                         <div
                             className="
-                                flex
-                                justify-center
-                                mt-2
-                                text-sm
-                                font-bold
-                                text-green-700
-                            "
+                flex
+                justify-center
+                mt-2
+                text-sm
+                font-bold
+                text-green-700
+              "
                         >
                             🎉 ผ่าน Unit นี้ครบแล้ว
                         </div>
@@ -614,30 +707,34 @@ export default function UnitContentPage() {
                 {progressError && (
                     <div
                         className="
-                            flex
-                            justify-center
-                            mt-2
-                            text-sm
-                            font-bold
-                            text-red-600
-                        "
+              flex
+              justify-center
+              mt-2
+              text-sm
+              font-bold
+              text-red-600
+            "
                     >
                         {progressError}
                     </div>
                 )}
 
                 {/* START Button */}
+
                 <div
                     className="
-                        flex
-                        justify-center
-                        mt-2
-                        mb-2
-                    "
+            flex
+            justify-center
+            mt-2
+            mb-2
+          "
                 >
                     <button
                         onClick={handleStart}
-                        disabled={isStartLocked}
+                        disabled={
+                            isStartLocked &&
+                            currentUnitId <= 3
+                        }
                         title={
                             loadingProgress
                                 ? "กำลังโหลด Progress..."
@@ -652,46 +749,48 @@ export default function UnitContentPage() {
                                                 : "Level นี้ยังไม่ปลดล็อก"
                         }
                         className={`
-                            w-[48px]
-                            h-[48px]
-                            px-2
-                            py-2
-                            rounded-full
-                            text-sm
-                            shadow-md
-                            transition-all
-                            duration-200
-                            border-2
-                            ${isStartLocked
+              w-[48px]
+              h-[48px]
+              px-2
+              py-2
+              rounded-full
+              text-sm
+              shadow-md
+              transition-all
+              duration-200
+              border-2
+              ${isStartLocked &&
+                                currentUnitId <= 3
                                 ? `
-                                        bg-gray-300
-                                        text-gray-500
-                                        border-gray-500
-                                        cursor-not-allowed
-                                        opacity-70
-                                    `
+                    bg-gray-300
+                    text-gray-500
+                    border-gray-500
+                    cursor-not-allowed
+                    opacity-70
+                  `
                                 : `
-                                        bg-white/80
-                                        hover:bg-orange-600
-                                        hover:text-white
-                                        text-orange-600
-                                        border-orange-600
-                                        hover:scale-105
-                                        cursor-pointer
-                                    `
+                    bg-white/80
+                    hover:bg-orange-600
+                    hover:text-white
+                    text-orange-600
+                    border-orange-600
+                    hover:scale-105
+                    cursor-pointer
+                  `
                             }
-                        `}
+            `}
                     >
-                        {isStartLocked ? (
+                        {isStartLocked &&
+                            currentUnitId <= 3 ? (
                             <span className="text-xl">
                                 🔒
                             </span>
                         ) : (
                             <FaCircleArrowRight
                                 className="
-                                    w-full
-                                    h-full
-                                "
+                  w-full
+                  h-full
+                "
                             />
                         )}
                     </button>

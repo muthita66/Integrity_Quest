@@ -1,175 +1,102 @@
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { FaChevronRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import BookLayout from "../BookLayout";
+import sceneOffice from "../../../assets/unit4/story-home.png";
+import sceneColleagues from "../../../assets/unit4/story-colleagues.png";
+import sceneInvite from "../../../assets/unit4/story-slot-invite.png";
+import "../../../styles/theme.css";
+import "./level2.css";
 
-export default function Intro() {
+const SCENES = [
+    { image: sceneOffice },
+    { image: sceneColleagues },
+    { image: sceneInvite },
+];
+
+export default function IntroScene() {
     const navigate = useNavigate();
+    const [index, setIndex] = useState(0);
+    const scene = SCENES[index];
+    const last = index === SCENES.length - 1;
 
-    const cardStyle = {
-        width: "260px",
-        height: "340px",
-        background: "#fff",
-        border: "2px solid #8B4513",
-        borderRadius: "20px",
-        padding: "20px",
-        textAlign: "center",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+    const next = () => {
+        if (last) {
+            navigate("/unit4/level2/game");
+            return;
+        }
+        setIndex((current) => current + 1);
     };
 
     return (
-        <div
-            style={{
-                minHeight: "100vh",
-                backgroundImage:
-                    "url('https://images.unsplash.com/photo-1516321497487-e288fb19713f')",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-            }}
-        >
-            <div
-                style={{
-                    width: "1100px",
-                    background: "rgba(255,255,255,0.85)",
-                    borderRadius: "30px",
-                    border: "3px solid black",
-                    padding: "40px",
-                }}
-            >
-                <div
-                    style={{
-                        background: "#ff5b00",
-                        color: "white",
-                        display: "inline-block",
-                        padding: "12px 30px",
-                        borderRadius: "15px",
-                        fontWeight: "bold",
-                        marginBottom: "20px",
-                    }}
-                >
-                    Unit 4: Cyber Trap
-                </div>
-
-                <h1
-                    style={{
-                        textAlign: "center",
-                        marginBottom: "30px",
-                    }}
-                >
-                    DIGITAL SAFETY & FRAUD
-                </h1>
-
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: "20px",
-                    }}
-                >
-                    {/* Card 1 */}
-                    <div style={cardStyle}>
-                        <h2>🚨 Investment Scam</h2>
-
-                        <div
-                            style={{
-                                fontSize: "90px",
-                                margin: "20px 0",
-                            }}
+        <BookLayout
+            title="บทที่ 2 — กับดักพนัน"
+            subtitle=""
+            rightLabel="เรื่องเล่าจากแฟ้มคดี"
+            rightNote=""
+            onBack={() => navigate("/unit4/book")}
+            leftPage={
+                <div className="level2-story-copy">
+                    <span className="level2-story-kicker">EPISODE 02</span>
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={index}
+                            className="level2-scene-number"
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -12 }}
+                            transition={{ duration: 0.22 }}
                         >
-                            💸
-                        </div>
+                            {String(index + 1).padStart(2, "0")}
+                        </motion.div>
+                    </AnimatePresence>
+                    <div className="level2-story-rule" />
+                    <span className="level2-story-label">CYBER TRAP</span>
 
-                        <p>
-                            High Return,
-                            <br />
-                            Zero Risk
-                        </p>
-
-                        <h3 style={{ color: "red" }}>= SCAM</h3>
-
-                        <p>
-                            ผลตอบแทนสูง
-                            <br />
-                            ไม่มีความเสี่ยง
-                            <br />
-                            เป็นสัญญาณของมิจฉาชีพ
-                        </p>
+                    <div className="level2-story-dots" aria-label={`ฉากที่ ${index + 1} จาก ${SCENES.length}`}>
+                        {SCENES.map((item, sceneIndex) => (
+                            <span
+                                key={item.image}
+                                className={sceneIndex === index ? "is-active" : ""}
+                            />
+                        ))}
                     </div>
 
-                    {/* Card 2 */}
-                    <div style={cardStyle}>
-                        <h2>⚖️ Mule Account</h2>
-
-                        <div
-                            style={{
-                                fontSize: "90px",
-                                margin: "20px 0",
-                            }}
-                        >
-                            🏦
+                    {last ? (
+                        <div className="level2-bait-wrap">
+                            <button type="button" className="level2-bait-btn" onClick={next}>
+                                ตรวจสอบข้อเสนอ
+                            </button>
                         </div>
-
-                        <p>
-                            การเปิดบัญชีให้คนอื่นใช้
-                            <br />
-                            หรือขายบัญชีธนาคาร
-                        </p>
-
-                        <h3 style={{ color: "red" }}>
-                            จำคุกสูงสุด 3 ปี
-                        </h3>
-                    </div>
-
-                    {/* Card 3 */}
-                    <div style={cardStyle}>
-                        <h2>🔍 Fake Slip</h2>
-
-                        <div
-                            style={{
-                                fontSize: "90px",
-                                margin: "20px 0",
-                            }}
-                        >
-                            📄
-                        </div>
-
-                        <p>
-                            ฟอนต์เพี้ยน
-                            <br />
-                            QR ใช้งานไม่ได้
-                            <br />
-                            เวลาโอนไม่ตรง
-                        </p>
-
-                        <h3 style={{ color: "green" }}>
-                            เช็กยอดในแอปเสมอ
-                        </h3>
+                    ) : (
+                        <button type="button" className="primary-btn level2-story-next" onClick={next}>
+                            อ่านฉากถัดไป <FaChevronRight size={13} />
+                        </button>
+                    )}
+                    <div className="level2-story-progress">ฉากที่ {index + 1} / {SCENES.length}</div>
+                </div>
+            }
+            rightPage={
+                <div className="level2-story-panel">
+                    <div className="level2-comic-frame">
+                        <div className="level2-frame-label">CASE NOTE · 0{index + 1}</div>
+                        <AnimatePresence mode="wait">
+                            <motion.img
+                                key={scene.image}
+                                src={scene.image}
+                                alt={`ฉากที่ ${index + 1}`}
+                                className="level2-story-image"
+                                initial={{ opacity: 0, scale: 0.97 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 1.02 }}
+                                transition={{ duration: 0.28 }}
+                            />
+                        </AnimatePresence>
+                        <div className="level2-frame-caption">ภาพจากแฟ้มคดี Cyber Trap</div>
                     </div>
                 </div>
-
-                <div
-                    style={{
-                        textAlign: "center",
-                        marginTop: "30px",
-                    }}
-                >
-                    <button
-                        onClick={() => navigate("/unit4/intro2")}
-                        style={{
-                            background: "#ff5b00",
-                            color: "white",
-                            border: "none",
-                            padding: "15px 80px",
-                            fontSize: "24px",
-                            borderRadius: "20px",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                        }}
-                    >
-                        START
-                    </button>
-                </div>
-            </div>
-        </div>
+            }
+        />
     );
 }
