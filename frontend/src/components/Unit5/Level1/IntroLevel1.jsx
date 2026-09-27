@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { MdWarning } from "react-icons/md";
 
-import stationBg from "../../../assets/unit5/station.png";
-import sendChar from "../../../assets/unit5/send.png";
+import officeBg from "../../../assets/unit5/office.png";
+import heroChar from "../../../assets/unit5/hero.png";
 
 export default function IntroScene() {
     const navigate = useNavigate();
@@ -38,7 +38,7 @@ export default function IntroScene() {
 
             {/* Background */}
             <img
-                src={stationBg}
+                src={officeBg}
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover"
             />
@@ -81,7 +81,7 @@ export default function IntroScene() {
             <AnimatePresence>
                 {showCharacter && (
                     <motion.img
-                        src={sendChar}
+                        src={heroChar}
                         alt=""
                         className="
                         absolute
@@ -152,58 +152,69 @@ export default function IntroScene() {
                             border-l-[24px]
                             border-t-transparent
                             border-b-transparent
-                            border-l-white
+                            border-l-[rgba(255,255,255,0.78)]
                             "
                         />
 
                         <div
                             className="
-                            bg-white
+                            relative
+                            overflow-hidden
+                            border border-white/80
+                            bg-white/[0.78]
+                            backdrop-blur-md
                             rounded-[32px]
-                            shadow-[0_25px_60px_rgba(0,0,0,0.35)]
+                            shadow-[0_25px_60px_rgba(15,23,42,0.32)]
                             p-8
+                            before:absolute before:inset-3 before:rounded-[24px]
+                            before:border before:border-white/50 before:pointer-events-none
                             "
                         >
-                            <div className="flex items-center gap-3 mb-5">
-                                <MdWarning className="text-red-600 text-5xl" />
+                            <div className="relative z-10">
+                                <div className="mb-4 flex items-center justify-between gap-4">
+                                    <span className="rounded-full border border-slate-700/20 bg-slate-900/10 px-3 py-1 text-[11px] font-bold tracking-[0.22em] text-slate-700">
+                                        CASE FILE // NEW LEAD
+                                    </span>
+                                    <span className="text-xs font-semibold tracking-widest text-slate-600/80">
+                                        PRIORITY 01
+                                    </span>
+                                </div>
 
-                                <h2 className="text-3xl font-bold text-red-600">
-                                    เบาะแสใหม่
-                                </h2>
+                                <div className="mb-5 flex items-center gap-3">
+                                    <MdWarning className="text-red-600 text-5xl drop-shadow-sm" />
+
+                                    <h2 className="text-3xl font-bold tracking-wide text-red-600">
+                                        แฟ้มคดีใหม่
+                                    </h2>
+                                </div>
+
+                                <p className="text-xl leading-relaxed text-slate-800">
+                                    เบาะแสเกี่ยวกับการคอร์รัปชันภายในองค์กรถูกส่งถึงคุณแล้ว
+                                    <br />
+                                    เตรียมเปิดแฟ้มคดี ค้นหาคำศัพท์ที่เกี่ยวข้องเพื่อเปิดโปงความจริง
+                                </p>
+
+                                <motion.button
+                                    whileHover={{
+                                        scale: 1.05,
+                                    }}
+                                    whileTap={{
+                                        scale: 0.95,
+                                    }}
+                                    onClick={() => navigate("/unit5/tutorial")}
+                                    className="
+                                    mt-8
+                                    rounded-2xl
+                                    border border-orange-300/60
+                                    bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500
+                                    px-10 py-4
+                                    text-xl font-bold text-white
+                                    shadow-[0_12px_24px_rgba(234,88,12,0.28)]
+                                    "
+                                >
+                                    เปิดแฟ้มคดี
+                                </motion.button>
                             </div>
-
-                            <p className="text-xl text-gray-800 leading-relaxed">
-                                คุณได้รับเบาะแสเกี่ยวกับการคอร์รัปชันภายในองค์กร
-                                <br />
-                                จงค้นหาคำศัพท์ที่เกี่ยวข้อง
-                                เพื่อเปิดโปงความจริง
-                            </p>
-
-                            <motion.button
-                                whileHover={{
-                                    scale: 1.05,
-                                }}
-                                whileTap={{
-                                    scale: 0.95,
-                                }}
-                                onClick={() => navigate("/unit5/tutorial")}
-                                className="
-                                mt-8
-                                px-10
-                                py-4
-                                rounded-2xl
-                                text-xl
-                                font-bold
-                                text-white
-                                bg-gradient-to-r
-                                from-yellow-500
-                                via-orange-500
-                                to-red-500
-                                shadow-xl
-                                "
-                            >
-                                เริ่มภารกิจ
-                            </motion.button>
                         </div>
                     </motion.div>
                 )}
