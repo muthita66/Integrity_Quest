@@ -10,7 +10,7 @@ export default function Level2Intro() {
     const policeImg = "/src/assets/unit5/Police.png";
     const mayorImg = "/src/assets/unit5/Mayor.png";
 
-    const policeBG = "/src/assets/unit5/station.png";
+    const policeBG = "/src/assets/unit5/office.png";
     const cityBG = "/src/assets/unit5/cityhall.png";
 
     // ===== บทสนทนา =====
