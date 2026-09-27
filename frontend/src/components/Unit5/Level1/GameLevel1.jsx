@@ -1,19 +1,39 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 import WordCard from "./Wordcard";
 import ClueCard from "./ClueCard";
 import MissionComplete from "./MissionComplete";
 
+// ============================================================
+// Unit 5 Level 1 : ตามหาคำจากคำใบ้
+// ------------------------------------------------------------
+// คำศัพท์อยู่ใน DB (level_words) — หน้าเว็บได้แค่คำใบ้ + ตัวที่เปิดให้
+//   เข้าเกม    → POST /api/game-play/start    { level_id } → play_id + words
+//   กด Enter   → POST /api/word-game/answer   { playId, wordId, text }
+//   หาครบ      → POST /api/game-play/complete { play_id } → IP จริง
+// ============================================================
+
+const API_URL = "http://localhost:5000";
+const LEVEL_ID = 14;
+
+const authHeaders = () => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
+
 export default function GameLevel1() {
-    const words = [
-        { id: 1, answer: "สินบน", clue: "เงินหรือของที่ให้เพื่อแลกกับสิทธิพิเศษ", revealed: 2 },
-        { id: 2, answer: "ใต้โต๊ะ", clue: "การจ่ายเงินแบบไม่เปิดเผย", revealed: 1 },
-        { id: 3, answer: "โปร่งใส", clue: "การทำงานที่ตรวจสอบได้", revealed: 2 },
-        { id: 4, answer: "ทุจริต", clue: "การทำผิดกฎเพื่อผลประโยชน์ส่วนตัว", revealed: 1 },
-        { id: 5, answer: "ยักยอก", clue: "การนำเงินของผู้อื่นไปใช้โดยมิชอบ", revealed: 1 },
-        { id: 6, answer: "ร้องเรียน", clue: "การแจ้งเมื่อพบการกระทำที่ไม่ถูกต้อง", revealed: 1 },
-    ];
+    const navigate = useNavigate();
+
+    const [playId, setPlayId] = useState(null);
+    const [words, setWords] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [result, setResult] = useState(null); // ผลจาก complete
+    const [finishError, setFinishError] = useState("");
+
+    const startingRef = useRef(false);   // กัน StrictMode เริ่มเกมซ้ำ
+    const finishingRef = useRef(false);  // กันเรียก complete ซ้ำ
 
     const [completed, setCompleted] = useState({});
     const [seconds, setSeconds] = useState(0);
@@ -30,28 +50,151 @@ export default function GameLevel1() {
         [completed]
     );
 
-    const progress = (correctCount / words.length) * 100;
+    const progress = words.length ? (correctCount / words.length) * 100 : 0;
+
+    const handleAuthError = (response) => {
+        if (response.status === 401) {
+            navigate("/", { replace: true });
+            return true;
+        }
+        return false;
+    };
+
+    // --------------------------------------------------------
+    // เริ่มเกม: ดึงคำใบ้จาก backend
+    // --------------------------------------------------------
+    useEffect(() => {
+        if (startingRef.current) return;
+        startingRef.current = true;
+
+        const start = async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/game-play/start`, {
+                    method: "POST",
+                    headers: authHeaders(),
+                    body: JSON.stringify({ level_id: LEVEL_ID }),
+                });
+
+                if (handleAuthError(response)) return;
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert(data.message || "เริ่มเกมไม่ได้");
+                    navigate("/map", { replace: true });
+                    return;
+                }
+
+                setPlayId(data.data.play_id);
+                setWords(
+                    (data.data.words || []).map((w) => ({
+                        id: w.word_order, // ใช้กับ rotations ใน WordCard / ClueCard
+                        word_id: w.word_id,
+                        clue: w.clue,
+                        totalChars: w.total_chars,
+                        revealedChars: w.revealed_chars || [],
+                    }))
+                );
+            } catch (error) {
+                console.error("Start word game error:", error);
+                alert("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
+                navigate("/map", { replace: true });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        start();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // --------------------------------------------------------
+    // ส่งคำตอบ 1 ครั้ง (WordCard เรียกตอนกด Enter) → คืน true/false
+    // --------------------------------------------------------
+    const handleSubmit = useCallback(
+        async (word, text) => {
+            if (!playId) return false;
+
+            const response = await fetch(`${API_URL}/api/word-game/answer`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({ playId, wordId: word.word_id, text }),
+            });
+
+            if (handleAuthError(response)) return false;
+
+            const data = await response.json();
+
+            // คำนี้ตอบถูกไปแล้ว (เช่น กดซ้ำ) → ถือว่าผ่าน
+            if (response.status === 409 && /ตอบถูกไปแล้ว/.test(data.message || "")) {
+                setCompleted((prev) => ({ ...prev, [word.id]: true }));
+                return true;
+            }
+
+            if (!response.ok) {
+                throw new Error(data.message || "ตรวจคำตอบไม่สำเร็จ");
+            }
+
+            if (data.data.is_correct) {
+                setCompleted((prev) => (prev[word.id] ? prev : { ...prev, [word.id]: true }));
+            }
+
+            return data.data.is_correct;
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [playId]
+    );
+
+    // --------------------------------------------------------
+    // หาครบทุกคำ → บันทึกผล แล้วเปิดหน้าต่าง Mission Complete
+    // --------------------------------------------------------
+    const finish = useCallback(async () => {
+        if (!playId || finishingRef.current) return;
+        finishingRef.current = true;
+        setFinishError("");
+
+        try {
+            const response = await fetch(`${API_URL}/api/game-play/complete`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({ play_id: playId }),
+            });
+
+            if (handleAuthError(response)) return;
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "บันทึกผลไม่สำเร็จ");
+            }
+
+            setResult(data.data ?? null);
+            setShowComplete(true);
+        } catch (error) {
+            console.error("Complete word game error:", error);
+            setFinishError(error.message || "บันทึกผลไม่สำเร็จ");
+        } finally {
+            finishingRef.current = false;
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [playId]);
 
     // นาฬิกานับเวลา — หยุดทันทีเมื่อภารกิจสำเร็จ (บั๊กเดิม: นับต่อไปเรื่อย ๆ ไม่หยุด)
     useEffect(() => {
-        if (showComplete) return;
+        if (showComplete || loading) return;
         const timer = setInterval(() => {
             setSeconds((prev) => prev + 1);
         }, 1000);
         return () => clearInterval(timer);
-    }, [showComplete]);
+    }, [showComplete, loading]);
 
     // บั๊กเดิม: words.lenght (พิมพ์ผิด) ทำให้ dependency array ไม่ทำงานตามที่ตั้งใจ
     useEffect(() => {
-        if (correctCount === words.length) {
-            const t = setTimeout(() => setShowComplete(true), 800);
+        if (words.length > 0 && correctCount === words.length) {
+            const t = setTimeout(finish, 800);
             return () => clearTimeout(t);
         }
-    }, [correctCount, words.length]);
-
-    const handleCorrect = (id) => {
-        setCompleted((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
-    };
+    }, [correctCount, words.length, finish]);
 
     const formatTime = () => {
         const mins = Math.floor(seconds / 60);
@@ -102,7 +245,15 @@ export default function GameLevel1() {
             window.removeEventListener("resize", recomputeLines);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [completed]);
+    }, [completed, words]);
+
+    if (loading) {
+        return (
+            <div className="h-screen flex items-center justify-center bg-[#241408] text-[#f4eae1] text-lg">
+                กำลังเปิดแฟ้มหลักฐาน...
+            </div>
+        );
+    }
 
     return (
         <div className="h-screen flex flex-col p-4 bg-[#241408] text-[#f4eae1] select-none overflow-hidden relative">
@@ -216,7 +367,7 @@ export default function GameLevel1() {
                                         animate={{ opacity: 1, y: 0, rotate: i % 2 === 0 ? -1 : 1 }}
                                         transition={{ delay: i * 0.06, duration: 0.4 }}
                                     >
-                                        <WordCard word={word} completed={completed[word.id]} onCorrect={handleCorrect} />
+                                        <WordCard word={word} completed={completed[word.id]} onSubmit={handleSubmit} />
                                     </motion.div>
                                 ))}
                             </div>
@@ -240,8 +391,20 @@ export default function GameLevel1() {
                 </div>
             </div>
 
+            {finishError && !showComplete && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[999] flex items-center gap-3 rounded-xl bg-red-50 px-5 py-3 text-sm font-bold text-red-700 shadow-lg">
+                    {finishError}
+                    <button type="button" onClick={finish} className="rounded-lg bg-red-600 px-3 py-1 text-white">
+                        ลองบันทึกอีกครั้ง
+                    </button>
+                </div>
+            )}
+
             {showComplete && (
-                <MissionComplete nextPath="/unit5/2Intro" />
+                <MissionComplete
+                    nextPath="/unit5/2Intro"
+                    earnedIP={result?.earned_ip}
+                />
             )}
         </div>
     );

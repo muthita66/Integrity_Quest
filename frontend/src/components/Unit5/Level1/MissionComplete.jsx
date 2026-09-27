@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-export default function MissionComplete({ nextPath = "/unit5/2Intro" }) {
+// earnedIP มาจากผลของ /api/game-play/complete (IP ที่ได้จริงจาก DB)
+export default function MissionComplete({ nextPath = "/unit5/2Intro", earnedIP }) {
     const navigate = useNavigate();
 
     return (
@@ -58,15 +59,17 @@ export default function MissionComplete({ nextPath = "/unit5/2Intro" }) {
 
                 <div className="my-7 border-t border-dashed border-[#d9bd88]"></div>
 
-                <div className="space-y-2">
-                    <div className="text-4xl md:text-5xl font-black text-[#b8791d]">
-                        +60 Integrity Point
-                    </div>
+                {earnedIP != null && (
+                    <div className="space-y-2">
+                        <div className="text-4xl md:text-5xl font-black text-[#b8791d]">
+                            +{earnedIP} Integrity Point
+                        </div>
 
-                    <div className="text-base font-semibold text-[#8d6c3d]">
-                        คะแนนสะสมของบทนี้
+                        <div className="text-base font-semibold text-[#8d6c3d]">
+                            คะแนนสะสมของบทนี้
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <motion.button
                     whileHover={{ scale: 1.03 }}

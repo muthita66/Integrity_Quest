@@ -34,6 +34,19 @@ const moneyGameRoutes = require("./routes/moneyGameRoutes");
 // Result Page
 const levelResultRoutes = require("./routes/levelResultRoutes");
 
+// unit 4
+const slipRoutes = require("./routes/slipRoutes");
+const slipHuntRoutes = require('./routes/slipHuntRoutes');
+const slotGameRoutes = require('./routes/slotGameRoutes');
+
+// unit 5
+const wordGameRoutes = require("./routes/wordGameRoutes");
+const budgetGameRoutes = require("./routes/budgetGameRoutes");
+const inspectorGameRoutes = require("./routes/inspectorGameRoutes");
+
+// unit 6
+const crisisGameRoutes = require("./routes/crisisGameRoutes");
+
 console.log("Game Play Routes Loaded");
 
 const app = express();
@@ -70,6 +83,19 @@ app.use("/api/receipt-hunt", receiptHuntRoutes);
 app.use("/api/money-game", moneyGameRoutes);
 
 app.use("/api/level-result", levelResultRoutes);
+
+// unit 4
+app.use("/api/slips", slipRoutes);
+app.use('/api/slip-hunt', slipHuntRoutes);
+app.use('/api/slot-game', slotGameRoutes);
+
+// unit 5
+app.use('/api/word-game', wordGameRoutes);
+app.use('/api/budget-game', budgetGameRoutes);
+app.use('/api/inspector-game', inspectorGameRoutes);
+
+// unit 6
+app.use('/api/crisis-game', crisisGameRoutes);
 
 app.get("/", (req, res) => {
     res.send("APT running...");

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   NODES,
@@ -10,12 +10,42 @@ import {
   LAYER,
   MAX_LAYER,
   PREREQS,
-  MISSIONS,
+  MISSION_ORDER,
   REACH,
   START_ID,
   GOAL_ID,
   MAX_LIVES,
 } from "./GameData2";
+
+// ============================================================
+// Unit 6 Level 2 : เครือข่ายความดี
+// ------------------------------------------------------------
+// คำถามอยู่ใน DB (question / choice) — เฉลยอยู่ที่ backend
+//   เริ่ม   → POST /api/game-play/start    { level_id } → play_id + questions
+//   ตอบ     → POST /api/game-play/answer   { play_id, question_id, choice_id }
+//             → is_correct + correct_choice_id + explanation
+//   จบ      → POST /api/game-play/complete { play_id }  (ถึงศาล = PASS / หัวใจหมด = FAIL)
+// ============================================================
+
+const API_URL = "http://localhost:5000";
+const UNIT_ID = 6;
+const LEVEL_ORDER = 2;
+
+const authHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
+
+// หา level_id ของด่านนี้จาก progress (Unit 6 ลำดับ 2)
+async function fetchLevelId() {
+  const response = await fetch(`${API_URL}/api/user-progress`, { headers: authHeaders() });
+  if (response.status === 401) return { unauthorized: true };
+  const data = await response.json();
+  const unit = (data.data || []).find((u) => Number(u.unit_id) === UNIT_ID);
+  const level = [...(unit?.levels || [])]
+    .sort((a, b) => Number(a.order_no) - Number(b.order_no))[LEVEL_ORDER - 1];
+  return { levelId: level?.level_id ?? null };
+}
 
 const VIEW_W = 1536;
 const VIEW_H = 880;
@@ -27,21 +57,125 @@ export default function GoodNetworkGame() {
   const [gameOver, setGameOver] = useState(false);
   const [outcome, setOutcome] = useState(null); // 'win' | 'lose' | null
   const [activeId, setActiveId] = useState(null);
+  // answered = { choiceId, correctChoiceId, isCorrect, explain } หลัง backend ตรวจแล้ว
   const [answered, setAnswered] = useState(null);
+  const [answering, setAnswering] = useState(false);
   const [msg, setMsg] = useState(
     "เลือกเส้นทางที่คุณสนใจ แล้วคลิกที่จุดถัดไปเพื่อเข้าสู่คำถาม"
   );
   const navigate = useNavigate();
 
+  const [playId, setPlayId] = useState(null);
+  const [missions, setMissions] = useState({}); // nodeId → { question_id, q, options }
+  const [loading, setLoading] = useState(true);
+  const [result, setResult] = useState(null);   // ผลจาก complete
+  const [finishError, setFinishError] = useState("");
+
+  const startingRef = useRef(false);
+  const finishingRef = useRef(false);
+  const livesRef = useRef(MAX_LIVES);
+
+  // ---- เริ่มรอบใหม่ (play_id ใหม่ทุกครั้ง) ----
+  const startPlay = useCallback(async () => {
+    if (startingRef.current) return;
+    startingRef.current = true;
+    setLoading(true);
+
+    try {
+      const found = await fetchLevelId();
+      if (found.unauthorized) return navigate("/", { replace: true });
+      if (!found.levelId) {
+        alert("ยังไม่มีด่านนี้ในระบบ");
+        return navigate("/map", { replace: true });
+      }
+
+      const response = await fetch(`${API_URL}/api/game-play/start`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ level_id: found.levelId }),
+      });
+
+      if (response.status === 401) return navigate("/", { replace: true });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "เริ่มเกมไม่ได้");
+        return navigate("/map", { replace: true });
+      }
+
+      const map = {};
+      for (const q of data.data.questions || []) {
+        const nodeId = MISSION_ORDER[q.question_order - 1];
+        if (!nodeId) continue;
+        map[nodeId] = {
+          question_id: q.question_id,
+          q: q.question_text,
+          options: q.choices.map((c) => ({ choice_id: c.choice_id, text: c.choice_text })),
+        };
+      }
+
+      livesRef.current = MAX_LIVES;
+      setPlayId(data.data.play_id);
+      setMissions(map);
+      setReached(new Set([START_ID]));
+      setLives(MAX_LIVES);
+      setGameOver(false);
+      setOutcome(null);
+      setActiveId(null);
+      setAnswered(null);
+      setResult(null);
+      setFinishError("");
+      setMsg("เลือกเส้นทางที่คุณสนใจ แล้วคลิกที่จุดถัดไปเพื่อเข้าสู่คำถาม");
+    } catch (error) {
+      console.error("Start good network error:", error);
+      alert("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
+      navigate("/map", { replace: true });
+    } finally {
+      startingRef.current = false;
+      setLoading(false);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    startPlay();
+  }, [startPlay]);
+
   const resetGame = useCallback(() => {
-    setReached(new Set([START_ID]));
-    setLives(MAX_LIVES);
-    setGameOver(false);
-    setOutcome(null);
-    setActiveId(null);
-    setAnswered(null);
-    setMsg("เลือกเส้นทางที่คุณสนใจ แล้วคลิกที่จุดถัดไปเพื่อเข้าสู่คำถาม");
-  }, []);
+    startPlay();
+  }, [startPlay]);
+
+  // ---- จบเกม (ถึงศาล / หัวใจหมด) → บันทึกผล ----
+  const finish = useCallback(async () => {
+    if (!playId || finishingRef.current) return;
+    finishingRef.current = true;
+    setFinishError("");
+
+    try {
+      const response = await fetch(`${API_URL}/api/game-play/complete`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ play_id: playId }),
+      });
+
+      if (response.status === 401) return navigate("/", { replace: true });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "บันทึกผลไม่สำเร็จ");
+
+      setResult(data.data ?? null);
+    } catch (error) {
+      console.error("Complete good network error:", error);
+      setFinishError(error.message || "บันทึกผลไม่สำเร็จ");
+    } finally {
+      finishingRef.current = false;
+    }
+  }, [playId, navigate]);
+
+  useEffect(() => {
+    if (outcome && !result) finish();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outcome]);
 
   const availableIds = useMemo(() => {
     const set = new Set();
@@ -55,15 +189,15 @@ export default function GoodNetworkGame() {
     return set;
   }, [reached]);
 
+  // ลดหัวใจ (คำนวณจาก ref — ไม่ทำ side effect ใน setState เพราะ StrictMode เรียกซ้ำ)
   const loseLife = useCallback(() => {
-    setLives((l) => {
-      const nl = Math.max(0, l - 1);
-      if (nl <= 0) {
-        setGameOver(true);
-        setTimeout(() => setOutcome("lose"), 1750);
-      }
-      return nl;
-    });
+    const nl = Math.max(0, livesRef.current - 1);
+    livesRef.current = nl;
+    setLives(nl);
+    if (nl <= 0) {
+      setGameOver(true);
+      setTimeout(() => setOutcome("lose"), 1750);
+    }
   }, []);
 
   const openNode = useCallback(
@@ -88,14 +222,54 @@ export default function GoodNetworkGame() {
   );
 
   const answerMission = useCallback(
-    (idx) => {
-      if (!activeId || answered !== null) return;
-      const mission = MISSIONS[activeId];
-      setAnswered(idx);
-      if (idx !== mission.correct) {
+    async (option) => {
+      if (!activeId || answered !== null || answering || !playId) return;
+      const mission = missions[activeId];
+      setAnswering(true);
+
+      let r;
+      try {
+        const response = await fetch(`${API_URL}/api/game-play/answer`, {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            play_id: playId,
+            question_id: mission.question_id,
+            choice_id: option.choice_id,
+          }),
+        });
+
+        if (response.status === 401) return navigate("/", { replace: true });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "บันทึกคำตอบไม่สำเร็จ");
+        r = data.data;
+      } catch (error) {
+        console.error("Answer good network error:", error);
+        setMsg("⚠️ " + (error.message || "บันทึกคำตอบไม่สำเร็จ ลองอีกครั้ง"));
+        return;
+      } finally {
+        setAnswering(false);
+      }
+
+      setAnswered({
+        choiceId: option.choice_id,
+        correctChoiceId: r.correct_choice_id,
+        isCorrect: r.is_correct,
+        explain: r.explanation,
+      });
+
+      if (!r.is_correct) {
         loseLife();
       }
+
       setTimeout(() => {
+        // หัวใจหมดแล้ว → จบแบบ lose (ไม่นับว่าไปถึงจุดนี้)
+        if (livesRef.current <= 0) {
+          setActiveId(null);
+          setAnswered(null);
+          return;
+        }
         setReached((prev) => {
           const next = new Set(prev);
           next.add(activeId);
@@ -111,7 +285,7 @@ export default function GoodNetworkGame() {
         setAnswered(null);
       }, 1700);
     },
-    [activeId, answered, loseLife]
+    [activeId, answered, answering, playId, missions, loseLife, navigate]
   );
 
   // ---- derived stats ----
@@ -127,7 +301,22 @@ export default function GoodNetworkGame() {
     if (REACH[id]) score += REACH[id];
   });
 
-  const activeMission = activeId ? { id: activeId, ...MISSIONS[activeId] } : null;
+  const activeMission = activeId && missions[activeId] ? { id: activeId, ...missions[activeId] } : null;
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#070b16", color: "#f3ead6", fontSize: 18 }}>
+        กำลังเตรียมเครือข่าย...
+      </div>
+    );
+  }
+
+  // ผลที่บันทึกแล้ว (แสดงใน overlay ตอนจบ)
+  const resultLine = result
+    ? `ได้รับ +${result.earned_ip ?? 0} IP`
+    : finishError
+      ? finishError
+      : "กำลังบันทึกผล...";
 
   return (
     <div className="gng-root">
@@ -438,7 +627,7 @@ export default function GoodNetworkGame() {
                     glow = isGoal ? "url(#gngGlowViolet)" : "url(#gngGlowGold)";
                   }
 
-                  const mission = MISSIONS[n.id];
+                  const mission = missions[n.id];
 
                   return (
                     <g
@@ -506,6 +695,12 @@ export default function GoodNetworkGame() {
                   คุณพาเรื่องราวเดินทางจากนักเรียนคนหนึ่ง ผ่านผู้ปกครองหรือครู ชุมชนหรือโรงเรียน สื่อและหน่วยงานรัฐ
                   จนถึงกระบวนการยุติธรรมได้สำเร็จ "คนเดียวเปลี่ยนโลกไม่ได้ แต่หลายคนทำได้"
                 </p>
+                <p style={{ color: "var(--amber-soft)", fontWeight: 700, fontSize: 16 }}>{resultLine}</p>
+                {finishError && (
+                  <button className="gng-btn" onClick={finish} style={{ marginBottom: 10 }}>
+                    ลองบันทึกผลอีกครั้ง
+                  </button>
+                )}
                 <button className="gng-btn primary" onClick={resetGame}>
                   เล่นอีกครั้ง
                 </button>
@@ -523,6 +718,12 @@ export default function GoodNetworkGame() {
               <div className="gng-overlay-card">
                 <h2>🕯️ เครือข่ายสะดุดกลางทาง</h2>
                 <p>ชีวิตเครือข่ายหมดลงเพราะตอบคำถามผิดหลายครั้งเกินไป ลองพิจารณาแต่ละสถานการณ์ให้รอบคอบขึ้นอีกนิด</p>
+                <p style={{ color: "var(--amber-soft)", fontWeight: 700, fontSize: 16 }}>{resultLine}</p>
+                {finishError && (
+                  <button className="gng-btn" onClick={finish} style={{ marginBottom: 10 }}>
+                    ลองบันทึกผลอีกครั้ง
+                  </button>
+                )}
                 <button className="gng-btn primary" onClick={resetGame}>
                   ลองใหม่อีกครั้ง
                 </button>
@@ -536,28 +737,28 @@ export default function GoodNetworkGame() {
                   <>
                     <p style={{ margin: "0 0 14px" }}>{activeMission.q}</p>
                     <div className="gng-mission-options">
-                      {activeMission.options.map((opt, i) => {
+                      {activeMission.options.map((opt) => {
                         let cls = "gng-mission-opt";
                         if (answered !== null) {
-                          if (i === activeMission.correct) cls += " correct";
-                          else if (i === answered) cls += " wrong";
+                          if (opt.choice_id === answered.correctChoiceId) cls += " correct";
+                          else if (opt.choice_id === answered.choiceId) cls += " wrong";
                         }
                         return (
                           <button
-                            key={i}
+                            key={opt.choice_id}
                             className={cls}
-                            disabled={answered !== null}
-                            onClick={() => answerMission(i)}
+                            disabled={answered !== null || answering}
+                            onClick={() => answerMission(opt)}
                           >
-                            {opt}
+                            {opt.text}
                           </button>
                         );
                       })}
                     </div>
                     {answered !== null && (
                       <p className="gng-mission-explain">
-                        {answered === activeMission.correct ? "✅ ถูกต้อง! " : "⚠️ ยังไม่ถูก — "}
-                        {activeMission.explain}
+                        {answered.isCorrect ? "✅ ถูกต้อง! " : "⚠️ ยังไม่ถูก — "}
+                        {answered.explain}
                       </p>
                     )}
                   </>

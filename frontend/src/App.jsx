@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 
 // ============================================================
@@ -148,6 +149,7 @@ import useActivityTracker from "./components/hooks/useActivityTracker";
 
 function App() {
   useActivityTracker();
+  const location = useLocation();
 
   return (
     <Routes>
@@ -397,7 +399,7 @@ function App() {
 
       <Route
         path="/unit4/level1/game"
-        element={<Unit4Level1Game />}
+        element={<Unit4Level1Game key={location.pathname + location.search} />}
       />
 
       <Route
@@ -414,7 +416,7 @@ function App() {
 
       <Route
         path="/unit4/level2/game"
-        element={<Unit4Level2Game />}
+        element={<Unit4Level2Game key={location.pathname + location.search} />}
       />
 
       <Route
@@ -431,7 +433,7 @@ function App() {
 
       <Route
         path="/unit4/level3/game"
-        element={<Unit4Level3Game />}
+        element={<Unit4Level3Game key={location.pathname + location.search} />}
       />
 
       <Route

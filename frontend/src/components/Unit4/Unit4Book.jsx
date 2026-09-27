@@ -1,10 +1,34 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaLock, FaCheck, FaPlay } from "react-icons/fa";
+import { FaLock, FaCheck, FaPlay, FaMedal } from "react-icons/fa";
 import BookLayout from "./BookLayout";
 import "../../styles/theme.css";
 
+const API_URL = "http://localhost:5000";
+const UNIT_ID = 4;
+const PASSED_STATUSES = ["PASS", "PERFECT"];
+
+// ------------------------------------------------------------
+// ปิดแล้ว: บท 1-2 บันทึกลง DB และบท 3 ปลดล็อกจาก DB ได้แล้ว
+// (ค่า "unit4" เก่าใน localStorage ทำให้บท 3 ขึ้น "ผ่านแล้ว" ทั้งที่ยังไม่ได้เล่นจริง)
+// เดิม: บทที่ยังไม่ได้บันทึกผลลง DB
+// ให้ใช้ localStorage "unit4" เดิมช่วยได้ เพื่อไม่ให้ติดล็อก
+// → เมื่อทุกบทบันทึกผลลง DB ครบแล้ว ให้เปลี่ยนเป็น false
+// ------------------------------------------------------------
+const LEGACY_LOCAL_FALLBACK = false;
+
+const readLegacy = () => {
+    if (!LEGACY_LOCAL_FALLBACK) return {};
+    try {
+        return JSON.parse(localStorage.getItem("unit4")) || {};
+    } catch {
+        return {};
+    }
+};
+
+// แต่ละบทใน CHAPTERS จับคู่กับ Level ของ Unit 4 ใน DB ตามลำดับ order_no
+// (บทที่ 1 = level ลำดับแรก, บทที่ 2 = ลำดับสอง, ...)
 const CHAPTERS = [
     {
         id: 1,
@@ -37,35 +61,121 @@ const CHAPTERS = [
 
 export default function Unit4Book() {
     const navigate = useNavigate();
-    const [progress, setProgress] = useState({ level1: true, level2: false, level3: false });
+    const [levels, setLevels] = useState([]);
+    const [unitLocked, setUnitLocked] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState("");
 
+    // --------------------------------------------------------
+    // โหลดความคืบหน้าจาก DB (แหล่งเดียวกับแผนที่)
+    // --------------------------------------------------------
     useEffect(() => {
-        try {
-            const save = JSON.parse(localStorage.getItem("unit4"));
-            if (save?.level3done) {
-                navigate("/unit4/complete", { replace: true });
-                return;
-            }
-            if (save) setProgress({ ...save, level1: true });
-        } catch {
-            /* ไฟล์เซฟเสียก็เริ่มใหม่จากบทแรก */
-        }
-    }, []);
+        const token = localStorage.getItem("token");
 
-    // บทถือว่าผ่านแล้วเมื่อบทถัดไปถูกปลดล็อก (Result.jsx เขียนค่านี้ตอนจบด่าน)
-    const state = useMemo(
-        () =>
-            CHAPTERS.map((chapter, i) => {
-                const next = CHAPTERS[i + 1];
-                const unlocked = Boolean(progress[chapter.key]);
-                const done = next ? Boolean(progress[next.key]) : Boolean(progress.level3done);
-                return { ...chapter, unlocked, done };
-            }),
-        [progress]
-    );
+        if (!token) {
+            navigate("/", { replace: true });
+            return;
+        }
+
+        let isMounted = true;
+
+        const load = async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/user-progress`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (response.status === 401) {
+                    navigate("/", { replace: true });
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || "โหลดความคืบหน้าไม่สำเร็จ");
+                }
+
+                const unit = (data.data || []).find(
+                    (u) => Number(u.unit_id) === UNIT_ID
+                );
+
+                if (!isMounted) return;
+
+                setUnitLocked(!unit || unit.is_locked === true);
+                setLevels(
+                    [...(unit?.levels || [])].sort(
+                        (a, b) => Number(a.order_no) - Number(b.order_no)
+                    )
+                );
+            } catch (error) {
+                console.error("Load Unit 4 progress error:", error);
+                if (isMounted) setLoadError(error.message);
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        };
+
+        load();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [navigate]);
+
+    // --------------------------------------------------------
+    // สถานะของแต่ละบท — กติกาเดียวกับก้อนหินบนแผนที่
+    //   บทล็อก → ล็อกทุกด่าน
+    //   ด่านแรกของบทที่ปลดล็อกแล้ว → เล่นได้เสมอ
+    //   ด่านอื่น → ต้อง is_locked = false (ด่านก่อนหน้าผ่านแล้ว)
+    //   ผ่านแล้ว = status PASS / PERFECT
+    // --------------------------------------------------------
+    const state = useMemo(() => {
+        const legacy = readLegacy();
+
+        return CHAPTERS.map((chapter, i) => {
+            const level = levels[i] || null;
+            const next = CHAPTERS[i + 1];
+
+            const dbUnlocked =
+                !unitLocked &&
+                Boolean(level) &&
+                (i === 0 || level.is_locked === false);
+
+            const dbDone = PASSED_STATUSES.includes(level?.status);
+
+            const legacyUnlocked = i === 0 || Boolean(legacy[chapter.key]);
+            const legacyDone = next ? Boolean(legacy[next.key]) : Boolean(legacy.level3done);
+
+            return {
+                ...chapter,
+                levelId: level?.level_id ?? null,
+                unlocked: !unitLocked && (dbUnlocked || legacyUnlocked),
+                done: dbDone || (!unitLocked && legacyDone),
+            };
+        });
+    }, [levels, unitLocked]);
 
     const cleared = state.filter((c) => c.done).length;
+    const allDone = cleared === CHAPTERS.length;
     const nextUp = state.find((c) => c.unlocked && !c.done) ?? state[0];
+
+    if (loading) {
+        return (
+            <div
+                style={{
+                    minHeight: "100vh",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    fontSize: 18,
+                    color: "var(--text-primary)",
+                }}
+            >
+                กำลังเปิดแฟ้มคดี...
+            </div>
+        );
+    }
 
     return (
         <BookLayout
@@ -107,7 +217,8 @@ export default function Unit4Book() {
                         <motion.button
                             type="button"
                             whileTap={{ scale: 0.97 }}
-                            onClick={() => navigate(nextUp.route)}
+                            disabled={!nextUp.unlocked}
+                            onClick={() => nextUp.unlocked && navigate(nextUp.route)}
                             style={{
                                 width: "100%",
                                 minHeight: 56,
@@ -117,7 +228,8 @@ export default function Unit4Book() {
                                 gap: 12,
                                 border: "none",
                                 borderRadius: 12,
-                                cursor: "pointer",
+                                cursor: nextUp.unlocked ? "pointer" : "not-allowed",
+                                opacity: nextUp.unlocked ? 1 : 0.5,
                                 background: "var(--gold-gradient)",
                                 color: "#3A2708",
                                 fontFamily: "var(--font-ui)",
@@ -127,8 +239,41 @@ export default function Unit4Book() {
                             }}
                         >
                             <FaPlay size={13} />
-                            เริ่มบท {nextUp.numeral}
+                            {!nextUp.unlocked
+                                ? "ยังไม่ปลดล็อก Unit นี้"
+                                : allDone
+                                    ? "เล่นซ้ำบท "
+                                    : "เริ่มบท "}
+                            {nextUp.unlocked && nextUp.numeral}
                         </motion.button>
+
+                        {allDone && (
+                            <motion.button
+                                type="button"
+                                whileTap={{ scale: 0.97 }}
+                                onClick={() => navigate("/unit4/complete")}
+                                style={{
+                                    width: "100%",
+                                    minHeight: 48,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: 10,
+                                    border: "1px solid var(--gold-main)",
+                                    borderRadius: 12,
+                                    cursor: "pointer",
+                                    background: "transparent",
+                                    color: "var(--text-gold)",
+                                    fontFamily: "var(--font-ui)",
+                                    fontSize: 15,
+                                    fontWeight: 600,
+                                    marginTop: 8,
+                                }}
+                            >
+                                <FaMedal size={13} />
+                                ดูผลสำเร็จ
+                            </motion.button>
+                        )}
                     </div>
 
                     {/* คำชี้แจง */}
@@ -259,7 +404,9 @@ export default function Unit4Book() {
                             color: "var(--text-muted)",
                         }}
                     >
-                        ความคืบหน้าถูกบันทึกไว้ในเครื่องนี้ กลับมาเล่นต่อได้ตลอด
+                        {loadError
+                            ? `โหลดความคืบหน้าไม่สำเร็จ: ${loadError}`
+                            : "ความคืบหน้าบันทึกไว้ในบัญชีของคุณ เปลี่ยนเครื่องก็เล่นต่อได้"}
                     </p>
                 </div>
             }

@@ -31,6 +31,34 @@ const LEVEL_ROUTES = {
     10: "/unit3/final/start",
 };
 
+// ------------------------------------------------------------
+// บทที่ใช้ "ลำดับด่าน" แทน level_id (ไม่ต้องรู้ level_id ใน DB)
+// ด่านที่ 1, 2, 3 ของบท (เรียงตาม order_no) → route ตามลำดับ
+// ------------------------------------------------------------
+
+const UNIT_ORDER_ROUTES = {
+    4: [
+        "/unit4/level1/intro",
+        "/unit4/level2/intro",
+        "/unit4/level3/intro",
+    ],
+    5: [
+        "/unit5/intro",
+        "/unit5/2Intro",
+        "/unit5/game3",
+    ],
+    6: [
+        "/unit6/intro",
+        "/unit6/game2",
+        "/unit6/game3",
+    ],
+};
+
+const getLevelRoute = (level, unitId, index) =>
+    LEVEL_ROUTES[level.level_id] ||
+    UNIT_ORDER_ROUTES[unitId]?.[index] ||
+    `/unit/unit${unitId}`;
+
 // ============================================================
 // หินลอย: บทละ 3 ก้อน = Level 1, 2, 3 ของบทนั้น
 // เรียงก้อนแรก → ก้อนสุดท้ายตามลำดับ Level (order_no)
@@ -139,7 +167,7 @@ const STONE_FILTER = {
 function FloatingStonePath({ progressUnits = [], loading = false }) {
     const navigate = useNavigate();
 
-    const handleStoneClick = ({ state, level, unitId }) => {
+    const handleStoneClick = ({ state, level, unitId, index }) => {
         if (state === "none") {
             return;
         }
@@ -151,10 +179,7 @@ function FloatingStonePath({ progressUnits = [], loading = false }) {
             return;
         }
 
-        navigate(
-            LEVEL_ROUTES[level.level_id] ||
-            `/unit/unit${unitId}`
-        );
+        navigate(getLevelRoute(level, unitId, index));
     };
 
     return (
@@ -268,6 +293,7 @@ function FloatingStonePath({ progressUnits = [], loading = false }) {
                                     state,
                                     level,
                                     unitId: group.unitId,
+                                    index,
                                 })
                             }
                         >

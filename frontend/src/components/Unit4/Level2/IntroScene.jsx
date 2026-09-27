@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { FaChevronRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import BookLayout from "../BookLayout";
+import useUnit4Chapter, { Unit4Checking } from "../useUnit4Chapter";
 import sceneOffice from "../../../assets/unit4/story-home.png";
 import sceneColleagues from "../../../assets/unit4/story-colleagues.png";
 import sceneInvite from "../../../assets/unit4/story-slot-invite.png";
@@ -17,6 +18,8 @@ const SCENES = [
 
 export default function IntroScene() {
     const navigate = useNavigate();
+    // กันเข้าทาง URL ตรง ๆ ตอนบทนี้ยังไม่ปลดล็อก
+    const { checking } = useUnit4Chapter(1);
     const [index, setIndex] = useState(0);
     const scene = SCENES[index];
     const last = index === SCENES.length - 1;
@@ -28,6 +31,8 @@ export default function IntroScene() {
         }
         setIndex((current) => current + 1);
     };
+
+    if (checking) return <Unit4Checking />;
 
     return (
         <BookLayout

@@ -18,6 +18,31 @@ import {
 const API_BASE_URL =
     "http://localhost:5000";
 
+// Unit 4 : ด่านที่ 1, 2, 3 (ตาม order_no) → หน้า intro ของแต่ละบท
+const UNIT4_ROUTES = [
+    "/unit4/level1/intro",
+    "/unit4/level2/intro",
+    "/unit4/level3/intro",
+];
+
+// Unit 5 : ด่านที่ 1, 2, 3 (ตาม order_no)
+const UNIT5_ROUTES = [
+    "/unit5/intro",
+    "/unit5/2Intro",
+    "/unit5/game3",
+];
+
+// บทที่มีด่านใน DB แล้ว → ใช้ระบบล็อกตาม Progress
+// (บทที่ยังไม่มีด่านจะกดเข้า intro ของบทได้ตามเดิม)
+// Unit 6 : ด่านที่ 1, 2, 3 (ตาม order_no)
+const UNIT6_ROUTES = [
+    "/unit6/intro",
+    "/unit6/game2",
+    "/unit6/game3",
+];
+
+const LOCK_ENFORCED_UNITS = 6;
+
 export default function UnitContentPage() {
     const navigate = useNavigate();
 
@@ -255,7 +280,8 @@ export default function UnitContentPage() {
 
     const getLevelRoute = (
         unitId,
-        levelId
+        levelId,
+        index
     ) => {
         // --------------------------------------------------------
         // Unit 1
@@ -330,16 +356,29 @@ export default function UnitContentPage() {
         // จะใช้ route เริ่มต้นของ Unit
         // --------------------------------------------------------
 
+        // Unit 4 : ใช้ลำดับด่านในบท (เรียงตาม order_no)
+        // ด่าน 1 → level1, ด่าน 2 → level2, ด่าน 3 → level3
         if (unitId === 4) {
-            return "/unit4/intro";
+            return (
+                UNIT4_ROUTES[index] ||
+                "/unit4/book"
+            );
         }
 
+        // Unit 5 : ใช้ลำดับด่านในบทเหมือน Unit 4
         if (unitId === 5) {
-            return "/unit5/intro";
+            return (
+                UNIT5_ROUTES[index] ||
+                "/unit5/intro"
+            );
         }
 
+        // Unit 6 : ใช้ลำดับด่านในบทเหมือน Unit 4–5
         if (unitId === 6) {
-            return "/unit6/intro";
+            return (
+                UNIT6_ROUTES[index] ||
+                "/unit6/intro"
+            );
         }
 
         return null;
@@ -386,7 +425,10 @@ export default function UnitContentPage() {
             const route =
                 getLevelRoute(
                     currentUnitId,
-                    levelId
+                    levelId,
+                    sortedLevels.indexOf(
+                        levelToStart
+                    )
                 );
 
             console.log(
@@ -410,7 +452,7 @@ export default function UnitContentPage() {
         // --------------------------------------------------------
 
         if (currentUnitId === 4) {
-            navigate("/unit4/intro");
+            navigate("/unit4/book");
             return;
         }
 
@@ -687,23 +729,6 @@ export default function UnitContentPage() {
                         </div>
                     )}
 
-                {!loadingProgress &&
-                    !progressError &&
-                    allLevelsCompleted && (
-                        <div
-                            className="
-                flex
-                justify-center
-                mt-2
-                text-sm
-                font-bold
-                text-green-700
-              "
-                        >
-                            🎉 ผ่าน Unit นี้ครบแล้ว
-                        </div>
-                    )}
-
                 {progressError && (
                     <div
                         className="
@@ -725,15 +750,14 @@ export default function UnitContentPage() {
                     className="
             flex
             justify-center
-            mt-2
-            mb-2
+            mt-4
           "
                 >
                     <button
                         onClick={handleStart}
                         disabled={
                             isStartLocked &&
-                            currentUnitId <= 3
+                            currentUnitId <= LOCK_ENFORCED_UNITS
                         }
                         title={
                             loadingProgress
@@ -760,7 +784,7 @@ export default function UnitContentPage() {
               duration-200
               border-2
               ${isStartLocked &&
-                                currentUnitId <= 3
+                                currentUnitId <= LOCK_ENFORCED_UNITS
                                 ? `
                     bg-gray-300
                     text-gray-500
@@ -781,7 +805,7 @@ export default function UnitContentPage() {
             `}
                     >
                         {isStartLocked &&
-                            currentUnitId <= 3 ? (
+                            currentUnitId <= LOCK_ENFORCED_UNITS ? (
                             <span className="text-xl">
                                 🔒
                             </span>
