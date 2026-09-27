@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import "./style/Game1.css";
 import {
     FaClipboardList,
     FaUtensils,
-    FaFutbol,
     FaBookOpen,
-    FaBus,
     FaBuilding,
     FaRestroom,
     FaDesktop,
@@ -29,11 +28,7 @@ import {
     FaTrophy,
     FaExclamationTriangle,
 } from "react-icons/fa";
-import bgHallway from "../../assets/unit6/school-bg.png";
 
-// ─────────────────────────────────────────────
-// ข้อมูลเกม — แก้ไข/เพิ่ม event ได้ตรงนี้ที่เดียว
-// ─────────────────────────────────────────────
 const LOCATIONS = [
     { id: "examRoom", name: "ห้องสอบ", icon: FaClipboardList },
     { id: "canteen", name: "โรงอาหาร", icon: FaUtensils },
@@ -43,100 +38,51 @@ const LOCATIONS = [
     { id: "computerRoom", name: "ห้องคอม", icon: FaDesktop },
 ];
 
-// choices: integrityDelta / scoreDelta / trustDelta / note
-// timeLimit: วินาทีก่อนเหตุการณ์ "หลุดมือ" (timeout)
-const EVENT_POOL = {
-    examRoom: [
-        {
-            id: "cheating",
-            title: "เพื่อนกำลังลอกข้อสอบ",
-            description: "คุณเห็นเพื่อนแอบเปิดชีทลอกคำตอบระหว่างสอบ",
-            timeLimit: 18,
-            choices: [
-                { id: "talk", label: "เข้าไปคุย", icon: FaComments, integrityDelta: 10, scoreDelta: 15, trustDelta: 5, note: "เพื่อนหยุดลอกและขอบคุณคุณ" },
-                { id: "report", label: "แจ้งครู", icon: FaChalkboardTeacher, integrityDelta: 8, scoreDelta: 10, trustDelta: -2, note: "ครูเข้ามาจัดการ หยุดการโกงได้" },
-                { id: "afterExam", label: "ชวนอ่านหลังสอบ", icon: FaHandshake, integrityDelta: 10, scoreDelta: 15, trustDelta: 8, note: "เพื่อนซึ้งใจและหยุดลอกทันที" },
-                { id: "ignore", label: "แกล้งไม่เห็น", icon: FaEyeSlash, integrityDelta: -15, scoreDelta: -10, trustDelta: 0, note: "เพื่อนลอกข้อสอบสำเร็จ" },
-            ],
-            timeout: { integrityDelta: -10, scoreDelta: -10, note: "ไม่มีใครเข้าไปช่วย เพื่อนลอกข้อสอบสำเร็จ" },
-        },
-    ],
-    canteen: [
-        {
-            id: "lostWallet",
-            title: "เจอกระเป๋าเงินตก",
-            description: "คุณเดินผ่านโต๊ะอาหารแล้วเจอกระเป๋าเงินตกอยู่",
-            timeLimit: 16,
-            choices: [
-                { id: "announce", label: "ประกาศหาเจ้าของ", icon: FaBullhorn, integrityDelta: 10, scoreDelta: 15, trustDelta: 5, note: "เจ้าของดีใจมากที่ได้เงินคืน" },
-                { id: "sendTeacher", label: "ส่งครู", icon: FaChalkboardTeacher, integrityDelta: 8, scoreDelta: 10, trustDelta: 2, note: "ครูรับเรื่องไปประกาศหาเจ้าของ" },
-                { id: "keep", label: "เก็บไว้เอง", icon: FaHandPaper, integrityDelta: -15, scoreDelta: -10, trustDelta: 0, note: "คุณเก็บเงินไว้เอง" },
-            ],
-            timeout: { integrityDelta: -8, scoreDelta: -5, note: "ไม่มีใครเก็บ กระเป๋าเงินหายไป" },
-        },
-    ],
-    library: [
-        {
-            id: "tornBook",
-            title: "มีคนฉีกหนังสือ",
-            description: "คุณเห็นนักเรียนคนหนึ่งกำลังฉีกหน้าหนังสือในห้องสมุด",
-            timeLimit: 16,
-            choices: [
-                { id: "stop", label: "ห้ามปราม", icon: FaComments, integrityDelta: 10, scoreDelta: 15, trustDelta: 5, note: "นักเรียนหยุดฉีกหนังสือ" },
-                { id: "reportLibrarian", label: "แจ้งบรรณารักษ์", icon: FaChalkboardTeacher, integrityDelta: 8, scoreDelta: 10, trustDelta: 0, note: "บรรณารักษ์เข้ามาจัดการ" },
-                { id: "walkAway", label: "เดินหนี", icon: FaWalking, integrityDelta: -12, scoreDelta: -8, trustDelta: 0, note: "หนังสือถูกทำลายต่อไป" },
-            ],
-            timeout: { integrityDelta: -8, scoreDelta: -5, note: "หนังสือหลายเล่มถูกฉีกเสียหาย" },
-        },
-    ],
-    registrar: [
-        {
-            id: "forgedSignature",
-            title: "มีคนปลอมลายเซ็น",
-            description: "คุณเห็นเอกสารที่มีลายเซ็นครูดูผิดปกติในห้องทะเบียน",
-            timeLimit: 18,
-            choices: [
-                { id: "reportStaff", label: "แจ้งเจ้าหน้าที่", icon: FaChalkboardTeacher, integrityDelta: 12, scoreDelta: 15, trustDelta: 5, note: "เจ้าหน้าที่ตรวจสอบและจับได้ทัน" },
-                { id: "ignore", label: "เพิกเฉย", icon: FaEyeSlash, integrityDelta: -15, scoreDelta: -10, trustDelta: 0, note: "เอกสารปลอมถูกใช้งานจริง" },
-            ],
-            timeout: { integrityDelta: -10, scoreDelta: -10, note: "เอกสารปลอมหลุดรอดไปแล้ว" },
-        },
-    ],
-    restroom: [
-        {
-            id: "smoking",
-            title: "มีคนสูบบุหรี่",
-            description: "คุณได้กลิ่นควันบุหรี่จากในห้องน้ำ",
-            timeLimit: 15,
-            choices: [
-                { id: "warn", label: "ตักเตือน", icon: FaComments, integrityDelta: 10, scoreDelta: 15, trustDelta: 5, note: "นักเรียนหยุดสูบบุหรี่" },
-                { id: "report", label: "แจ้งครู", icon: FaChalkboardTeacher, integrityDelta: 8, scoreDelta: 10, trustDelta: 0, note: "ครูเข้ามาจัดการ" },
-                { id: "walkAway", label: "เดินหนี", icon: FaWalking, integrityDelta: -12, scoreDelta: -8, trustDelta: 0, note: "มีคนสูบบุหรี่ต่อไป" },
-            ],
-            timeout: { integrityDelta: -8, scoreDelta: -5, note: "กลิ่นควันลามไปทั่วอาคาร" },
-        },
-    ],
-    computerRoom: [
-        {
-            id: "gambling",
-            title: "มีคนเข้าเว็บพนัน",
-            description: "คุณเห็นนักเรียนคนหนึ่งเปิดเว็บพนันในห้องคอมพิวเตอร์",
-            timeLimit: 16,
-            choices: [
-                { id: "warn", label: "ตักเตือน", icon: FaComments, integrityDelta: 10, scoreDelta: 15, trustDelta: 5, note: "นักเรียนปิดเว็บทันที" },
-                { id: "report", label: "แจ้งครู", icon: FaChalkboardTeacher, integrityDelta: 8, scoreDelta: 10, trustDelta: 0, note: "ครูเข้ามาตักเตือน" },
-                { id: "ignore", label: "ไม่สนใจ", icon: FaTimesCircle, integrityDelta: -15, scoreDelta: -10, trustDelta: 0, note: "นักเรียนเล่นพนันต่อไป" },
-            ],
-            timeout: { integrityDelta: -10, scoreDelta: -8, note: "เว็บพนันถูกส่งต่อในกลุ่มเพื่อน" },
-        },
-    ],
+const API_URL = "http://localhost:5000";
+const UNIT_ID = 6;
+const LEVEL_ORDER = 1;
+
+const authHeaders = () => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
+
+// icon_key ใน DB → ไอคอนจริง
+const CHOICE_ICONS = {
+    FaComments,
+    FaChalkboardTeacher,
+    FaHandshake,
+    FaEyeSlash,
+    FaBullhorn,
+    FaHandPaper,
+    FaWalking,
+    FaTimesCircle,
 };
 
-// เหตุการณ์พิเศษ — สุ่มเช็คทุก SPECIAL_EVENT_INTERVAL วินาที
+const RANK_INFO = {
+    S: { rankText: "ยอดเยี่ยม", flavor: "คุณคือ Integrity Ambassador ตัวจริง นักเรียนทุกคนปลอดภัย" },
+    A: { rankText: "ดีมาก", flavor: "คุณจัดการวิกฤตได้อย่างมีสติและทันเวลา" },
+    B: { rankText: "ดี", flavor: "ยังพลาดไปบ้าง แต่ช่วยเหลือได้หลายเหตุการณ์" },
+    C: { rankText: "พอใช้", flavor: "ควรตัดสินใจให้เร็วและเหมาะสมกว่านี้" },
+    D: { rankText: "ควรปรับปรุง", flavor: "มีหลายเหตุการณ์ที่หลุดมือไป ลองใหม่อีกครั้ง" },
+};
+
+// หา level_id ของด่านนี้จาก progress (Unit 6 ลำดับ 1)
+async function fetchLevelId() {
+    const response = await fetch(`${API_URL}/api/user-progress`, { headers: authHeaders() });
+    if (response.status === 401) return { unauthorized: true };
+    const data = await response.json();
+    const unit = (data.data || []).find((u) => Number(u.unit_id) === UNIT_ID);
+    const level = [...(unit?.levels || [])]
+        .sort((a, b) => Number(a.order_no) - Number(b.order_no))[LEVEL_ORDER - 1];
+    return { levelId: level?.level_id ?? null };
+}
+
+// เหตุการณ์พิเศษ — ข้อความอยู่ที่หน้าเว็บ ผลต่อคะแนนคิดที่ backend
 const SPECIAL_EVENTS = [
-    { id: "fakeNews", type: "integrityFlat", title: "📢 ข่าวปลอมระบาด", description: "\"โกงนิดเดียวไม่เป็นไร\" ทำให้ Integrity ลดลง", integrityDelta: -5 },
+    { id: "fakeNews", type: "integrityFlat", title: "📢 ข่าวปลอมระบาด", description: "\"โกงนิดเดียวไม่เป็นไร\" ทำให้ Integrity ลดลง" },
     { id: "teacherHelp", type: "autoResolve", title: "👨‍🏫 ครูเวรมาช่วย", description: "ครูช่วยจัดการเหตุการณ์ให้ 1 จุดฟรี" },
-    { id: "virtueDay", type: "integrityFlat", title: "🎉 วันคุณธรรม", description: "ทุกคนร่วมมือกันทำความดี Integrity เพิ่มขึ้น", integrityDelta: 10 },
+    { id: "virtueDay", type: "integrityFlat", title: "🎉 วันคุณธรรม", description: "ทุกคนร่วมมือกันทำความดี Integrity เพิ่มขึ้น" },
 ];
 
 const GAME_SECONDS = 40;
@@ -165,16 +111,65 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
     const toastTimerRef = useRef(null);
     const timeLeft = GAME_SECONDS - elapsed;
 
+    const [playId, setPlayId] = useState(null);
+    const [eventPool, setEventPool] = useState({}); // location_code → [event]
+    const [starting, setStarting] = useState(false);
+    const [result, setResult] = useState(null);      // ผลจาก complete
+    const [finishError, setFinishError] = useState("");
+
+    const playIdRef = useRef(null);
+    const spawnNoRef = useRef(0);
+    const pendingRef = useRef(new Set()); // request ที่ยังไม่ตอบกลับ
+    const seqRef = useRef(0);             // กันผลเก่าทับผลใหม่
+    const appliedSeqRef = useRef(0);
+
     const showToast = useCallback((type, message) => {
         clearTimeout(toastTimerRef.current);
         setToast({ type, message });
         toastTimerRef.current = setTimeout(() => setToast(null), 1800);
     }, []);
 
-    const applyDelta = useCallback((integrityDelta = 0, scoreDelta = 0) => {
-        setIntegrity((v) => Math.min(100, Math.max(0, v + integrityDelta)));
-        setScore((s) => Math.max(0, s + scoreDelta));
+    // ยอดรวมมาจาก backend เสมอ (ใช้ผลของ request ล่าสุดเท่านั้น)
+    const applyTotals = useCallback((seq, data) => {
+        if (seq < appliedSeqRef.current) return;
+        appliedSeqRef.current = seq;
+        setIntegrity(data.integrity);
+        setScore(data.score);
+        setHelpedCount(data.helped);
+        setMissedCount(data.missed);
     }, []);
+
+    // ยิง API ระหว่างเล่น + จำไว้ว่ายังรออยู่ (ตอนจบเกมจะรอให้ครบก่อน)
+    const postGame = useCallback(
+        (path, body) => {
+            const seq = ++seqRef.current;
+
+            const request = fetch(`${API_URL}/api/crisis-game/${path}`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({ playId: playIdRef.current, ...body }),
+            })
+                .then(async (response) => {
+                    if (response.status === 401) {
+                        navigate("/", { replace: true });
+                        return null;
+                    }
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.message || "บันทึกไม่สำเร็จ");
+                    applyTotals(seq, data.data);
+                    return data.data;
+                })
+                .catch((error) => {
+                    console.error(`crisis ${path} error:`, error);
+                    return null;
+                })
+                .finally(() => pendingRef.current.delete(request));
+
+            pendingRef.current.add(request);
+            return request;
+        },
+        [applyTotals, navigate]
+    );
 
     // ───────── นาฬิกาหลัก ─────────
     useEffect(() => {
@@ -184,7 +179,7 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
                 const next = e + 1;
                 if (next >= GAME_SECONDS) {
                     clearInterval(id);
-                    setPhase("summary");
+                    setPhase("finishing"); // รอบันทึกผลแล้วค่อยโชว์สรุป
                 }
                 return next;
             });
@@ -192,62 +187,87 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
         return () => clearInterval(id);
     }, [phase]);
 
+    // เหตุการณ์ที่ค้างอยู่ล่าสุด (ใช้ในรอบประมวลผลทุกวินาที)
+    const activeRef = useRef([]);
+    useEffect(() => {
+        activeRef.current = activeEvents;
+    }, [activeEvents]);
+
     // ───────── ประมวลผลทุกวินาที: timeout / spawn event / special event ─────────
+    // หมายเหตุ: ห้ามยิง API หรือเพิ่มตัวนับ "ข้างใน" setState(prev => ...)
+    // เพราะ React StrictMode เรียกฟังก์ชันนั้น 2 ครั้งตอน dev → ยิงซ้ำ / spawn_no กระโดดทีละ 2
+    // จึงคำนวณจาก activeRef ให้เสร็จก่อน แล้วค่อย setActiveEvents ครั้งเดียว
     useEffect(() => {
         if (phase !== "playing" || elapsed === 0) return;
 
+        let list = activeRef.current;
+
         // เหตุการณ์ที่หมดเวลา -> timeout
-        setActiveEvents((prev) => {
-            const survivors = [];
-            prev.forEach((ev) => {
-                const remaining = ev.remaining - 1;
-                if (remaining <= 0) {
-                    const t = ev.event.timeout;
-                    applyDelta(t.integrityDelta, t.scoreDelta, 0);
-                    setMissedCount((c) => c + 1);
-                    showToast("bad", `${ev.event.title}: ${t.note}`);
-                } else {
-                    survivors.push({ ...ev, remaining });
-                }
-            });
-            return survivors;
+        const survivors = [];
+        list.forEach((ev) => {
+            const remaining = ev.remaining - 1;
+            if (remaining <= 0) {
+                // หลุดมือ → ให้ backend หักคะแนนตามที่ตั้งไว้ใน DB
+                postGame("respond", {
+                    spawnNo: ev.spawnNo,
+                    eventId: ev.event.event_id,
+                    choiceId: null,
+                    responseSeconds: ev.event.time_limit,
+                }).then((r) => r && showToast("bad", `${ev.event.title}: ${r.note}`));
+            } else {
+                survivors.push({ ...ev, remaining });
+            }
         });
+        list = survivors;
 
         // เหตุการณ์พิเศษ
         if (elapsed % SPECIAL_EVENT_INTERVAL === 0 && Math.random() < SPECIAL_EVENT_CHANCE) {
             const special = SPECIAL_EVENTS[Math.floor(Math.random() * SPECIAL_EVENTS.length)];
+
             if (special.type === "integrityFlat") {
-                applyDelta(special.integrityDelta, 0, 0);
-                showToast("special", `${special.title} — ${special.description}`);
+                postGame("special", { specialCode: special.id })
+                    .then((r) => r && showToast("special", `${special.title} — ${special.description}`));
             } else if (special.type === "autoResolve") {
-                setActiveEvents((prev) => {
-                    if (prev.length === 0) {
-                        showToast("special", `${special.title} — ไม่มีเหตุการณ์ให้ช่วยตอนนี้`);
-                        return prev;
-                    }
-                    const [first, ...rest] = prev;
-                    const best = first.event.choices.reduce((a, b) => (b.integrityDelta > a.integrityDelta ? b : a));
-                    applyDelta(best.integrityDelta, best.scoreDelta, best.trustDelta);
-                    setHelpedCount((c) => c + 1);
-                    showToast("special", `${special.title} — ช่วยแก้ "${first.event.title}" ให้แล้ว`);
-                    return rest;
+                const [first, ...rest] = list;
+
+                // ครูเวรแก้เหตุการณ์แรกให้ (backend เลือกตัวเลือกที่ดีที่สุดเอง)
+                postGame("special", {
+                    specialCode: special.id,
+                    eventId: first?.event.event_id,
+                    spawnNo: first?.spawnNo,
+                }).then((r) => {
+                    if (!r) return;
+                    showToast(
+                        "special",
+                        r.resolved
+                            ? `${special.title} — ช่วยแก้ "${r.resolved.title}" ให้แล้ว`
+                            : `${special.title} — ไม่มีเหตุการณ์ให้ช่วยตอนนี้`
+                    );
                 });
+
+                if (first) list = rest;
             }
         }
 
         // สุ่ม spawn event ใหม่ตามความยาก
-        setActiveEvents((prev) => {
-            const target = getTargetConcurrency(elapsed);
-            if (prev.length >= target) return prev;
-            const occupied = new Set(prev.map((e) => e.locationId));
-            const available = LOCATIONS.filter((l) => !occupied.has(l.id) && EVENT_POOL[l.id]?.length);
-            if (available.length === 0) return prev;
-            const loc = available[Math.floor(Math.random() * available.length)];
-            const pool = EVENT_POOL[loc.id];
-            const template = pool[Math.floor(Math.random() * pool.length)];
-            const uid = `${loc.id}-${template.id}-${Date.now()}`;
-            return [...prev, { uid, locationId: loc.id, event: template, remaining: template.timeLimit }];
-        });
+        const target = getTargetConcurrency(elapsed);
+        if (list.length < target) {
+            const occupied = new Set(list.map((e) => e.locationId));
+            const available = LOCATIONS.filter((l) => !occupied.has(l.id) && eventPool[l.id]?.length);
+
+            if (available.length > 0) {
+                const loc = available[Math.floor(Math.random() * available.length)];
+                const pool = eventPool[loc.id];
+                const template = pool[Math.floor(Math.random() * pool.length)];
+                spawnNoRef.current += 1;
+                const spawnNo = spawnNoRef.current;
+                const uid = `${loc.id}-${template.event_code}-${spawnNo}`;
+                list = [...list, { uid, spawnNo, locationId: loc.id, event: template, remaining: template.time_limit }];
+            }
+        }
+
+        activeRef.current = list;
+        setActiveEvents(list);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [elapsed, phase]);
 
@@ -258,21 +278,114 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
         }
     }, [activeEvents, selectedUid]);
 
-    function startGame() {
-        setPhase("playing");
+    // เริ่มรอบใหม่ทุกครั้ง (play_id ใหม่ — รอบเก่ายังอยู่ในประวัติ)
+    async function startGame() {
+        if (starting) return;
+        setStarting(true);
+        setFinishError("");
+
+        try {
+            const found = await fetchLevelId();
+            if (found.unauthorized) {
+                navigate("/", { replace: true });
+                return;
+            }
+            if (!found.levelId) {
+                alert("ยังไม่มีด่านนี้ในระบบ");
+                navigate("/map", { replace: true });
+                return;
+            }
+
+            const response = await fetch(`${API_URL}/api/game-play/start`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({ level_id: found.levelId }),
+            });
+
+            if (response.status === 401) {
+                navigate("/", { replace: true });
+                return;
+            }
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.message || "เริ่มเกมไม่ได้");
+                navigate("/map", { replace: true });
+                return;
+            }
+
+            const pool = {};
+            for (const ev of data.data.events || []) {
+                (pool[ev.location_code] ||= []).push(ev);
+            }
+
+            playIdRef.current = data.data.play_id;
+            spawnNoRef.current = 0;
+            seqRef.current = 0;
+            appliedSeqRef.current = 0;
+            pendingRef.current = new Set();
+
+            setPlayId(data.data.play_id);
+            setEventPool(pool);
+            setResult(null);
+            setElapsed(0);
+            setIntegrity(100);
+            setScore(0);
+            setHelpedCount(0);
+            setMissedCount(0);
+            activeRef.current = [];
+            setActiveEvents([]);
+            setSelectedUid(null);
+            setToast(null);
+            setPhase("playing");
+        } catch (error) {
+            console.error("Start crisis game error:", error);
+            alert("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
+        } finally {
+            setStarting(false);
+        }
     }
 
     function resetGame() {
-        setElapsed(0);
-        setIntegrity(100);
-        setScore(0);
-        setHelpedCount(0);
-        setMissedCount(0);
-        setActiveEvents([]);
-        setSelectedUid(null);
-        setToast(null);
-        setPhase("playing");
+        startGame();
     }
+
+    // ───────── หมดเวลา → รอ request ที่ค้างให้ครบ แล้วบันทึกผล ─────────
+    const finish = useCallback(async () => {
+        setFinishError("");
+
+        try {
+            await Promise.allSettled([...pendingRef.current]);
+
+            const response = await fetch(`${API_URL}/api/game-play/complete`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({ play_id: playIdRef.current }),
+            });
+
+            if (response.status === 401) {
+                navigate("/", { replace: true });
+                return;
+            }
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "บันทึกผลไม่สำเร็จ");
+            }
+
+            setResult(data.data ?? null);
+            setPhase("summary");
+        } catch (error) {
+            console.error("Complete crisis game error:", error);
+            setFinishError(error.message || "บันทึกผลไม่สำเร็จ");
+        }
+    }, [navigate]);
+
+    useEffect(() => {
+        if (phase === "finishing") finish();
+    }, [phase, finish]);
 
     function handleTileClick(locationId) {
         const ev = activeEvents.find((e) => e.locationId === locationId);
@@ -282,11 +395,24 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
     function handleChoice(choice) {
         const selected = activeEvents.find((e) => e.uid === selectedUid);
         if (!selected) return;
-        applyDelta(choice.integrityDelta, choice.scoreDelta, choice.trustDelta);
-        setHelpedCount((c) => c + 1);
-        showToast(choice.integrityDelta >= 0 ? "good" : "bad", `${choice.note} (${choice.scoreDelta >= 0 ? "+" : ""}${choice.scoreDelta} คะแนน)`);
-        setActiveEvents((prev) => prev.filter((e) => e.uid !== selectedUid));
+
+        const rest = activeRef.current.filter((e) => e.uid !== selectedUid);
+        activeRef.current = rest;
+        setActiveEvents(rest);
         setSelectedUid(null);
+
+        postGame("respond", {
+            spawnNo: selected.spawnNo,
+            eventId: selected.event.event_id,
+            choiceId: choice.choice_id,
+            responseSeconds: selected.event.time_limit - selected.remaining,
+        }).then((r) => {
+            if (!r) return;
+            showToast(
+                r.integrity_delta >= 0 ? "good" : "bad",
+                `${r.note} (${r.score_delta >= 0 ? "+" : ""}${r.score_delta} คะแนน)`
+            );
+        });
     }
 
     const selectedEvent = activeEvents.find((e) => e.uid === selectedUid) || null;
@@ -294,19 +420,18 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
     const mm = String(Math.floor(Math.max(0, timeLeft) / 60)).padStart(2, "0");
     const ss = String(Math.max(0, timeLeft) % 60).padStart(2, "0");
 
-    const studentsSafe = integrity >= 80;
-    const { rank, rankText, flavor } = (() => {
-        if (integrity >= 90 && score >= 150) return { rank: "S", rankText: "ยอดเยี่ยม", flavor: "คุณคือ Integrity Ambassador ตัวจริง นักเรียนทุกคนปลอดภัย" };
-        if (score >= 110) return { rank: "A", rankText: "ดีมาก", flavor: "คุณจัดการวิกฤตได้อย่างมีสติและทันเวลา" };
-        if (score >= 70) return { rank: "B", rankText: "ดี", flavor: "ยังพลาดไปบ้าง แต่ช่วยเหลือได้หลายเหตุการณ์" };
-        if (score >= 30) return { rank: "C", rankText: "พอใช้", flavor: "ควรตัดสินใจให้เร็วและเหมาะสมกว่านี้" };
-        return { rank: "D", rankText: "ควรปรับปรุง", flavor: "มีหลายเหตุการณ์ที่หลุดมือไป ลองใหม่อีกครั้ง" };
-    })();
+    // ผลสุดท้ายมาจาก backend (complete)
+    const finalIntegrity = result?.integrity ?? integrity;
+    const finalScore = result?.score ?? score;
+    const finalHelped = result?.helped ?? helpedCount;
+    const finalMissed = result?.missed ?? missedCount;
+    const studentsSafe = finalIntegrity >= 80;
+    const rank = result?.rank ?? "D";
+    const { rankText, flavor } = RANK_INFO[rank] || RANK_INFO.D;
+    const earnedIP = result?.earned_ip ?? 0;
 
     return (
         <>
-            <style>{css}</style>
-
             <div className="crisis-stage">
                 {phase === "intro" && (
                     <div className="intro-card">
@@ -322,7 +447,9 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
                             <div className="intro-goal"><FaHeart /> Integrity ≥ 80</div>
                             <div className="intro-goal"><FaUserFriends /> นักเรียนปลอดภัย</div>
                         </div>
-                        <button className="intro-start" onClick={startGame}>เริ่มภารกิจ</button>
+                        <button className="intro-start" onClick={startGame} disabled={starting}>
+                            {starting ? "กำลังเตรียมภารกิจ..." : "เริ่มภารกิจ"}
+                        </button>
                     </div>
                 )}
 
@@ -366,7 +493,7 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
                                                     <div className="map-tile-timer">
                                                         <div
                                                             className="map-tile-timer-fill"
-                                                            style={{ width: `${(activeEv.remaining / activeEv.event.timeLimit) * 100}%` }}
+                                                            style={{ width: `${(activeEv.remaining / activeEv.event.time_limit) * 100}%` }}
                                                         />
                                                     </div>
                                                 </>
@@ -393,15 +520,15 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
                                         <div className="event-modal-timer">
                                             <div
                                                 className="event-modal-timer-fill"
-                                                style={{ width: `${(selectedEvent.remaining / selectedEvent.event.timeLimit) * 100}%` }}
+                                                style={{ width: `${(selectedEvent.remaining / selectedEvent.event.time_limit) * 100}%` }}
                                             />
                                         </div>
                                         <p className="event-desc">{selectedEvent.event.description}</p>
                                         <div className="event-choices">
                                             {selectedEvent.event.choices.map((choice) => {
-                                                const ChoiceIcon = choice.icon;
+                                                const ChoiceIcon = CHOICE_ICONS[choice.icon_key] || FaComments;
                                                 return (
-                                                    <button key={choice.id} className="event-choice-btn" onClick={() => handleChoice(choice)}>
+                                                    <button key={choice.choice_id} className="event-choice-btn" onClick={() => handleChoice(choice)}>
                                                         <ChoiceIcon />
                                                         {choice.label}
                                                     </button>
@@ -415,27 +542,39 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
                     </>
                 )}
 
+                {phase === "finishing" && (
+                    <div className="summary-card">
+                        <h1>กำลังสรุปผลภารกิจ...</h1>
+                        {finishError && (
+                            <>
+                                <p className="summary-flavor" style={{ color: "#c8102e" }}>{finishError}</p>
+                                <button className="intro-start" onClick={finish}>ลองบันทึกผลอีกครั้ง</button>
+                            </>
+                        )}
+                    </div>
+                )}
+
                 {phase === "summary" && (
                     <div className="summary-card">
                         <div className="summary-badge"><FaTrophy /></div>
                         <h1>Mission Complete</h1>
-                        <p className="summary-sub">ช่วยเหลือ {helpedCount} / {helpedCount + missedCount}</p>
+                        <p className="summary-sub">ช่วยเหลือ {finalHelped} / {finalHelped + finalMissed}</p>
 
                         <div className="summary-grid">
                             <div className="summary-item good">
-                                <strong>{helpedCount}</strong>
+                                <strong>{finalHelped}</strong>
                                 <span>ช่วยทัน</span>
                             </div>
                             <div className="summary-item bad">
-                                <strong>{missedCount}</strong>
+                                <strong>{finalMissed}</strong>
                                 <span>หลุดมือ</span>
                             </div>
                             <div className="summary-item">
-                                <strong>{integrity}%</strong>
+                                <strong>{finalIntegrity}%</strong>
                                 <span>Integrity</span>
                             </div>
                             <div className="summary-item">
-                                <strong>{score}</strong>
+                                <strong>{finalScore}</strong>
                                 <span>Score</span>
                             </div>
                         </div>
@@ -449,8 +588,12 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
                             {studentsSafe ? "✅ นักเรียนปลอดภัย" : "⚠️ นักเรียนบางส่วนไม่ปลอดภัย"} — {flavor}
                         </p>
 
+                        <p className="summary-flavor" style={{ color: "#c8102e", fontWeight: 800, fontSize: 18 }}>
+                            ได้รับ +{earnedIP} IP
+                        </p>
+
                         <div className="summary-buttons">
-                            <button className="btn blue" onClick={resetGame}>
+                            <button className="btn blue" onClick={resetGame} disabled={starting}>
                                 <FaRedoAlt />
                                 <div>
                                     <strong>เล่นใหม่</strong>
@@ -471,643 +614,3 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
         </>
     );
 }
-
-const css = `
-@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700;800;900&family=Sarabun:wght@400;500;600;700&display=swap');
-
-*{
-box-sizing:border-box;
-margin:0;
-padding:0;
-font-family:'Sarabun','Kanit',sans-serif;
-}
-
-html, body, #root{ height:100%; }
-
-/* ───────── Stage: school hallway w/ lockers ───────── */
-.crisis-stage{
-height:100vh;
-height:100dvh;
-overflow:hidden;
-padding:clamp(8px,1.5vh,18px) clamp(8px,2vw,18px);
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-gap:clamp(6px,1.2vh,14px);
-background:
-    repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 2px, transparent 2px 64px),
-    linear-gradient(180deg, rgba(10,18,34,.55) 0%, rgba(6,11,22,.75) 55%, rgba(3,6,12,.92) 100%),
-    url(${bgHallway}) center / cover no-repeat fixed;
-color:white;
-}
-
-/* ───────── Intro: notebook / binder cover ───────── */
-.intro-card{
-position:relative;
-width:min(92vw,480px);
-background:
-    repeating-linear-gradient(180deg, transparent 0 37px, rgba(28,58,95,.14) 37px 38px),
-    #fff9ea;
-border-left:6px solid #c8102e;
-border-radius:6px 18px 18px 6px;
-padding:clamp(24px,4vh,40px) clamp(20px,4vw,32px);
-text-align:center;
-box-shadow:0 20px 50px rgba(0,0,0,.55), 0 0 0 4px #12233f, 0 0 0 8px rgba(255,199,44,.35);
-color:#1a2333;
-}
-
-/* corkboard push-pins, reused on the event modal too */
-.pin{
-position:absolute;
-top:-14px;
-font-size:20px;
-color:#ffc72c;
-filter:drop-shadow(0 3px 4px rgba(0,0,0,.55));
-z-index:2;
-}
-.pin-left{ left:26px; transform:rotate(-20deg); }
-.pin-right{ right:26px; transform:rotate(20deg); }
-
-.intro-badge{
-width:84px;
-height:84px;
-margin:0 auto;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:38px;
-border-radius:50%;
-background:radial-gradient(circle at 35% 30%,#ffe9a8,#ffc72c 55%,#c8102e 130%);
-border:3px solid #12233f;
-box-shadow:0 8px 20px rgba(200,16,46,.4), inset 0 0 0 3px rgba(255,255,255,.5);
-}
-
-.title-icon{
-color:#c8102e;
-margin-right:8px;
-vertical-align:-2px;
-filter:drop-shadow(0 2px 3px rgba(0,0,0,.15));
-}
-
-.intro-card h1{
-margin-top:14px;
-font-family:'Kanit',sans-serif;
-font-size:clamp(22px,3.4vh,28px);
-color:#12233f;
-font-weight:900;
-letter-spacing:.5px;
-text-transform:uppercase;
-}
-
-.intro-card p{
-margin-top:14px;
-color:#3d4759;
-font-size:14px;
-line-height:1.7;
-}
-
-.intro-goals{
-margin-top:18px;
-display:flex;
-justify-content:center;
-gap:16px;
-flex-wrap:wrap;
-}
-
-.intro-goal{
-display:flex;
-align-items:center;
-gap:8px;
-background:#12233f;
-border:1px solid #1a3358;
-padding:8px 14px;
-border-radius:999px;
-font-size:13px;
-color:#fff8e7;
-font-weight:700;
-}
-
-.intro-goal svg{ color:#ffc72c; }
-
-.intro-start{
-margin-top:26px;
-width:100%;
-height:54px;
-border:none;
-border-radius:14px;
-font-family:'Kanit',sans-serif;
-font-size:17px;
-font-weight:800;
-letter-spacing:1px;
-text-transform:uppercase;
-color:#fff8e7;
-background:linear-gradient(#e01b3e,#a30d28);
-box-shadow:0 6px 0 #6e0819, 0 10px 20px rgba(0,0,0,.35);
-cursor:pointer;
-transition:.15s;
-}
-
-.intro-start:hover{ transform:translateY(2px); box-shadow:0 4px 0 #6e0819, 0 6px 14px rgba(0,0,0,.35); }
-
-/* ───────── HUD: chalkboard chips ───────── */
-.hud{
-width:min(96vw,900px);
-flex-shrink:0;
-display:flex;
-gap:8px;
-flex-wrap:wrap;
-}
-
-.hud-chip{
-flex:1;
-min-width:100px;
-display:flex;
-align-items:center;
-justify-content:center;
-gap:6px;
-padding:clamp(6px,1vh,10px) 10px;
-border-radius:8px;
-background:#1e3324;
-background-image:radial-gradient(rgba(255,255,255,.03) 1px, transparent 1px);
-background-size:6px 6px;
-backdrop-filter:blur(8px);
--webkit-backdrop-filter:blur(8px);
-border:2px dashed rgba(255,255,255,.35);
-font-family:'Kanit',sans-serif;
-font-weight:700;
-font-size:clamp(11px,1.6vh,14px);
-color:#f5f5f0;
-box-shadow:0 6px 14px rgba(0,0,0,.35);
-}
-
-.hud-chip svg{ color:#ffc72c; }
-.hud-chip.warn svg{ color:#ff6b6b; }
-.hud-chip.warn{ color:#ffb3b3; border-color:rgba(255,107,107,.6); }
-
-/* ───────── School map: locker bay ───────── */
-.map-frame{
-width:min(96vw,900px);
-flex:1 1 auto;
-min-height:0;
-display:flex;
-flex-direction:column;
-gap:8px;
-}
-
-.map-signage{
-flex-shrink:0;
-display:flex;
-align-items:center;
-justify-content:center;
-gap:8px;
-background:linear-gradient(180deg,#fff8e7,#f4e3ae);
-color:#12233f;
-font-family:'Kanit',sans-serif;
-font-weight:800;
-font-size:clamp(12px,1.8vh,14px);
-padding:8px 16px;
-border-radius:10px;
-border:2px solid #12233f;
-box-shadow:0 6px 14px rgba(0,0,0,.35);
-letter-spacing:.5px;
-text-transform:uppercase;
-}
-
-.map-signage svg{ color:#c8102e; font-size:16px; }
-
-.school-map{
-width:100%;
-flex:1 1 auto;
-min-height:0;
-border-radius:16px;
-border:3px solid #0e1a2e;
-background:
-    repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 40px, transparent 40px 80px),
-    linear-gradient(135deg,#1c3358 0%,#0f1e37 100%);
-box-shadow:inset 0 0 0 1px rgba(255,255,255,.06), 0 10px 30px rgba(0,0,0,.5);
-padding:clamp(10px,2vh,20px);
-display:grid;
-grid-template-columns:repeat(4,1fr);
-grid-template-rows:repeat(2,1fr);
-gap:clamp(8px,1.6vh,16px);
-}
-
-.map-tile{
-position:relative;
-border-radius:8px;
-background:
-    repeating-linear-gradient(180deg, rgba(0,0,0,.12) 0 2px, transparent 2px 7px) top / 100% 16px no-repeat,
-    linear-gradient(180deg,#c3cfdd 0%,#8fa1b7 55%,#71879f 100%);
-border:1px solid #4a5b73;
-box-shadow:inset 0 0 0 1px rgba(255,255,255,.35), 0 4px 10px rgba(0,0,0,.4);
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-gap:6px;
-cursor:default;
-transition:.2s;
-color:#16233a;
-}
-
-.map-tile::before{
-content:"";
-position:absolute;
-top:10px;
-right:10px;
-width:5px;
-height:18px;
-border-radius:2px;
-background:#12233f;
-box-shadow:-2px 0 0 rgba(255,255,255,.25);
-}
-
-.map-tile::after{
-content:"";
-position:absolute;
-inset:6px;
-border:1px solid rgba(18,35,63,.18);
-border-radius:5px;
-pointer-events:none;
-}
-
-.map-tile svg{ font-size:clamp(20px,4vh,34px); color:#12233f; }
-
-.map-tile span{
-font-family:'Kanit',sans-serif;
-font-size:clamp(10px,1.5vh,13px);
-font-weight:700;
-text-align:center;
-}
-
-.map-tile.active{
-cursor:pointer;
-border-color:#e01b3e;
-color:#fff2ea;
-background:
-    repeating-linear-gradient(180deg, rgba(0,0,0,.18) 0 2px, transparent 2px 7px) top / 100% 16px no-repeat,
-    linear-gradient(180deg,#e35a5a 0%,#a30d28 100%);
-animation:tilePulse 1s ease-in-out infinite;
-}
-
-.map-tile.active svg{ color:#fff8e7; }
-
-@keyframes tilePulse{
-0%,100%{ box-shadow:inset 0 0 0 1px rgba(255,255,255,.35), 0 0 0 0 rgba(224,27,62,.55); }
-50%{ box-shadow:inset 0 0 0 1px rgba(255,255,255,.35), 0 0 0 10px rgba(224,27,62,0); }
-}
-
-.map-tile-badge{
-position:absolute;
-top:6px;
-right:6px;
-font-size:clamp(14px,2.4vh,20px);
-animation:badgeBlink 1s ease-in-out infinite;
-}
-
-@keyframes badgeBlink{
-0%,100%{ opacity:1; }
-50%{ opacity:.25; }
-}
-
-.map-tile-timer{
-position:absolute;
-bottom:6px;
-left:8px;
-right:8px;
-height:5px;
-border-radius:999px;
-background:rgba(18,35,63,.4);
-overflow:hidden;
-}
-
-.map-tile-timer-fill{
-height:100%;
-background:#ffc72c;
-transition:width .3s linear;
-}
-
-/* ───────── Event modal: hall pass slip ───────── */
-.event-overlay{
-position:fixed;
-inset:0;
-background:rgba(4,6,12,.75);
-display:flex;
-align-items:center;
-justify-content:center;
-padding:16px;
-z-index:20;
-}
-
-.event-modal-wrap{
-position:relative;
-width:min(94vw,420px);
-max-height:90vh;
-}
-
-.event-modal{
-width:100%;
-max-height:90vh;
-overflow:auto;
-background:
-    repeating-linear-gradient(180deg, transparent 0 27px, rgba(28,58,95,.13) 27px 28px),
-    #fff9ea;
-border-left:6px solid #c8102e;
-color:#1a2333;
-border-radius:6px 16px 16px 6px;
-padding:clamp(16px,3vh,24px);
-box-shadow:0 24px 60px rgba(0,0,0,.6), 0 0 0 4px #12233f, 0 0 0 7px rgba(255,199,44,.3);
-}
-
-.urgent-stamp{
-position:absolute;
-top:14px;
-right:14px;
-z-index:2;
-background:transparent;
-color:#c8102e;
-font-weight:900;
-font-size:13px;
-padding:4px 10px;
-border-radius:999px;
-border:3px solid #c8102e;
-letter-spacing:1px;
-text-transform:uppercase;
-transform:rotate(8deg);
-opacity:.9;
-}
-
-.event-modal-head{
-display:flex;
-align-items:center;
-gap:10px;
-font-family:'Kanit',sans-serif;
-font-weight:800;
-font-size:clamp(15px,2.2vh,18px);
-color:#12233f;
-}
-
-.event-modal-timer{
-margin-top:8px;
-height:6px;
-border-radius:999px;
-background:#e3d7ae;
-overflow:hidden;
-}
-
-.event-modal-timer-fill{
-height:100%;
-background:#c8102e;
-transition:width .3s linear;
-}
-
-.event-modal p.event-desc{
-margin-top:12px;
-font-size:14px;
-line-height:1.6;
-color:#3d4759;
-}
-
-.event-choices{
-margin-top:16px;
-display:flex;
-flex-direction:column;
-gap:10px;
-}
-
-.event-choice-btn{
-display:flex;
-align-items:center;
-gap:12px;
-padding:12px 14px;
-border-radius:10px;
-border:2px solid #12233f;
-background:#fff8e7;
-font-weight:700;
-font-size:14px;
-color:#1a2333;
-cursor:pointer;
-text-align:left;
-transition:.15s;
-}
-
-.event-choice-btn:hover{
-background:#ffc72c;
-color:#12233f;
-border-color:#12233f;
-transform:translateY(-1px);
-}
-
-.event-choice-btn svg{ font-size:18px; flex-shrink:0; color:#c8102e; }
-.event-choice-btn:hover svg{ color:#12233f; }
-
-/* ───────── Toast: sticky note ───────── */
-.toast{
-position:fixed;
-top:14px;
-left:50%;
-transform:translateX(-50%) rotate(-1deg);
-padding:10px 20px;
-border-radius:4px;
-font-family:'Kanit',sans-serif;
-font-weight:700;
-font-size:13px;
-white-space:nowrap;
-z-index:30;
-box-shadow:0 8px 16px rgba(0,0,0,.3);
-animation:fadeDown .3s ease-out;
-}
-
-.toast.good{ background:#c8f2a0; color:#1e3a1a; }
-.toast.bad{ background:#ffb3b8; color:#5a0d13; }
-.toast.special{ background:#ffe28a; color:#4a3308; }
-
-@keyframes fadeDown{
-from{ opacity:0; transform:translate(-50%,-10px) rotate(-1deg); }
-to{ opacity:1; transform:translate(-50%,0) rotate(-1deg); }
-}
-
-/* ───────── Summary: report card ───────── */
-.summary-card{
-width:min(94vw,520px);
-max-height:96vh;
-overflow:auto;
-background:
-    repeating-linear-gradient(180deg, transparent 0 37px, rgba(28,58,95,.12) 37px 38px),
-    #fff9ea;
-border-left:6px solid #c8102e;
-border-radius:6px 22px 22px 6px;
-padding:clamp(18px,3vh,32px) clamp(16px,3vw,28px);
-text-align:center;
-color:#1a2333;
-box-shadow:0 20px 50px rgba(0,0,0,.55), 0 0 0 4px #12233f, 0 0 0 8px rgba(255,199,44,.3);
-}
-
-.summary-badge{
-font-size:34px;
-color:#ffc72c;
-filter:drop-shadow(0 4px 8px rgba(0,0,0,.25));
-margin-bottom:2px;
-}
-
-.summary-card h1{
-font-family:'Kanit',sans-serif;
-font-size:clamp(20px,3.2vh,28px);
-color:#12233f;
-font-weight:900;
-text-transform:uppercase;
-letter-spacing:.5px;
-}
-
-.summary-sub{
-margin-top:6px;
-color:#5a6478;
-font-size:14px;
-}
-
-.summary-grid{
-margin-top:22px;
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:10px;
-}
-
-.summary-item{
-background:#fff8e7;
-border:1px solid #cdbf90;
-border-radius:10px;
-padding:12px 6px;
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:4px;
-font-size:12px;
-color:#3d4759;
-}
-
-.summary-item strong{ font-family:'Kanit',sans-serif; font-size:20px; color:#12233f; }
-.summary-item.good strong{ color:#2f8a4f; }
-.summary-item.bad strong{ color:#c8102e; }
-
-.summary-rank{
-margin-top:24px;
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:8px;
-}
-
-.rank-shield{
-position:relative;
-width:78px;
-height:78px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-family:'Kanit',sans-serif;
-font-size:42px;
-font-weight:900;
-color:#c8102e;
-background:#fff8e7;
-box-shadow:0 0 0 3px #c8102e, 0 8px 20px rgba(200,16,46,.25);
-border:3px dashed #c8102e;
-transform:rotate(-8deg);
-}
-
-.rank-text{ font-family:'Kanit',sans-serif; font-size:16px; font-weight:800; color:#12233f; }
-
-.summary-flavor{
-margin-top:16px;
-font-size:14px;
-line-height:1.6;
-color:#3d4759;
-}
-
-.summary-buttons{
-margin-top:24px;
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:14px;
-}
-
-.btn{
-border:none;
-border-radius:12px;
-cursor:pointer;
-color:#fff8e7;
-font-family:'Kanit',sans-serif;
-font-weight:700;
-display:flex;
-align-items:center;
-justify-content:center;
-gap:10px;
-transition:.15s;
-height:56px;
-}
-
-.btn:hover{ transform:translateY(2px); }
-
-.btn div{ display:flex; flex-direction:column; align-items:flex-start; }
-.btn span{ font-size:11px; opacity:.85; font-weight:500; }
-
-.btn.blue{ background:linear-gradient(#1a3358,#0d1c33); box-shadow:0 6px 0 #060d1a; }
-.btn.green{ background:linear-gradient(#e01b3e,#a30d28); box-shadow:0 6px 0 #6e0819; }
-.btn.blue:hover, .btn.green:hover{ box-shadow:0 3px 0 #060d1a; }
-.btn.green:hover{ box-shadow:0 3px 0 #6e0819; }
-
-/* ───────── Trait bar: report-card ruler meter ───────── */
-.trait{
-width:100%;
-text-align:left;
-padding:10px 0;
-}
-
-.trait-top{
-display:flex;
-align-items:center;
-justify-content:space-between;
-}
-
-.trait-name{
-font-family:'Kanit',sans-serif;
-font-weight:700;
-font-size:14px;
-color:#12233f;
-}
-
-.trait-score{
-font-family:'Kanit',sans-serif;
-font-weight:700;
-font-size:13px;
-color:#c8102e;
-}
-
-.trait-bar{
-margin-top:6px;
-height:10px;
-border-radius:999px;
-background:#e3d7ae;
-border:1px solid #cdbf90;
-overflow:hidden;
-}
-
-.trait-bar-fill{
-height:100%;
-border-radius:999px;
-background:linear-gradient(90deg,#ffc72c,#c8102e);
-transition:width .6s ease-out;
-}
-
-.trait-note{
-margin-top:4px;
-font-size:12px;
-font-style:italic;
-color:#5a6478;
-}
-
-@media(max-width:640px){
-.school-map{ grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(4,1fr); }
-}
-`;

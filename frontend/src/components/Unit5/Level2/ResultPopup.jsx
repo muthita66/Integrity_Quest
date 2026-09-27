@@ -1,5 +1,5 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { useMemo } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
     FaBookOpen,
     FaHeart,
@@ -27,19 +27,100 @@ const BUDGET_CONFIG = [
     { id: "water", title: "ระบบน้ำประปา", icon: FaTint, color: "#06b6d4" },
 ];
 
+// ============================================================
+// ผลของ Unit 5 Level 2 — ดึงจาก DB ด้วย playId
+// คะแนน / ความสุข / Rank / IP คิดที่ backend (gamePlayService.calcBudgetResult)
+// ============================================================
+
+const API_URL = "http://localhost:5000";
+
+const RANK_INFO = {
+    S: { rankText: "ยอดเยี่ยม!", stars: 5 },
+    A: { rankText: "ดีมาก!", stars: 4 },
+    B: { rankText: "ดี", stars: 3 },
+    C: { rankText: "พอใช้", stars: 2 },
+    D: { rankText: "ควรปรับปรุง", stars: 1 },
+};
+
 export default function TaxBuilderResult() {
     const navigate = useNavigate();
-    const location = useLocation();
-    const {
-        budgets,
-        totalBudget,
-        remainingBudget,
-    } = location.state || {};
+    const [searchParams] = useSearchParams();
+    const playId = Number(searchParams.get("playId"));
 
-    if (!budgets) {
-        navigate("/unit5/game2");
-        return null;
+    const [result, setResult] = useState(null);
+
+    useEffect(() => {
+        if (!Number.isInteger(playId) || playId <= 0) {
+            navigate("/unit5/game2", { replace: true });
+            return;
+        }
+
+        let isMounted = true;
+
+        const load = async () => {
+            try {
+                const response = await fetch(
+                    `${API_URL}/api/budget-game/play/${playId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                    }
+                );
+
+                if (response.status === 401) {
+                    navigate("/", { replace: true });
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || "โหลดผลลัพธ์ไม่สำเร็จ");
+                }
+
+                if (isMounted) setResult(data.data);
+            } catch (error) {
+                console.error("Load budget result error:", error);
+                alert("ไม่สามารถโหลดผลลัพธ์: " + error.message);
+                navigate("/unit5/game2", { replace: true });
+            }
+        };
+
+        load();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [playId, navigate]);
+
+    if (!result) {
+        return (
+            <div
+                style={{
+                    height: "100vh",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    color: "#e7ebf3",
+                    background: "#081320",
+                    fontSize: 18,
+                }}
+            >
+                กำลังโหลดรายงานผล...
+            </div>
+        );
     }
+
+    const budgets = result.budgets;
+    const totalBudget = result.total_budget;
+    const remainingBudget = result.remaining_budget;
+    const usedBudget = result.used_budget;
+    const happiness = result.happiness;
+    const score = result.score;
+    const rank = result.rank;
+    const earnedIP = result.earned_ip ?? 0;
+    const { rankText, stars } = RANK_INFO[rank] || RANK_INFO.D;
 
     // แปลง budgets object → array ที่มี cost และ percent
     const budgetList = BUDGET_CONFIG.map((cfg) => {
@@ -47,36 +128,6 @@ export default function TaxBuilderResult() {
         const percent = totalBudget > 0 ? Math.round((cost / totalBudget) * 100) : 0;
         return { ...cfg, cost, percent };
     });
-
-    // งบที่ใช้ไป
-    const usedBudget = budgetList.reduce((sum, item) => sum + item.cost, 0);
-
-    // ความสุขประชาชน — คำนวณจากการกระจายงบ (ยิ่งกระจายสม่ำเสมอ ยิ่งสุข)
-    const happiness = useMemo(() => {
-        const values = budgetList.map((b) => b.cost);
-        const avg = usedBudget / values.length || 0;
-        const variance = values.reduce((s, v) => s + Math.pow(v - avg, 2), 0) / values.length;
-        const stdDev = Math.sqrt(variance);
-        // ยิ่ง stdDev น้อย → กระจายดี → happiness สูง
-        const raw = Math.max(0, 100 - stdDev * 2);
-        return Math.min(100, Math.round(raw));
-    }, [budgetList]);
-
-    // คะแนนรวม
-    const score = useMemo(() => {
-        const balanceScore = happiness;
-        const coverageScore = usedBudget >= totalBudget * 0.8 ? 20 : Math.round((usedBudget / totalBudget) * 20);
-        return Math.min(100, Math.round(balanceScore * 0.8 + coverageScore));
-    }, [happiness, usedBudget, totalBudget]);
-
-    // Rank, rankText, stars
-    const { rank, rankText, stars, hpReward } = useMemo(() => {
-        if (score >= 90) return { rank: "S", rankText: "ยอดเยี่ยม!", stars: 5, hpReward: 50 };
-        if (score >= 75) return { rank: "A", rankText: "ดีมาก!", stars: 4, hpReward: 40 };
-        if (score >= 60) return { rank: "B", rankText: "ดี", stars: 3, hpReward: 30 };
-        if (score >= 45) return { rank: "C", rankText: "พอใช้", stars: 2, hpReward: 20 };
-        return { rank: "D", rankText: "ควรปรับปรุง", stars: 1, hpReward: 10 };
-    }, [score]);
 
     // statData สำหรับ right panel
     const statData = [
@@ -278,11 +329,11 @@ export default function TaxBuilderResult() {
                                 <FaHeart className="hp-heart" />
 
                                 <span className="hp-number">
-                                    {hpReward}
+                                    +{earnedIP}
                                 </span>
 
                                 <span className="hp-label">
-                                    HP ที่ได้รับ
+                                    IP ที่ได้รับ
                                 </span>
 
                             </div>

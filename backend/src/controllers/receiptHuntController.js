@@ -20,23 +20,62 @@ const TARGET_COUNT = 8;
 const DECOY_COUNT = 5;
 const TOTAL_COUNT = 13;
 
-// ================= IP Reward =================
+// ================= IP Reward (สเกลใหม่) =================
 // กติกา: ให้ IP เฉพาะตอนเก็บ Target ครบ (ผ่านด่าน) เท่านั้น
-//   Base (ผ่านด่าน)              = 5 IP
+//   Base (ผ่านด่าน)              = 150 IP
 //   Speed Bonus (เวลาที่ใช้จริง
-//     <= 30 วินาที)               = 3 IP
+//     <= 30 วินาที)               = 30 IP
 //   No-Wrong Bonus (ไม่เคยกดผิด
-//     เลยทั้งรอบ)                 = 2 IP
-// รวมสูงสุด 10 IP
+//     เลยทั้งรอบ — ผิด 1 ครั้งก็ไม่ได้) = 20 IP
+// รวมสูงสุด 200 IP
 //
 // เวลาที่ใช้จริงคำนวณจาก started_at/completed_at ของ
 // game_play_history เอง (ไม่เชื่อ timeLeft/timeUsed ที่ client
 // ส่งมา) ส่วน wrong_count นับจากตาราง game_play_receipt_hunt
 // จริง (is_correct === false) เหมือนที่ใช้ตัดสินแพ้อยู่แล้ว
-const BASE_PASS_IP = 5;
-const SPEED_BONUS_IP = 3;
+const BASE_PASS_IP = 150;
+const SPEED_BONUS_IP = 30;
 const SPEED_BONUS_SECONDS = 30;
-const NO_WRONG_BONUS_IP = 2;
+const NO_WRONG_BONUS_IP = 20;
+
+// ------------------------------------------------------------
+// IP รวม = ผลรวม earned_ip "ที่ดีที่สุด" ของแต่ละ level
+// (เล่นซ้ำไม่บวกเพิ่ม — แนวเดียวกับ recalcIntegrityPoints ใน
+//  gamePlayController) เดิมไฟล์นี้ใช้ increment ทำให้เล่นซ้ำแล้ว
+//  IP บวกเพิ่มทุกรอบ
+// ------------------------------------------------------------
+const recalcIntegrityPoints = async (userId) => {
+    const uid = Number(userId);
+
+    const bestPerLevel = await prisma.game_play_history.groupBy({
+        by: ["level_id"],
+        where: {
+            user_id: uid,
+            completed_at: { not: null },
+        },
+        _max: { earned_ip: true },
+    });
+
+    const total = bestPerLevel.reduce(
+        (sum, row) => sum + (row._max.earned_ip ?? 0),
+        0
+    );
+
+    await prisma.user_stats.upsert({
+        where: { user_id: uid },
+        update: { integrity_points: total },
+        create: {
+            user_id: uid,
+            total_points: 0,
+            current_streak: 0,
+            highest_score: 0,
+            last_login_date: new Date(),
+            integrity_points: total,
+        },
+    });
+
+    return total;
+};
 
 exports.startReceiptHunt = async (playId) => {
     // 1. ตรวจสอบ Play
@@ -412,35 +451,10 @@ exports.completeReceiptHunt = async (playId) => {
     }
 
     // ----------------------------------------------------
-    // เพิ่ม IP ให้ User
+    // อัปเดต IP รวมของ User (นับเฉพาะรอบที่ดีที่สุดของแต่ละ level)
     // ----------------------------------------------------
-    await prisma.user_stats.upsert({
-        where: {
-            user_id: play.user_id,
-        },
-        update: {
-            integrity_points: {
-                increment: earnedIP,
-            },
-        },
-        create: {
-            user_id: play.user_id,
-            total_points: 0,
-            current_streak: 0,
-            highest_score: 0,
-            last_login_date: new Date(),
-            integrity_points: earnedIP,
-        },
-    });
-
-    const userStats = await prisma.user_stats.findUnique({
-        where: {
-            user_id: play.user_id,
-        },
-        select: {
-            integrity_points: true,
-        },
-    });
+    const totalIntegrityPoints =
+        await recalcIntegrityPoints(play.user_id);
 
     return {
         play_id: playId,
@@ -463,7 +477,6 @@ exports.completeReceiptHunt = async (playId) => {
         no_wrong_bonus_ip: noWrongBonusIP,
         earned_ip: earnedIP,
 
-        total_integrity_points:
-            userStats?.integrity_points ?? 0,
+        total_integrity_points: totalIntegrityPoints,
     };
 };

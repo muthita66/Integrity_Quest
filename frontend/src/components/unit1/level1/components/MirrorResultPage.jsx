@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import ConfettiExplosion from "react-confetti-explosion";
 
 import bgGame from "../../../../assets/unit1/level1/Result/bgGameLevel1.png";
+import IP from "../../../../assets/unit1/level1/Result/IP.png";
 
 import Button from "../../../../assets/unit1/button/button.png";
 import ButtonPass from "../../../../assets/unit1/button/buttonPass.png";
@@ -245,7 +246,7 @@ export default function MirrorResultPage() {
     const shouldRetry = status === "FAIL";
 
     const characterImg = resultMessage.character_image;
-    const mirrorImg = resultMessage.mirror_image;
+    const mirrorImg = IP;
 
     const charGlowColor = shouldRetry
         ? "rgba(220,80,80,0.55)"
@@ -460,11 +461,45 @@ export default function MirrorResultPage() {
                         }}
                     />
                     <div className="absolute -top-15 left-1/2 -translate-x-1/2 z-30 w-50 h-50 flex items-center justify-center">
+                        {/* แสงเรืองรองด้านหลัง IP */}
+                        <div
+                            className="
+            absolute
+            w-40
+            h-40
+            rounded-full
+            bg-yellow-300/70
+            blur-2xl
+            animate-pulse
+        "
+                        />
+
+                        {/* แสงชั้นนอก */}
+                        <div
+                            className="
+            absolute
+            w-52
+            h-52
+            rounded-full
+            bg-white/40
+            blur-3xl
+        "
+                        />
+
+                        {/* รูป IP */}
                         {mirrorImg && (
                             <img
                                 src={mirrorImg}
-                                alt="Result Seal"
-                                className="w-72 h-72 object-contain"
+                                alt="Integrity Points"
+                                className="
+                relative
+                z-10
+                w-72
+                h-72
+                object-contain
+                drop-shadow-[0_0_12px_rgba(255,215,0,0.9)]
+                drop-shadow-[0_0_25px_rgba(255,255,255,0.8)]
+            "
                             />
                         )}
                     </div>
@@ -516,17 +551,12 @@ export default function MirrorResultPage() {
                         >
                             {isPerfect ? (
                                 <div className="text-center">
-                                    <div className="text-lg font-bold">
-                                        ได้รับ IP +{earnedIP}
+                                    <div className="text-2xl font-bold text-green-800">
+                                        You Earned Integrity Points!
                                     </div>
 
-                                    <div
-                                        className="text-sm font-bold"
-                                        style={{
-                                            color: "#3F5A34",
-                                        }}
-                                    >
-                                        คะแนนจากคำตอบ +{correctCount} | โบนัส PERFECT +{perfectBonusIP}
+                                    <div className="text-4xl font-black text-green-800 mt-1">
+                                        {earnedIP}
                                     </div>
                                 </div>
                             ) : (
@@ -553,7 +583,7 @@ export default function MirrorResultPage() {
                                 style={{
                                     color: shouldRetry
                                         ? "#7A2E2E"
-                                        : "#3F5A34",
+                                        : "#175623ff",
                                 }}
                             >
                                 {resultMessage.highlight_text}
@@ -562,7 +592,7 @@ export default function MirrorResultPage() {
 
                         {resultMessage.message && (
                             <p
-                                className="text-xl mt-1 mb-5 text-center leading-relaxed"
+                                className="text-md mt-1 mb-5 text-center leading-relaxed"
                                 style={{
                                     color: "#4a3826",
                                 }}

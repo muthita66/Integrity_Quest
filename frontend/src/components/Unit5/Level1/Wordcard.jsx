@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 // Keep the component dependency-free while still handling Thai combining marks.
 const segmenter = typeof Intl !== "undefined" && Intl.Segmenter
@@ -12,20 +12,39 @@ const splitGraphemes = (value) => segmenter
 
 const rotations = [-1, 1, -0.5, 1.5, 0, -1];
 
-export default function WordCard({ word, completed, onCorrect }) {
-    const chars = splitGraphemes(word.answer);
-    const remainingAnswer = chars.slice(word.revealed).join("");
+// word มาจาก backend: { id, word_id, clue, totalChars, revealedChars }
+// (ไม่มีคำตอบเต็มอยู่ในหน้าเว็บแล้ว — กด Enter ส่งไปให้ backend ตรวจ)
+export default function WordCard({ word, completed, onSubmit }) {
+    const revealedCount = word.revealedChars.length;
+    const remainingCount = Math.max(0, word.totalChars - revealedCount);
     const [inputValue, setInputValue] = useState("");
-    const [error, setError] = useState(false);
-
-    useEffect(() => {
-        const answer = inputValue.trim();
-        if ((answer === word.answer || answer === remainingAnswer) && !completed) {
-            onCorrect(word.id);
-        }
-    }, [inputValue, completed, onCorrect, word.id, word.answer, remainingAnswer]);
+    const [error, setError] = useState("");
+    const [checking, setChecking] = useState(false);
 
     const typedChars = splitGraphemes(inputValue);
+
+    // ช่องตัวอักษร: ตัวที่เปิดให้ + ตัวที่ผู้เล่นพิมพ์ (ถ้าพิมพ์ทั้งคำ ให้ข้ามส่วนที่เปิดไว้)
+    const typedTail =
+        typedChars.slice(0, revealedCount).join("") === word.revealedChars.join("")
+            ? typedChars.slice(revealedCount)
+            : typedChars;
+
+    const submit = async () => {
+        const text = inputValue.trim();
+        if (!text || checking || completed) return;
+
+        setChecking(true);
+        setError("");
+
+        try {
+            const correct = await onSubmit(word, text);
+            if (!correct) setError("ยังไม่ตรงกับคำใบ้ ลองอีกครั้ง");
+        } catch (err) {
+            setError(err.message || "ตรวจคำตอบไม่สำเร็จ ลองอีกครั้ง");
+        } finally {
+            setChecking(false);
+        }
+    };
 
     return (
         <motion.div
@@ -69,9 +88,9 @@ export default function WordCard({ word, completed, onCorrect }) {
             ) : (
                 <>
                     {/* ช่องตัวอักษร */}
-                <div className="flex flex-wrap justify-center gap-1.5 mb-3 mt-1">
-                        {chars.map((char, index) => {
-                            const revealed = index < word.revealed;
+                    <div className="flex flex-wrap justify-center gap-1.5 mb-3 mt-1">
+                        {Array.from({ length: word.totalChars }, (_, index) => {
+                            const revealed = index < revealedCount;
 
                             return (
                                 <div
@@ -93,8 +112,8 @@ export default function WordCard({ word, completed, onCorrect }) {
                                     "
                                 >
                                     {revealed
-                                        ? char
-                                        : typedChars[index - word.revealed] || ""}
+                                        ? word.revealedChars[index]
+                                        : typedTail[index - revealedCount] || ""}
                                 </div>
                             );
                         })}
@@ -105,16 +124,15 @@ export default function WordCard({ word, completed, onCorrect }) {
                         value={inputValue}
                         onChange={(e) => {
                             setInputValue(e.target.value);
-                            setError(false);
+                            setError("");
                         }}
                         onKeyDown={(e) => {
-                            if (e.key === "Enter" && inputValue.trim() !== word.answer && inputValue.trim() !== remainingAnswer) {
-                                setError(true);
-                            }
+                            if (e.key === "Enter") submit();
                         }}
+                        readOnly={checking}
                         aria-label={`คำตอบของคำใบ้: ${word.clue}`}
-                        aria-invalid={error}
-                        placeholder={`พิมพ์ ${remainingAnswer.length} ตัวอักษรที่เหลือ`}
+                        aria-invalid={Boolean(error)}
+                        placeholder={checking ? "กำลังตรวจ..." : `พิมพ์ ${remainingCount} ตัวที่เหลือ แล้วกด Enter`}
                         className={`
                             w-full
                             py-2
@@ -136,7 +154,7 @@ export default function WordCard({ word, completed, onCorrect }) {
                             ${error ? "border-red-500 bg-red-50" : "border-[#c9b89e]"}
                         `}
                     />
-                    {error && <p className="mt-1 text-center text-[11px] font-bold text-red-700">ยังไม่ตรงกับคำใบ้ ลองอีกครั้ง</p>}
+                    {error && <p className="mt-1 text-center text-[11px] font-bold text-red-700">{error}</p>}
                 </>
             )}
         </motion.div>

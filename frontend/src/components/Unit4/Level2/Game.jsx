@@ -1,87 +1,247 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FaPlay } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import BookLayout from "../BookLayout";
+import useUnit4Chapter, { Unit4Checking } from "../useUnit4Chapter";
 import "../../../styles/theme.css";
 import "./level2.css";
 
+// ============================================================
+// Unit 4 Level 2 : Slot (กับดักพนัน)
+// ------------------------------------------------------------
+// Backend เป็นคนตัดสินผล + คุมเครดิต + บันทึกทุกครั้งที่หมุน
+//   เข้าเกม     → POST /api/game-play/start   { level_id }
+//   กดหมุน      → POST /api/slot-game/spin    { playId, bet }
+//   เครดิตหมด   → POST /api/game-play/complete { play_id } → PASS + IP
+// ============================================================
+
+const API_URL = "http://localhost:5000";
 const SYMBOLS = ["🍒", "🍋", "🔔", "💎", "7️⃣"];
+const DEFAULT_BETS = [100, 500, 1000];
+const DEFAULT_BALANCE = 1500;
+const MIN_SPIN_TICKS = 16; // วงล้อหมุนอย่างน้อยเท่านี้ก่อนหยุด (≈ 0.9 วิ)
+
+const authHeaders = () => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
+
+const randomSymbol = () => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
 
 export default function Game() {
     const navigate = useNavigate();
-    const [balance, setBalance] = useState(1500);
+
+    // กันเข้าทาง URL ตรง ๆ ตอนบทนี้ยังไม่ปลดล็อก + ได้ level_id จาก DB
+    const { checking, level } = useUnit4Chapter(1);
+
+    const [playId, setPlayId] = useState(null);
+    const [starting, setStarting] = useState(true);
+    const [bets, setBets] = useState(DEFAULT_BETS);
+    const [balance, setBalance] = useState(DEFAULT_BALANCE);
     const [bet, setBet] = useState(500);
     const [reels, setReels] = useState(["7️⃣", "7️⃣", "7️⃣"]);
-    const [round, setRound] = useState(0);
     const [spinning, setSpinning] = useState(false);
-    const [message, setMessage] = useState("เลือกเดิมพัน แล้วลองหมุนดู");
+    const [message, setMessage] = useState("กำลังเตรียมตู้สล็อต...");
     const [showReality, setShowReality] = useState(false);
+    const [result, setResult] = useState(null); // ผลจาก complete
+    const [completeError, setCompleteError] = useState("");
 
-    useEffect(() => () => clearTimeout(window.__slotTimer), []);
+    const startingRef = useRef(false); // กัน StrictMode เริ่มเกมซ้ำ
+    const intervalRef = useRef(null);
+    const revealTimerRef = useRef(null);
 
-    const randomSymbol = () => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+    useEffect(
+        () => () => {
+            clearInterval(intervalRef.current);
+            clearTimeout(revealTimerRef.current);
+        },
+        []
+    );
 
-    const spin = () => {
-        if (spinning || balance < bet) return;
+    const handleAuthError = (response) => {
+        if (response.status === 401) {
+            navigate("/", { replace: true });
+            return true;
+        }
+        return false;
+    };
+
+    // --------------------------------------------------------
+    // เริ่มรอบใหม่ (ได้ play_id ใหม่ทุกครั้ง)
+    // --------------------------------------------------------
+    const startPlay = useCallback(async () => {
+        if (!level || startingRef.current) return;
+        startingRef.current = true;
+        setStarting(true);
+
+        try {
+            const response = await fetch(`${API_URL}/api/game-play/start`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({ level_id: level.level_id }),
+            });
+
+            if (handleAuthError(response)) return;
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.message || "เริ่มเกมไม่ได้");
+                navigate("/unit4/book", { replace: true });
+                return;
+            }
+
+            const startBalance = data.data.start_balance ?? DEFAULT_BALANCE;
+
+            setPlayId(data.data.play_id);
+            setBets(data.data.bets ?? DEFAULT_BETS);
+            setBalance(startBalance);
+            setBet(500);
+            setReels(["7️⃣", "7️⃣", "7️⃣"]);
+            setMessage("เลือกเดิมพัน แล้วลองหมุนดู");
+            setShowReality(false);
+            setResult(null);
+            setCompleteError("");
+        } catch (error) {
+            console.error("Start slot game error:", error);
+            alert("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
+            navigate("/unit4/book", { replace: true });
+        } finally {
+            startingRef.current = false;
+            setStarting(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [level, navigate]);
+
+    useEffect(() => {
+        if (level) startPlay();
+    }, [level, startPlay]);
+
+    // --------------------------------------------------------
+    // จบรอบ (เครดิตหมด) → บันทึกผล + ปลดล็อกบทถัดไป
+    // --------------------------------------------------------
+    const completePlay = async (id) => {
+        try {
+            setCompleteError("");
+
+            const response = await fetch(`${API_URL}/api/game-play/complete`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({ play_id: id }),
+            });
+
+            if (handleAuthError(response)) return false;
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "บันทึกผลไม่สำเร็จ");
+            }
+
+            setResult(data.data ?? null);
+            return true;
+        } catch (error) {
+            console.error("Complete slot game error:", error);
+            setCompleteError(error.message || "บันทึกผลไม่สำเร็จ");
+            return false;
+        }
+    };
+
+    // --------------------------------------------------------
+    // หมุน: วงล้อหมุนระหว่างรอผลจาก backend
+    // --------------------------------------------------------
+    const spin = async () => {
+        if (!playId || spinning || starting || balance < bet) return;
+
+        const balanceBefore = balance;
 
         setSpinning(true);
         setMessage("ระบบกำลังหมุน...");
-        setBalance((current) => current - bet);
+        setBalance(balanceBefore - bet);
 
         let ticks = 0;
-        const timer = setInterval(() => {
+        intervalRef.current = setInterval(() => {
             setReels([randomSymbol(), randomSymbol(), randomSymbol()]);
             ticks += 1;
-
-            if (ticks >= 16) {
-                clearInterval(timer);
-                const isHookRound = round === 0;
-                const isSecondWin = round === 1;
-                const result = isHookRound
-                    ? ["💎", "💎", "💎"]
-                    : isSecondWin
-                        ? ["7️⃣", "7️⃣", "7️⃣"]
-                        : ["🍒", "🔔", "🍋"];
-                const reward = isHookRound ? bet * 5 : isSecondWin ? bet * 3 : 0;
-                const nextBalance = balance - bet + reward;
-
-                setReels(result);
-                setBalance(nextBalance);
-                setRound((current) => current + 1);
-                setSpinning(false);
-
-                if (reward > 0) {
-                    setMessage(`ชนะ ฿${reward.toLocaleString()} — เล่นต่อสิ!`);
-                } else if (nextBalance <= 0) {
-                    setMessage("เครดิตหมดแล้ว");
-                    window.__slotTimer = setTimeout(() => setShowReality(true), 800);
-                } else {
-                    setMessage("เกือบชนะแล้ว ลองอีกครั้งไหม?");
-                }
-            }
         }, 55);
-    };
 
-    const reset = () => {
-        setBalance(1500);
-        setBet(500);
-        setReels(["7️⃣", "7️⃣", "7️⃣"]);
-        setRound(0);
-        setMessage("เลือกเดิมพัน แล้วลองหมุนดู");
-        setShowReality(false);
-    };
+        const waitMinSpin = () =>
+            new Promise((resolve) => {
+                const check = () =>
+                    ticks >= MIN_SPIN_TICKS ? resolve() : setTimeout(check, 30);
+                check();
+            });
 
-    const finishLevel = () => {
-        // บทนี้เป็นบทเรียนเพื่อทำความเข้าใจ จบภารกิจแล้วได้รับแต้มเต็ม
-        const level2Points = 150;
         try {
-            const save = JSON.parse(localStorage.getItem("unit4")) || {};
-            localStorage.setItem("unit4", JSON.stringify({ ...save, level2: true, level3: true, level2Points }));
-        } catch {
-            localStorage.setItem("unit4", JSON.stringify({ level1: true, level2: true, level3: true, level2Points }));
+            const request = fetch(`${API_URL}/api/slot-game/spin`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({ playId, bet }),
+            });
+
+            const [response] = await Promise.all([request, waitMinSpin()]);
+
+            if (handleAuthError(response)) return;
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "หมุนไม่สำเร็จ");
+            }
+
+            const round = data.data;
+
+            clearInterval(intervalRef.current);
+            setReels(round.symbols);
+            setBalance(round.balance_after);
+
+            if (round.reward > 0) {
+                setMessage(`ชนะ ฿${round.reward.toLocaleString()} — เล่นต่อสิ!`);
+            } else if (round.is_broke) {
+                setMessage("เครดิตหมดแล้ว");
+                await completePlay(playId);
+                revealTimerRef.current = setTimeout(() => setShowReality(true), 800);
+            } else {
+                setMessage("เกือบชนะแล้ว ลองอีกครั้งไหม?");
+            }
+
+            // เครดิตเหลือน้อยกว่าเดิมพันที่เลือกไว้ → ลดเดิมพันให้อัตโนมัติ
+            if (!round.is_broke && round.balance_after < bet) {
+                const affordable = [...bets]
+                    .reverse()
+                    .find((amount) => amount <= round.balance_after);
+                if (affordable) setBet(affordable);
+            }
+        } catch (error) {
+            console.error("Slot spin error:", error);
+            clearInterval(intervalRef.current);
+            setBalance(balanceBefore);
+            setMessage(error.message || "หมุนไม่สำเร็จ ลองอีกครั้ง");
+        } finally {
+            clearInterval(intervalRef.current);
+            setSpinning(false);
+        }
+    };
+
+    // "ลองสังเกตอีกครั้ง" = เริ่มรอบใหม่ (รอบเก่ายังเก็บไว้ในประวัติ)
+    const reset = () => {
+        clearTimeout(revealTimerRef.current);
+        startPlay();
+    };
+
+    // "บทต่อไป" — ผลถูกบันทึกไปแล้วตอนเครดิตหมด
+    // (ถ้าตอนนั้นบันทึกไม่สำเร็จ ลองบันทึกใหม่อีกครั้งก่อน)
+    const finishLevel = async () => {
+        if (!result && playId) {
+            const ok = await completePlay(playId);
+            if (!ok) return;
         }
         navigate("/unit4/book");
     };
+
+    if (checking) return <Unit4Checking />;
+
+    const busy = spinning || starting || !playId;
 
     return (
         <BookLayout
@@ -125,12 +285,12 @@ export default function Game() {
                         <div className="slot3-message"><span className="slot3-message-dot" />{message}</div>
 
                         <div className="slot3-bets">
-                            {[100, 500, 1000].map((amount) => (
+                            {bets.map((amount) => (
                                 <button
                                     key={amount}
                                     type="button"
                                     className={bet === amount ? "is-selected" : ""}
-                                    disabled={spinning || balance < amount}
+                                    disabled={busy || balance < amount}
                                     onClick={() => setBet(amount)}
                                 >
                                     ฿{amount}
@@ -138,8 +298,8 @@ export default function Game() {
                             ))}
                         </div>
 
-                        <button type="button" className="slot3-spin" disabled={spinning || balance < bet} onClick={spin}>
-                            <FaPlay size={13} /> {spinning ? "กำลังหมุน..." : "หมุนวงล้อ"}
+                        <button type="button" className="slot3-spin" disabled={busy || balance < bet} onClick={spin}>
+                            <FaPlay size={13} /> {spinning ? "กำลังหมุน..." : starting ? "กำลังเตรียม..." : "หมุนวงล้อ"}
                         </button>
                     </div>
                     {showReality && (
@@ -156,8 +316,19 @@ export default function Game() {
                                     <i>→</i>
                                     <div><b>03</b><span>ดูดเงินคืน</span></div>
                                 </div>
+                                {result && (
+                                    <p>
+                                        หมุนไป {result.spins} ครั้ง · เคยมีเครดิตสูงสุด ฿
+                                        {Number(result.peak_balance).toLocaleString()} · ได้รับ +{result.earned_ip} IP
+                                    </p>
+                                )}
+                                {completeError && (
+                                    <p style={{ color: "#B91C1C" }}>
+                                        {completeError} — กด “บทต่อไป” เพื่อลองบันทึกอีกครั้ง
+                                    </p>
+                                )}
                                 <div className="slot3-reality-actions">
-                                    <button type="button" onClick={reset}>ลองสังเกตอีกครั้ง</button>
+                                    <button type="button" onClick={reset} disabled={starting}>ลองสังเกตอีกครั้ง</button>
                                     <button type="button" onClick={finishLevel}>บทต่อไป</button>
                                 </div>
                             </div>

@@ -15,95 +15,26 @@ import {
 } from "react-icons/fa";
 
 // ─────────────────────────────────────────────
-// ข้อมูลโครงการตัวอย่าง — แก้ไข/เพิ่มได้ตามต้องการ
-// correctAction: "approve" = โครงการดี ควรอนุมัติ
-//                "reject"  = โครงการมีพิรุธ ควรปฏิเสธ
-// bribe: true = จะมี pop-up เสนอสินบนก่อนตัดสินใจ
+// เอกสารโครงการอยู่ใน DB (level_projects) — เฉลยอยู่ที่ backend เท่านั้น
+//   เข้าเกม   → POST /api/game-play/start      { level_id } → play_id + projects
+//   ปั๊มตรา   → POST /api/inspector-game/decide { playId, projectId, action, tookBribe, refusedBribe }
+//   จบเกม     → POST /api/game-play/complete    { play_id, is_timeout } → Rank / IP
 // ─────────────────────────────────────────────
-const PROJECTS = [
-    {
-        name: "สร้างโรงเรียนบ้านหนองบัว",
-        budget: "18 ล้านบาท",
-        priceEstimate: "18 ล้านบาท",
-        contractor: "สยามก่อสร้าง จำกัด",
-        documents: "ครบถ้วน",
-        history: "ไม่เคยมีประวัติปัญหา",
-        correctAction: "approve",
-        bribe: false,
-    },
-    {
-        name: "ซ่อมแซมถนนสายหลัก",
-        budget: "42 ล้านบาท",
-        priceEstimate: "21 ล้านบาท",
-        contractor: "ABC Construction",
-        documents: "ครบถ้วน",
-        history: "เคยถูกตรวจสอบ 1 ครั้ง",
-        correctAction: "reject",
-        bribe: false,
-    },
-    {
-        name: "สร้างโรงพยาบาลชุมชน",
-        budget: "25 ล้านบาท",
-        priceEstimate: "24 ล้านบาท",
-        contractor: "เมดคอน จำกัด",
-        documents: "ครบถ้วน",
-        history: "ขึ้นบัญชีดำ (Black List)",
-        correctAction: "reject",
-        bribe: false,
-    },
-    {
-        name: "สร้างสวนสาธารณะกลางเมือง",
-        budget: "12 ล้านบาท",
-        priceEstimate: "12 ล้านบาท",
-        contractor: "กรีนสเปซ จำกัด",
-        documents: "ครบถ้วน",
-        history: "เคยทำโครงการสำเร็จ 3 ครั้ง",
-        correctAction: "approve",
-        bribe: true,
-        bribeAmount: "5 ล้านบาท",
-    },
-    {
-        name: "ก่อสร้างสถานีดับเพลิงประจำเขต",
-        budget: "30 ล้านบาท",
-        priceEstimate: "14 ล้านบาท",
-        contractor: "ผู้เสนอราคา 3 บริษัท (ที่อยู่เดียวกัน)",
-        documents: "ครบถ้วน",
-        history: "บริษัทเดิมชนะประมูล 5 ครั้งติด",
-        correctAction: "reject",
-        bribe: false,
-    },
-    {
-        name: "ปรับปรุงระบบน้ำประปาหมู่บ้าน",
-        budget: "16 ล้านบาท",
-        priceEstimate: "15.5 ล้านบาท",
-        contractor: "น้ำใสวิศวกรรม",
-        documents: "ไม่มีลายเซ็นผู้อนุมัติ",
-        history: "ไม่เคยมีประวัติปัญหา",
-        correctAction: "reject",
-        bribe: false,
-    },
-    {
-        name: "สร้างห้องสมุดประชาชน",
-        budget: "9 ล้านบาท",
-        priceEstimate: "9 ล้านบาท",
-        contractor: "ปัญญาก่อสร้าง จำกัด",
-        documents: "ครบถ้วน",
-        history: "ไม่เคยมีประวัติปัญหา",
-        correctAction: "approve",
-        bribe: false,
-    },
-    {
-        name: "ขยายถนนเข้าหมู่บ้านสันติสุข",
-        budget: "50 ล้านบาท",
-        priceEstimate: "19 ล้านบาท",
-        contractor: "ผู้รับเหมาไม่ทราบชื่อ",
-        documents: "เลขที่หนังสือซ้ำกับโครงการอื่น",
-        history: "เคยสร้างถนนพัง",
-        correctAction: "reject",
-        bribe: true,
-        bribeAmount: "3 ล้านบาท",
-    },
-];
+const API_URL = "http://localhost:5000";
+const LEVEL_ID = 16;
+
+const authHeaders = () => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
+
+const RANK_INFO = {
+    S: { rankText: "ยอดเยี่ยม", flavor: "ประชาชนเชื่อมั่นในหน่วยงานของคุณ คุณปกป้องภาษีของประชาชนได้สำเร็จ" },
+    A: { rankText: "ดีมาก", flavor: "คุณตรวจสอบได้อย่างละเอียดรอบคอบ" },
+    B: { rankText: "ดี", flavor: "ยังมีบางจุดที่พลาดไปบ้าง แต่โดยรวมทำได้ดี" },
+    C: { rankText: "พอใช้", flavor: "ควรตรวจสอบเอกสารให้ละเอียดขึ้น" },
+    D: { rankText: "ควรปรับปรุง", flavor: "งบประมาณของประชาชนเสียหายไปไม่น้อย ลองใหม่อีกครั้ง" },
+};
 
 const GAME_SECONDS = 120;
 
@@ -122,30 +53,129 @@ export default function IntegrityInspector({ nextRoute = "/unit6/intro" }) {
     const [timeLeft, setTimeLeft] = useState(GAME_SECONDS);
 
     const timerRef = useRef(null);
-    const project = PROJECTS[index];
+    const startingRef = useRef(false);   // กัน StrictMode เริ่มเกมซ้ำ
+    const finishingRef = useRef(false);  // กันเรียก complete ซ้ำ
+
+    const [projects, setProjects] = useState([]);
+    const [playId, setPlayId] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [pending, setPending] = useState(false);       // กำลังส่งคำตัดสิน
+    const [refusedBribe, setRefusedBribe] = useState(false);
+    const [result, setResult] = useState(null);          // ผลจาก complete
+    const [errorText, setErrorText] = useState("");
+    const [finishFailed, setFinishFailed] = useState(false);
+
+    const project = projects[index];
+
+    const handleAuthError = (response) => {
+        if (response.status === 401) {
+            navigate("/", { replace: true });
+            return true;
+        }
+        return false;
+    };
+
+    // ───────── เริ่มรอบใหม่ ─────────
+    const startPlay = useCallback(async () => {
+        if (startingRef.current) return;
+        startingRef.current = true;
+        setLoading(true);
+
+        try {
+            const response = await fetch(`${API_URL}/api/game-play/start`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({ level_id: LEVEL_ID }),
+            });
+
+            if (handleAuthError(response)) return;
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.message || "เริ่มเกมไม่ได้");
+                navigate("/map", { replace: true });
+                return;
+            }
+
+            setPlayId(data.data.play_id);
+            setProjects(data.data.projects || []);
+            setTimeLeft(data.data.time_limit ?? GAME_SECONDS);
+        } catch (error) {
+            console.error("Start inspector game error:", error);
+            alert("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
+            navigate("/map", { replace: true });
+        } finally {
+            startingRef.current = false;
+            setLoading(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [navigate]);
+
+    useEffect(() => {
+        startPlay();
+    }, [startPlay]);
+
+    // ───────── จบเกม → บันทึกผล ─────────
+    const finish = useCallback(
+        async (isTimeout = false) => {
+            if (!playId || finishingRef.current) return;
+            finishingRef.current = true;
+            clearInterval(timerRef.current);
+            setErrorText("");
+            setFinishFailed(false);
+
+            try {
+                const response = await fetch(`${API_URL}/api/game-play/complete`, {
+                    method: "POST",
+                    headers: authHeaders(),
+                    body: JSON.stringify({ play_id: playId, is_timeout: isTimeout }),
+                });
+
+                if (handleAuthError(response)) return;
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || "บันทึกผลไม่สำเร็จ");
+                }
+
+                setResult(data.data ?? null);
+                setPhase("summary");
+            } catch (error) {
+                console.error("Complete inspector game error:", error);
+                setErrorText(error.message || "บันทึกผลไม่สำเร็จ");
+                setFinishFailed(true);
+            } finally {
+                finishingRef.current = false;
+            }
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [playId]
+    );
 
     // ───────── นาฬิกานับถอยหลัง ─────────
     useEffect(() => {
-        if (phase === "summary") return;
+        if (phase === "summary" || loading || !playId) return;
         timerRef.current = setInterval(() => {
             setTimeLeft((t) => {
                 if (t <= 1) {
                     clearInterval(timerRef.current);
-                    setPhase("summary");
+                    finish(true); // หมดเวลา → จบเกม
                     return 0;
                 }
                 return t - 1;
             });
         }, 1000);
         return () => clearInterval(timerRef.current);
-    }, [phase]);
+    }, [phase, loading, playId, finish]);
 
     const mm = String(Math.floor(timeLeft / 60)).padStart(2, "0");
     const ss = String(timeLeft % 60).padStart(2, "0");
 
     // ───────── เมื่อการ์ดใหม่เดินเข้ามา ─────────
     useEffect(() => {
-        if (phase !== "entering") return;
+        if (phase !== "entering" || !project) return;
         const t = setTimeout(() => {
             setPhase(project.bribe ? "bribeOffer" : "deciding");
         }, 950);
@@ -153,15 +183,16 @@ export default function IntegrityInspector({ nextRoute = "/unit6/intro" }) {
     }, [phase, project]);
 
     const goNext = useCallback(() => {
-        if (index + 1 < PROJECTS.length) {
+        if (index + 1 < projects.length) {
             setIndex((i) => i + 1);
             setStampType(null);
             setFeedback(null);
+            setRefusedBribe(false);
             setPhase("entering");
         } else {
-            setPhase("summary");
+            finish(false); // ตัดสินครบทุกโครงการ
         }
-    }, [index]);
+    }, [index, projects.length, finish]);
 
     // ───────── ออกจากฉากหลังโชว์ผล ─────────
     useEffect(() => {
@@ -177,40 +208,62 @@ export default function IntegrityInspector({ nextRoute = "/unit6/intro" }) {
         return () => clearTimeout(t);
     }, [phase]);
 
-    function applyOutcome(action, { forcedBribe = false } = {}) {
-        const correct = project.correctAction === action;
-        let delta = 0;
-        let integrityDelta = 0;
-        let note = "";
+    // ส่งคำตัดสินให้ backend ตรวจ แล้วค่อยปั๊มตรา + โชว์ผล
+    async function applyOutcome(action, { forcedBribe = false } = {}) {
+        if (pending || !playId || !project) return;
 
-        if (forcedBribe) {
-            delta = -15;
-            integrityDelta = -20;
-            note = "รับสินบน";
-        } else if (action === "approve" && correct) {
-            delta = 10;
-            note = "อนุมัติถูกต้อง";
-        } else if (action === "reject" && correct) {
-            delta = 15;
-            note = "ปฏิเสธโครงการโกงได้ถูกต้อง";
-        } else if (action === "approve" && !correct) {
-            delta = -20;
-            integrityDelta = -15;
-            note = "อนุมัติโครงการที่มีพิรุธ";
-        } else if (action === "reject" && !correct) {
-            delta = -10;
-            note = "ปฏิเสธโครงการที่ดี";
+        setPending(true);
+        setErrorText("");
+
+        try {
+            const response = await fetch(`${API_URL}/api/inspector-game/decide`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({
+                    playId,
+                    projectId: project.project_id,
+                    action,
+                    tookBribe: forcedBribe,
+                    refusedBribe,
+                }),
+            });
+
+            if (handleAuthError(response)) return;
+
+            const data = await response.json();
+
+            // ตัดสินไปแล้ว (เช่น กดซ้ำ) → ไปโครงการถัดไป
+            if (response.status === 409) {
+                setPhase("leaving");
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(data.message || "บันทึกการตัดสินไม่สำเร็จ");
+            }
+
+            const r = data.data;
+
+            setScore(r.score);
+            setIntegrity(r.integrity);
+            if (r.is_correct) setCorrectCount((c) => c + 1);
+            else setWrongCount((c) => c + 1);
+
+            setFeedback({
+                correct: r.is_correct,
+                delta: r.score_delta,
+                integrityDelta: r.integrity_delta,
+                note: r.note,
+            });
+            setStampType(action === "approve" ? "approved" : "rejected");
+            setPhase("stamping");
+            setTimeout(() => setPhase("result"), 850);
+        } catch (error) {
+            console.error("Inspector decide error:", error);
+            setErrorText(error.message || "บันทึกการตัดสินไม่สำเร็จ ลองอีกครั้ง");
+        } finally {
+            setPending(false);
         }
-
-        setScore((s) => Math.max(0, s + delta));
-        setIntegrity((v) => Math.min(100, Math.max(0, v + integrityDelta)));
-        if (correct && !forcedBribe) setCorrectCount((c) => c + 1);
-        else setWrongCount((c) => c + 1);
-
-        setFeedback({ correct: correct && !forcedBribe, delta, integrityDelta, note });
-        setStampType(action === "approve" ? "approved" : "rejected");
-        setPhase("stamping");
-        setTimeout(() => setPhase("result"), 850);
     }
 
     function handleDecision(action) {
@@ -223,11 +276,17 @@ export default function IntegrityInspector({ nextRoute = "/unit6/intro" }) {
         if (accept) {
             applyOutcome("approve", { forcedBribe: true });
         } else {
+            setRefusedBribe(true);
             setPhase("deciding");
         }
     }
 
+    // เล่นใหม่ = เริ่มรอบใหม่ (play_id ใหม่ — รอบเก่ายังอยู่ในประวัติ)
     function resetGame() {
+        setResult(null);
+        setErrorText("");
+        setRefusedBribe(false);
+        startPlay();
         setIndex(0);
         setPhase("entering");
         setStampType(null);
@@ -239,14 +298,23 @@ export default function IntegrityInspector({ nextRoute = "/unit6/intro" }) {
         setTimeLeft(GAME_SECONDS);
     }
 
-    const finalScore = Math.min(100, score);
-    const { rank, rankText, flavor } = (() => {
-        if (finalScore >= 90 && integrity >= 85) return { rank: "S", rankText: "ยอดเยี่ยม", flavor: "ประชาชนเชื่อมั่นในหน่วยงานของคุณ คุณปกป้องภาษีของประชาชนได้สำเร็จ" };
-        if (finalScore >= 75) return { rank: "A", rankText: "ดีมาก", flavor: "คุณตรวจสอบได้อย่างละเอียดรอบคอบ" };
-        if (finalScore >= 55) return { rank: "B", rankText: "ดี", flavor: "ยังมีบางจุดที่พลาดไปบ้าง แต่โดยรวมทำได้ดี" };
-        if (finalScore >= 35) return { rank: "C", rankText: "พอใช้", flavor: "ควรตรวจสอบเอกสารให้ละเอียดขึ้น" };
-        return { rank: "D", rankText: "ควรปรับปรุง", flavor: "งบประมาณของประชาชนเสียหายไปไม่น้อย ลองใหม่อีกครั้ง" };
-    })();
+    // ผลสุดท้ายมาจาก backend (complete)
+    const finalScore = result?.score ?? Math.min(100, score);
+    const finalIntegrity = result?.integrity ?? integrity;
+    const rank = result?.rank ?? "D";
+    const { rankText, flavor } = RANK_INFO[rank] || RANK_INFO.D;
+    const earnedIP = result?.earned_ip ?? 0;
+
+    if (loading || !project) {
+        return (
+            <>
+                <style>{css}</style>
+                <div className="inspector-stage">
+                    <p style={{ color: "#f0d896", fontSize: 18 }}>กำลังเตรียมเอกสารโครงการ...</p>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>
@@ -257,22 +325,25 @@ export default function IntegrityInspector({ nextRoute = "/unit6/intro" }) {
                 {phase === "summary" ? (
                     <div className="summary-card">
                         <h1>Integrity Inspector</h1>
-                        <p className="summary-sub">ตรวจทั้งหมด {correctCount + wrongCount} โครงการ</p>
+                        <p className="summary-sub">
+                            ตรวจทั้งหมด {result?.decided ?? correctCount + wrongCount} / {result?.total_projects ?? projects.length} โครงการ
+                            {result?.is_timeout ? " (หมดเวลา)" : ""}
+                        </p>
 
                         <div className="summary-grid">
                             <div className="summary-item good">
                                 <FaCheck />
-                                <strong>{correctCount}</strong>
+                                <strong>{result?.correct_count ?? correctCount}</strong>
                                 <span>ถูกต้อง</span>
                             </div>
                             <div className="summary-item bad">
                                 <FaTimes />
-                                <strong>{wrongCount}</strong>
+                                <strong>{result?.wrong_count ?? wrongCount}</strong>
                                 <span>ผิด</span>
                             </div>
                             <div className="summary-item">
                                 <FaShieldAlt />
-                                <strong>{integrity}%</strong>
+                                <strong>{finalIntegrity}%</strong>
                                 <span>Integrity</span>
                             </div>
                             <div className="summary-item">
@@ -288,6 +359,10 @@ export default function IntegrityInspector({ nextRoute = "/unit6/intro" }) {
                         </div>
 
                         <p className="summary-flavor">{flavor}</p>
+
+                        <p className="summary-flavor" style={{ color: "#ffcb3f", fontWeight: 800, fontSize: 18 }}>
+                            ได้รับ +{earnedIP} IP
+                        </p>
 
                         <div className="summary-buttons">
                             <button className="btn blue" onClick={resetGame}>
@@ -401,6 +476,21 @@ export default function IntegrityInspector({ nextRoute = "/unit6/intro" }) {
                                 </div>
                             )}
 
+                            {errorText && (
+                                <div className="feedback bad" style={{ top: "auto", bottom: 10 }}>
+                                    {errorText}
+                                    {finishFailed && (
+                                        <button
+                                            type="button"
+                                            onClick={() => finish(timeLeft === 0)}
+                                            style={{ marginLeft: 10, textDecoration: "underline", color: "white", background: "none", border: "none", cursor: "pointer", fontWeight: 800 }}
+                                        >
+                                            ลองบันทึกผลอีกครั้ง
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="counter" />
                         </div>
 
@@ -408,14 +498,14 @@ export default function IntegrityInspector({ nextRoute = "/unit6/intro" }) {
                         <div className="decision-buttons">
                             <button
                                 className="btn big reject"
-                                disabled={phase !== "deciding"}
+                                disabled={phase !== "deciding" || pending}
                                 onClick={() => handleDecision("reject")}
                             >
                                 <FaTimes /> ปฏิเสธ
                             </button>
                             <button
                                 className="btn big approve"
-                                disabled={phase !== "deciding"}
+                                disabled={phase !== "deciding" || pending}
                                 onClick={() => handleDecision("approve")}
                             >
                                 <FaCheck /> อนุมัติ

@@ -12,6 +12,10 @@ const moneyGameController =
 const userProgressController =
     require("./userProgressController");
 
+// Unit 4 Level 1 : Slip Hunt
+const gamePlayService =
+    require("../services/gamePlayService");
+
 // ============================================================
 // Integrity Points (IP) รวม
 // ============================================================
@@ -337,6 +341,12 @@ exports.startGame = async (req, res) => {
 
         let maxScore = 0;
 
+        // Unit 6 Level 1 : Crisis Response (level_id หาจาก DB — unit 6 ลำดับ 1)
+        const isCrisis = await gamePlayService.isCrisisLevel(levelId);
+
+        // Unit 6 Level 2 : Good Network (ใช้ question/choice — หา level จาก DB)
+        const isNetwork = await gamePlayService.isGoodNetworkLevel(levelId);
+
         if (levelId === 5) {
             // Unit 2 Level 1: Need / Want
             maxScore = await prisma.level_items.count({
@@ -392,6 +402,56 @@ exports.startGame = async (req, res) => {
             // Unit 3 FinalLevel : Treasurer
             // Final score ของเกมคิดเต็ม 100 คะแนน
             maxScore = 100;
+        } else if (gamePlayService.isSlipHuntLevel(levelId)) {
+            // Unit 4 Level 1 : Slip Hunt
+            // 1 รอบมีสลิป 5 ใบ (คำตอบเก็บใน game_play_slip_hunt
+            // ไม่ได้ใช้ตาราง question จึงต้องมี branch แยก ไม่งั้น
+            // จะตกไปนับ question แล้วได้ 0 → 400)
+            maxScore = gamePlayService.SLIP_HUNT_TOTAL_SLIPS;
+        } else if (isCrisis) {
+            // Unit 6 Level 1 : รับมือวิกฤต (โจทย์อยู่ใน level_crisis_events)
+            maxScore = 0;
+
+            const eventCount = (
+                await gamePlayService.getCrisisEvents(levelId)
+            ).length;
+
+            if (eventCount === 0) {
+                return res.status(400).json({
+                    message: "ด่านนี้ยังไม่มีเหตุการณ์",
+                });
+            }
+        } else if (gamePlayService.isInspectorLevel(levelId)) {
+            // Unit 5 Level 3 : Integrity Inspector (โจทย์อยู่ใน level_projects)
+            maxScore = 100;
+
+            const projectCount = (
+                await gamePlayService.getInspectorProjects(levelId)
+            ).length;
+
+            if (projectCount === 0) {
+                return res.status(400).json({
+                    message: "ด่านนี้ยังไม่มีเอกสารโครงการ",
+                });
+            }
+        } else if (gamePlayService.isBudgetLevel(levelId)) {
+            // Unit 5 Level 2 : จัดสรรงบประมาณ — คะแนนเต็ม 100
+            maxScore = 100;
+        } else if (gamePlayService.isWordClueLevel(levelId)) {
+            // Unit 5 Level 1 : ตามหาคำจากคำใบ้ (โจทย์อยู่ใน level_words)
+            maxScore = (
+                await gamePlayService.getWordPuzzles(levelId)
+            ).length;
+
+            if (maxScore === 0) {
+                return res.status(400).json({
+                    message: "ด่านนี้ยังไม่มีคำศัพท์",
+                });
+            }
+        } else if (gamePlayService.isSlotLevel(levelId)) {
+            // Unit 4 Level 2 : Slot (กับดักพนัน)
+            // ไม่มีคะแนนถูก/ผิด — ผลการหมุนเก็บใน game_play_slot_rounds
+            maxScore = 0;
         } else if (levelId !== 2) {
             // Level อื่น ๆ ที่ใช้ question + choice
             // (Level 2 ไม่มี Score จึงข้ามการนับตรงนี้)
@@ -780,6 +840,174 @@ exports.startGame = async (req, res) => {
             });
         }
 
+        // ========================================================
+        // Unit 6 Level 1 : Crisis Response
+        // ส่งเหตุการณ์ + ตัวเลือกไปด้วย (ไม่มีคะแนนของตัวเลือก)
+        // ========================================================
+
+        if (isNetwork) {
+            const questions =
+                await gamePlayService.getGoodNetworkQuestions(levelId);
+
+            return res.status(201).json({
+                message: "เริ่มเกมเครือข่ายความดีสำเร็จ",
+
+                data: {
+                    play_id: play.play_id,
+                    user_id: play.user_id,
+                    level_id: play.level_id,
+                    score: play.score,
+                    max_score: play.max_score,
+                    status: play.status,
+                    started_at: play.started_at,
+
+                    lives: gamePlayService.NETWORK_LIVES,
+                    questions,
+                },
+            });
+        }
+
+        if (isCrisis) {
+            const events =
+                await gamePlayService.getCrisisEvents(levelId);
+
+            return res.status(201).json({
+                message: "เริ่มเกม Crisis Response สำเร็จ",
+
+                data: {
+                    play_id: play.play_id,
+                    user_id: play.user_id,
+                    level_id: play.level_id,
+                    status: play.status,
+                    started_at: play.started_at,
+
+                    game_seconds: gamePlayService.CRISIS_SECONDS,
+                    events,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 5 Level 3 : Integrity Inspector
+        // ส่งเอกสารโครงการไปด้วย (ไม่มีเฉลย)
+        // ========================================================
+
+        if (gamePlayService.isInspectorLevel(levelId)) {
+            const projects =
+                await gamePlayService.getInspectorProjects(levelId);
+
+            return res.status(201).json({
+                message: "เริ่มเกม Integrity Inspector สำเร็จ",
+
+                data: {
+                    play_id: play.play_id,
+                    user_id: play.user_id,
+                    level_id: play.level_id,
+                    status: play.status,
+                    started_at: play.started_at,
+
+                    time_limit: gamePlayService.INSPECTOR_SECONDS,
+                    projects,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 5 Level 2 : จัดสรรงบประมาณให้เมือง
+        // ========================================================
+
+        if (gamePlayService.isBudgetLevel(levelId)) {
+            return res.status(201).json({
+                message: "เริ่มเกมจัดสรรงบประมาณสำเร็จ",
+
+                data: {
+                    play_id: play.play_id,
+                    user_id: play.user_id,
+                    level_id: play.level_id,
+                    status: play.status,
+                    started_at: play.started_at,
+
+                    total_budget: gamePlayService.BUDGET_TOTAL,
+                    categories: gamePlayService.BUDGET_CATEGORIES,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 5 Level 1 : ตามหาคำจากคำใบ้
+        // ส่งคำใบ้ + ตัวอักษรที่เปิดให้ (ไม่มีคำตอบเต็ม)
+        // ========================================================
+
+        if (gamePlayService.isWordClueLevel(levelId)) {
+            const words =
+                await gamePlayService.getWordPuzzles(levelId);
+
+            return res.status(201).json({
+                message: "เริ่มเกมตามหาคำสำเร็จ",
+
+                data: {
+                    play_id: play.play_id,
+                    user_id: play.user_id,
+                    level_id: play.level_id,
+                    score: play.score,
+                    max_score: play.max_score,
+                    status: play.status,
+                    started_at: play.started_at,
+
+                    words,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 4 Level 3 : Firewall Defender
+        // ส่งคำถาม + ตัวเลือกไปด้วย (ไม่มีเฉลย)
+        // ========================================================
+
+        if (gamePlayService.isFirewallLevel(levelId)) {
+            const questions =
+                await gamePlayService.getFirewallQuestions(levelId);
+
+            return res.status(201).json({
+                message: "เริ่มเกม Firewall สำเร็จ",
+
+                data: {
+                    play_id: play.play_id,
+                    user_id: play.user_id,
+                    level_id: play.level_id,
+                    score: play.score,
+                    max_score: play.max_score,
+                    status: play.status,
+                    started_at: play.started_at,
+
+                    hearts: gamePlayService.FIREWALL_HEARTS,
+                    questions,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 4 Level 2 : Slot (กับดักพนัน)
+        // ========================================================
+
+        if (gamePlayService.isSlotLevel(levelId)) {
+            return res.status(201).json({
+                message: "เริ่มเกมสล็อตสำเร็จ",
+
+                data: {
+                    play_id: play.play_id,
+                    user_id: play.user_id,
+                    level_id: play.level_id,
+                    status: play.status,
+                    started_at: play.started_at,
+
+                    start_balance:
+                        gamePlayService.SLOT_START_BALANCE,
+                    bets: gamePlayService.SLOT_BETS,
+                },
+            });
+        }
+
         return res.status(201).json({
             message: "เริ่มเกมสำเร็จ",
             data: play,
@@ -885,6 +1113,42 @@ exports.answerGame = async (req, res) => {
                 message:
                     "รอบนี้ยังไม่ผ่านด่าน Bubble กรุณา Retry ก่อน",
             });
+        }
+
+        // Unit 6 Level 2 : Good Network — ผิดครบ 3 ครั้ง (หัวใจหมด) ตอบต่อไม่ได้
+        if (await gamePlayService.isGoodNetworkLevel(play.level_id)) {
+            const wrongSoFar =
+                await prisma.game_play_answers.count({
+                    where: {
+                        play_id: playId,
+                        is_correct: false,
+                    },
+                });
+
+            if (wrongSoFar >= gamePlayService.NETWORK_LIVES) {
+                return res.status(400).json({
+                    message:
+                        "หัวใจหมดแล้ว ไม่สามารถตอบเพิ่มได้",
+                });
+            }
+        }
+
+        // Unit 4 Level 3 : Firewall — ผิดครบ 4 ครั้ง (หัวใจหมด) ตอบต่อไม่ได้
+        if (gamePlayService.isFirewallLevel(play.level_id)) {
+            const wrongSoFar =
+                await prisma.game_play_answers.count({
+                    where: {
+                        play_id: playId,
+                        is_correct: false,
+                    },
+                });
+
+            if (wrongSoFar >= gamePlayService.FIREWALL_HEARTS) {
+                return res.status(400).json({
+                    message:
+                        "Firewall ถูกเจาะแล้ว ไม่สามารถตอบเพิ่มได้",
+                });
+            }
         }
 
         // ========================================================
@@ -1069,6 +1333,24 @@ exports.answerGame = async (req, res) => {
         // ส่งผลกลับ Frontend
         // ========================================================
 
+        // Unit 6 Level 2 : Good Network — ส่งเฉลย + คำอธิบายกลับไป
+        // (หน้าเกมไฮไลต์ข้อที่ถูกและแสดงคำอธิบายหลังตอบ — ตอบไปแล้วแก้ไม่ได้)
+        let reveal = {};
+
+        if (await gamePlayService.isGoodNetworkLevel(play.level_id)) {
+            const correctChoice = await prisma.choice.findFirst({
+                where: { question_id: questionId, is_correct: true },
+                select: { choice_id: true },
+            });
+
+            reveal = {
+                correct_choice_id: correctChoice?.choice_id ?? null,
+                explanation: choice.is_correct
+                    ? question.correct_explain
+                    : question.wrong_explain || question.correct_explain,
+            };
+        }
+
         return res.status(201).json({
             message:
                 "บันทึกคำตอบสำเร็จ",
@@ -1080,6 +1362,8 @@ exports.answerGame = async (req, res) => {
 
                 is_correct:
                     choice.is_correct,
+
+                ...reveal,
 
                 ip_reward:
                     isLevel2
@@ -1120,6 +1404,15 @@ exports.answerGame = async (req, res) => {
                 error.message,
         });
     }
+};
+
+// ============================================================
+// Unit 1 Level 1 : Magic Mirror — IP สเกลใหม่
+// ============================================================
+const MIRROR_IP = {
+    PER_CORRECT: 50,              // ตอบถูกข้อละ 50 (5 ข้อ = 250)
+    FIRST_TRY_PERFECT_BONUS: 50,  // ถูกครบตั้งแต่ครั้งแรก +50 (เต็ม 300)
+    MAX_WRONG_TO_PASS: 3,         // ผิดเกิน 3 ข้อ = FAIL (เกณฑ์ผ่านเดิม)
 };
 
 // ============================================================
@@ -1225,13 +1518,11 @@ exports.completeGame = async (req, res) => {
         // Unit 1 Level 2 : Bubble Shooter + Boss Bubble
         // ========================================================
         //
-        // กติกา IP (ตกลงล่าสุด)
-        //   Bubble ผ่าน (ไม่ว่าจะผ่านรอบแรกหรือหลัง Retry)  = 2 IP
-        //   + โบนัส 3 IP เฉพาะกรณี "ไม่เคยผิดเลยทั้งรอบ"
-        //     คือ Bubble ผ่านตั้งแต่รอบแรก และ Boss ถูก 3/3
-        //     ตั้งแต่ครั้งแรก (ไม่เคย Retry อะไรเลยทั้งเกม)
-        //   => PERFECT (wrong_count === 0) = 5 IP
-        //   => PASS    (wrong_count > 0)   = 2 IP
+        // กติกา IP (สเกลใหม่)
+        //   ยิง Bubble Bad ถูก     = ลูกละ 10 IP
+        //   ตอบ Boss ถูก           = ข้อละ 20 IP (3 ข้อ = 60)
+        //   (นับจากรอบย่อยสุดท้ายที่ผ่าน — Retry จะล้างของรอบก่อน)
+        //   status: ไม่เคยผิดเลย = PERFECT / เคยผิดแล้ว Retry = PASS
         //
         // "เคยผิด" ดูจาก wrong_count ซึ่งเพิ่มจาก
         //   - shootBubble  (ยิง Good ผิด)
@@ -1241,8 +1532,9 @@ exports.completeGame = async (req, res) => {
 
         if (play.level_id === 2) {
             const BOSS_QUESTION_COUNT = 3;
-            const BUBBLE_STAGE_IP = 2;
-            const FIRST_TRY_BONUS_IP = 3;
+            const BUBBLE_IP_EACH = 10;      // Bubble Bad ลูกละ 10
+            const BOSS_IP_EACH = 20;        // Boss ข้อละ 20
+            const FIRST_TRY_BONUS_IP = 0;   // โบนัสไม่เคยผิด (ตอนนี้ไม่มี)
 
             // ----------------------------------------------------
             // 1. รอบปัจจุบันต้องยังไม่ FAILED
@@ -1353,9 +1645,14 @@ exports.completeGame = async (req, res) => {
             const wrongCount = play.wrong_count ?? 0;
             const isFirstTry = wrongCount === 0;
 
-            const bubbleIP = BUBBLE_STAGE_IP;
+            const badDestroyed = playBubbles.filter(
+                (item) => isBadBubble(item) && item.is_destroyed
+            ).length;
+
+            const bubbleIP = badDestroyed * BUBBLE_IP_EACH;
+            const bossIP = bossCorrectCount * BOSS_IP_EACH;
             const bonusIP = isFirstTry ? FIRST_TRY_BONUS_IP : 0;
-            const earnedIP = bubbleIP + bonusIP;
+            const earnedIP = bubbleIP + bossIP + bonusIP;
 
             const status = isFirstTry ? "PERFECT" : "PASS";
             const completedAt = new Date();
@@ -1422,6 +1719,8 @@ exports.completeGame = async (req, res) => {
                     status: status,
 
                     bubble_ip: bubbleIP,
+                    bubble_count: badDestroyed,
+                    boss_ip: bossIP,
                     bonus_ip: bonusIP,
                     earned_ip: earnedIP,
 
@@ -1460,8 +1759,9 @@ exports.completeGame = async (req, res) => {
         // ========================================================
 
         if (play.level_id === 5) {
-            const BASE_PASS_IP = 5;
-            const FIRST_TRY_BONUS_IP = 5;
+            // สเกลใหม่: ถูกครบ 10 ชิ้น = 100 / ผ่านตั้งแต่ครั้งแรก +50 → 150
+            const BASE_PASS_IP = 100;
+            const FIRST_TRY_BONUS_IP = 50;
 
             const totalItems =
                 await prisma.level_items.count({
@@ -1737,9 +2037,14 @@ exports.completeGame = async (req, res) => {
                 totalQuestions;
 
             // ---------------------------------------------------
-            // IP = จำนวนข้อที่ตอบถูกตั้งแต่ครั้งแรกที่พยายามข้อนั้น
-            // (1 IP ต่อข้อ สูงสุด totalQuestions) ให้เฉพาะตอนผ่านด่าน
+            // IP (สเกลใหม่) — ให้เฉพาะตอนผ่านด่าน (ถูกครบทุกข้อ)
+            //   ตอบถูก                         ข้อละ 20
+            //   + ถูกตั้งแต่ครั้งแรกของข้อนั้น   ข้อละ +10
+            //   ถูกหมดตั้งแต่ครั้งแรก 5 ข้อ = 150
             // ---------------------------------------------------
+            const COMPARE_IP_PER_CORRECT = 20;
+            const COMPARE_IP_FIRST_TRY_BONUS = 10;
+
             const firstTryCorrectCount =
                 await prisma.game_play_comparison.count({
                     where: {
@@ -1750,9 +2055,17 @@ exports.completeGame = async (req, res) => {
                     },
                 });
 
-            const earnedIP = isPass
-                ? firstTryCorrectCount
+            const answerIP = isPass
+                ? correctlyAnsweredQuestions.length *
+                COMPARE_IP_PER_CORRECT
                 : 0;
+
+            const firstTryBonusIP = isPass
+                ? firstTryCorrectCount *
+                COMPARE_IP_FIRST_TRY_BONUS
+                : 0;
+
+            const earnedIP = answerIP + firstTryBonusIP;
 
             /*
              * ข้อความหน้า Result แบ่งเป็น 4 ระดับตามจำนวนข้อที่ตอบถูก
@@ -1846,6 +2159,9 @@ exports.completeGame = async (req, res) => {
                     max_score:
                         totalQuestions,
 
+                    answer_ip: answerIP,
+                    first_try_bonus_ip: firstTryBonusIP,
+                    first_try_correct: firstTryCorrectCount,
                     earned_ip: earnedIP,
 
                     total_integrity_points:
@@ -1882,11 +2198,15 @@ exports.completeGame = async (req, res) => {
              */
             const INITIAL_MONEY = 500;
             const PASS_SCORE = 8;
-            const BASE_PASS_IP = 5;
+            // IP (สเกลใหม่) — ให้เฉพาะตอน PASS (เงื่อนไขเดิม)
+            //   ตอบถูก ข้อละ 10 (10 ข้อ = 100)
+            //   + เหรียญครั้งแรก: 10/10 +50 / 9/10 +25 / 8/10 +5
+            //   เต็ม 150
+            const IP_PER_CORRECT = 10;
             const MEDAL_BONUS_IP = {
-                GOLD: 5,
-                SILVER: 3,
-                BRONZE: 1,
+                GOLD: 50,
+                SILVER: 25,
+                BRONZE: 5,
             };
 
             const totalQuestions =
@@ -2030,8 +2350,12 @@ exports.completeGame = async (req, res) => {
                 ? MEDAL_BONUS_IP[medal]
                 : 0;
 
+            const answerIP = isPassed
+                ? correctAnswers * IP_PER_CORRECT
+                : 0;
+
             const earnedIP = isPassed
-                ? BASE_PASS_IP + medalBonusIP
+                ? answerIP + medalBonusIP
                 : 0;
 
             const completedAt =
@@ -2120,9 +2444,9 @@ exports.completeGame = async (req, res) => {
 
                     is_first_try: isFirstTry,
 
-                    base_ip: isPassed
-                        ? BASE_PASS_IP
-                        : 0,
+                    // base_ip = IP จากข้อที่ตอบถูก (ข้อละ 10)
+                    base_ip: answerIP,
+                    answer_ip: answerIP,
 
                     medal_bonus_ip: medalBonusIP,
 
@@ -2135,6 +2459,734 @@ exports.completeGame = async (req, res) => {
                     completed_at: completedAt,
 
                     is_perfect: allCorrect,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 4 Level 1 : Slip Hunt (จับสลิปปลอม)
+        // ========================================================
+        //
+        // คำตอบแต่ละใบถูกบันทึกไว้แล้วใน game_play_slip_hunt
+        // (POST /api/slip-hunt/answer) ตรงนี้แค่นับจาก DB แล้วตัดสินผล
+        // ไม่เชื่อคะแนนที่ Frontend ส่งมา
+        //
+        // กติกา (ปรับได้ใน gamePlayService.js):
+        //   ถูก 5/5 → PERFECT / ถูก 3-4 → PASS / ถูก < 3 → FAIL
+        // ========================================================
+
+        if (gamePlayService.isSlipHuntLevel(play.level_id)) {
+            const stats =
+                await gamePlayService.getSlipHuntAnswerStats(playId);
+
+            if (stats.answered < stats.total) {
+                return res.status(400).json({
+                    message: "ยังตรวจสลิปไม่ครบทุกใบ",
+                    data: {
+                        answered: stats.answered,
+                        total: stats.total,
+                    },
+                });
+            }
+
+            const result =
+                gamePlayService.calcSlipHuntResult(stats.correct);
+
+            const completedAt = new Date();
+
+            // updateMany + completed_at: null กันจบเกมซ้ำ / ได้ IP ซ้ำ
+            const updated =
+                await prisma.game_play_history.updateMany({
+                    where: {
+                        play_id: playId,
+                        completed_at: null,
+                    },
+                    data: {
+                        score: stats.correct,
+                        max_score: stats.total,
+                        correct_count: stats.correct,
+                        wrong_count: stats.wrong,
+                        earned_ip: result.earnedIP,
+                        completed_at: completedAt,
+                        status: result.status,
+                    },
+                });
+
+            if (updated.count === 0) {
+                return res.status(200).json({
+                    message: "เกมนี้จบไปแล้ว",
+                });
+            }
+
+            await saveLevelProgress({
+                userId,
+                levelId: play.level_id,
+                score: stats.correct,
+                status: result.status,
+                passed: result.isPass,
+            });
+
+            // IP รวม = ผลรวม earned_ip ที่ดีที่สุดของแต่ละ level
+            const totalIP =
+                await recalcIntegrityPoints(userId);
+
+            const slips =
+                await gamePlayService.getSlipHuntAnswers(playId);
+
+            return res.status(200).json({
+                message: result.isPass
+                    ? "จบเกม Slip Hunt สำเร็จ (PASS)"
+                    : "จบเกม Slip Hunt (FAIL)",
+
+                data: {
+                    play_id: playId,
+                    status: result.status,
+
+                    score: stats.correct,
+                    max_score: stats.total,
+                    correct_count: stats.correct,
+                    wrong_count: stats.wrong,
+
+                    answer_ip: result.answerIP,
+                    perfect_bonus_ip: result.perfectBonusIP,
+                    earned_ip: result.earnedIP,
+
+                    total_integrity_points: totalIP ?? 0,
+
+                    slips,
+
+                    completed_at: completedAt,
+
+                    is_perfect: result.isPerfect,
+                    is_pass: result.isPass,
+                    is_fail: !result.isPass,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 6 Level 2 : Good Network
+        // ========================================================
+        //
+        // จบได้ 2 ทาง: ตอบคำถามที่ศาลแล้ว (PASS) / หัวใจหมด (FAIL)
+        // นับจาก game_play_answers ที่ backend บันทึกเอง
+        // ========================================================
+
+        if (await gamePlayService.isGoodNetworkLevel(play.level_id)) {
+            const stats =
+                await gamePlayService.getGoodNetworkStats(
+                    playId,
+                    play.level_id
+                );
+
+            if (!stats.reachedGoal && !stats.isOutOfLives) {
+                return res.status(400).json({
+                    message: "ยังไม่ถึงศาลยุติธรรม และหัวใจยังไม่หมด",
+                    data: {
+                        answered: stats.answered,
+                        wrong: stats.wrong,
+                    },
+                });
+            }
+
+            const result =
+                gamePlayService.calcGoodNetworkResult(stats);
+
+            const completedAt = new Date();
+
+            const updated =
+                await prisma.game_play_history.updateMany({
+                    where: {
+                        play_id: playId,
+                        completed_at: null,
+                    },
+                    data: {
+                        score: stats.correct,
+                        correct_count: stats.correct,
+                        wrong_count: stats.wrong,
+                        earned_ip: result.earnedIP,
+                        completed_at: completedAt,
+                        status: result.status,
+                    },
+                });
+
+            if (updated.count === 0) {
+                return res.status(200).json({
+                    message: "เกมนี้จบไปแล้ว",
+                });
+            }
+
+            await saveLevelProgress({
+                userId,
+                levelId: play.level_id,
+                score: stats.correct,
+                status: result.status,
+                passed: result.isPass,
+            });
+
+            const totalIP =
+                await recalcIntegrityPoints(userId);
+
+            return res.status(200).json({
+                message: result.isPass
+                    ? "จบเกมเครือข่ายความดีสำเร็จ (PASS)"
+                    : "จบเกมเครือข่ายความดี (FAIL)",
+
+                data: {
+                    play_id: playId,
+                    status: result.status,
+
+                    score: stats.correct,
+                    max_score: play.max_score,
+                    correct_count: stats.correct,
+                    wrong_count: stats.wrong,
+                    earned_ip: result.earnedIP,
+
+                    lives_left: stats.livesLeft,
+                    reached_goal: stats.reachedGoal,
+                    total_integrity_points: totalIP ?? 0,
+                    completed_at: completedAt,
+
+                    is_perfect: result.isPerfect,
+                    is_pass: result.isPass,
+                    is_fail: !result.isPass,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 6 Level 1 : Crisis Response
+        // ========================================================
+        //
+        // จบได้เมื่อเล่นครบเวลา (นับจาก started_at ของรอบนี้)
+        // คะแนน / Integrity คิดจากทุกเหตุการณ์ที่บันทึกไว้ เรียงตามเวลา
+        // ========================================================
+
+        if (await gamePlayService.isCrisisLevel(play.level_id)) {
+            const elapsed = gamePlayService.crisisElapsed(play);
+
+            if (elapsed < gamePlayService.CRISIS_SECONDS - 3) {
+                return res.status(400).json({
+                    message: "ยังไม่หมดเวลาภารกิจ",
+                    data: {
+                        elapsed: Math.floor(elapsed),
+                        required: gamePlayService.CRISIS_SECONDS,
+                    },
+                });
+            }
+
+            const totals =
+                await gamePlayService.getCrisisTotals(playId);
+            const result =
+                gamePlayService.calcCrisisResult(totals);
+
+            const completedAt = new Date();
+
+            const updated =
+                await prisma.game_play_history.updateMany({
+                    where: {
+                        play_id: playId,
+                        completed_at: null,
+                    },
+                    data: {
+                        score: totals.score,
+                        max_score: 0,
+                        correct_count: totals.helped,
+                        wrong_count: totals.missed,
+                        earned_ip: result.earnedIP,
+                        completed_at: completedAt,
+                        status: result.status,
+                    },
+                });
+
+            if (updated.count === 0) {
+                return res.status(200).json({
+                    message: "เกมนี้จบไปแล้ว",
+                });
+            }
+
+            await saveLevelProgress({
+                userId,
+                levelId: play.level_id,
+                score: totals.score,
+                status: result.status,
+                passed: result.isPass,
+            });
+
+            const totalIP =
+                await recalcIntegrityPoints(userId);
+
+            return res.status(200).json({
+                message: "จบเกม Crisis Response สำเร็จ",
+
+                data: {
+                    play_id: playId,
+                    status: result.status,
+
+                    score: totals.score,
+                    integrity: totals.integrity,
+                    helped: totals.helped,
+                    missed: totals.missed,
+                    correct_count: totals.helped,
+                    wrong_count: totals.missed,
+                    rank: result.rank,
+                    earned_ip: result.earnedIP,
+
+                    total_integrity_points: totalIP ?? 0,
+                    completed_at: completedAt,
+
+                    is_perfect: result.isPerfect,
+                    is_pass: true,
+                    is_fail: false,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 5 Level 3 : Integrity Inspector
+        // ========================================================
+        //
+        // จบได้ 2 ทาง: ตัดสินครบทุกโครงการ / หมดเวลา (is_timeout)
+        // หมดเวลาเชื่อค่าจาก client ได้ เพราะโครงการที่ไม่ได้ตัดสิน
+        // ไม่ได้คะแนน (จบเร็วขึ้นก็ไม่ได้เปรียบ)
+        // ========================================================
+
+        if (gamePlayService.isInspectorLevel(play.level_id)) {
+            const stats =
+                await gamePlayService.getInspectorStats(
+                    playId,
+                    play.level_id
+                );
+
+            if (stats.decided < stats.total && is_timeout !== true) {
+                return res.status(400).json({
+                    message: "ยังตรวจเอกสารไม่ครบทุกโครงการ",
+                    data: {
+                        decided: stats.decided,
+                        total: stats.total,
+                    },
+                });
+            }
+
+            const result =
+                gamePlayService.calcInspectorResult(stats);
+
+            const completedAt = new Date();
+
+            const updated =
+                await prisma.game_play_history.updateMany({
+                    where: {
+                        play_id: playId,
+                        completed_at: null,
+                    },
+                    data: {
+                        score: stats.score,
+                        max_score: 100,
+                        correct_count: stats.correct,
+                        wrong_count: stats.wrong,
+                        earned_ip: result.earnedIP,
+                        completed_at: completedAt,
+                        status: result.status,
+                    },
+                });
+
+            if (updated.count === 0) {
+                return res.status(200).json({
+                    message: "เกมนี้จบไปแล้ว",
+                });
+            }
+
+            await saveLevelProgress({
+                userId,
+                levelId: play.level_id,
+                score: stats.score,
+                status: result.status,
+                passed: result.isPass,
+            });
+
+            const totalIP =
+                await recalcIntegrityPoints(userId);
+
+            return res.status(200).json({
+                message: "จบเกม Integrity Inspector สำเร็จ",
+
+                data: {
+                    play_id: playId,
+                    status: result.status,
+
+                    score: stats.score,
+                    max_score: 100,
+                    correct_count: stats.correct,
+                    wrong_count: stats.wrong,
+                    earned_ip: result.earnedIP,
+
+                    integrity: stats.integrity,
+                    rank: result.rank,
+                    decided: stats.decided,
+                    total_projects: stats.total,
+                    is_timeout: stats.decided < stats.total,
+
+                    total_integrity_points: totalIP ?? 0,
+                    completed_at: completedAt,
+
+                    is_perfect: result.isPerfect,
+                    is_pass: true,
+                    is_fail: false,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 5 Level 2 : จัดสรรงบประมาณให้เมือง
+        // ========================================================
+        //
+        // ต้องส่งการจัดสรรมาก่อน (POST /api/budget-game/submit)
+        // backend คิดคะแนน/Rank/IP เองจาก game_play_budget_allocations
+        // ========================================================
+
+        if (gamePlayService.isBudgetLevel(play.level_id)) {
+            const budgets =
+                await gamePlayService.getBudgetAllocations(playId);
+
+            if (!budgets) {
+                return res.status(400).json({
+                    message: "ยังไม่ได้ส่งการจัดสรรงบประมาณ",
+                });
+            }
+
+            const result =
+                gamePlayService.calcBudgetResult(budgets);
+
+            const completedAt = new Date();
+
+            const updated =
+                await prisma.game_play_history.updateMany({
+                    where: {
+                        play_id: playId,
+                        completed_at: null,
+                    },
+                    data: {
+                        score: result.score,
+                        max_score: 100,
+                        earned_ip: result.earnedIP,
+                        completed_at: completedAt,
+                        status: result.status,
+                    },
+                });
+
+            if (updated.count === 0) {
+                return res.status(200).json({
+                    message: "เกมนี้จบไปแล้ว",
+                });
+            }
+
+            await saveLevelProgress({
+                userId,
+                levelId: play.level_id,
+                score: result.score,
+                status: result.status,
+                passed: result.isPass,
+            });
+
+            const totalIP =
+                await recalcIntegrityPoints(userId);
+
+            return res.status(200).json({
+                message: "จบเกมจัดสรรงบประมาณสำเร็จ",
+
+                data: {
+                    play_id: playId,
+                    status: result.status,
+
+                    score: result.score,
+                    max_score: 100,
+                    earned_ip: result.earnedIP,
+
+                    rank: result.rank,
+                    happiness: result.happiness,
+                    budgets,
+                    total_budget: gamePlayService.BUDGET_TOTAL,
+                    remaining_budget: result.remaining,
+
+                    total_integrity_points: totalIP ?? 0,
+                    completed_at: completedAt,
+
+                    is_perfect: result.isPerfect,
+                    is_pass: true,
+                    is_fail: false,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 5 Level 1 : ตามหาคำจากคำใบ้
+        // ========================================================
+        //
+        // ต้องหาคำครบทุกคำ (นับจาก game_play_word_answers)
+        // ไม่เคยพิมพ์ผิด → PERFECT / เคยผิด → PASS
+        // IP = ผลรวม level_words.ip_reward ของคำที่หาเจอ
+        // ========================================================
+
+        if (gamePlayService.isWordClueLevel(play.level_id)) {
+            const stats =
+                await gamePlayService.getWordStats(
+                    playId,
+                    play.level_id
+                );
+
+            if (stats.solved < stats.total) {
+                return res.status(400).json({
+                    message: "ยังหาคำไม่ครบทุกคำ",
+                    data: {
+                        solved: stats.solved,
+                        total: stats.total,
+                    },
+                });
+            }
+
+            const result =
+                gamePlayService.calcWordResult(stats);
+
+            const completedAt = new Date();
+
+            const updated =
+                await prisma.game_play_history.updateMany({
+                    where: {
+                        play_id: playId,
+                        completed_at: null,
+                    },
+                    data: {
+                        score: stats.solved,
+                        max_score: stats.total,
+                        correct_count: stats.solved,
+                        wrong_count: stats.wrong,
+                        earned_ip: result.earnedIP,
+                        completed_at: completedAt,
+                        status: result.status,
+                    },
+                });
+
+            if (updated.count === 0) {
+                return res.status(200).json({
+                    message: "เกมนี้จบไปแล้ว",
+                });
+            }
+
+            await saveLevelProgress({
+                userId,
+                levelId: play.level_id,
+                score: stats.solved,
+                status: result.status,
+                passed: result.isPass,
+            });
+
+            const totalIP =
+                await recalcIntegrityPoints(userId);
+
+            return res.status(200).json({
+                message: "จบเกมตามหาคำสำเร็จ",
+
+                data: {
+                    play_id: playId,
+                    status: result.status,
+
+                    score: stats.solved,
+                    max_score: stats.total,
+                    correct_count: stats.solved,
+                    wrong_count: stats.wrong,
+                    earned_ip: result.earnedIP,
+                    max_ip: stats.maxIP,
+
+                    total_integrity_points: totalIP ?? 0,
+                    completed_at: completedAt,
+
+                    is_perfect: result.isPerfect,
+                    is_pass: result.isPass,
+                    is_fail: !result.isPass,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 4 Level 3 : Firewall Defender
+        // ========================================================
+        //
+        // จบได้ 2 ทาง: ตอบครบทุกข้อ / ตอบผิดครบ 4 ครั้ง (หัวใจหมด)
+        // นับจาก game_play_answers ที่ backend บันทึกเอง
+        // กติกา + IP ปรับได้ใน gamePlayService.js
+        // ========================================================
+
+        if (gamePlayService.isFirewallLevel(play.level_id)) {
+            const stats =
+                await gamePlayService.getFirewallStats(
+                    playId,
+                    play.level_id
+                );
+
+            if (stats.answered < stats.total && !stats.isBroken) {
+                return res.status(400).json({
+                    message:
+                        "ยังตอบคำถามไม่ครบ และ Firewall ยังไม่ถูกเจาะ",
+                    data: {
+                        answered: stats.answered,
+                        total: stats.total,
+                    },
+                });
+            }
+
+            const result =
+                gamePlayService.calcFirewallResult(stats);
+
+            const completedAt = new Date();
+
+            // updateMany + completed_at: null กันจบเกมซ้ำ / ได้ IP ซ้ำ
+            const updated =
+                await prisma.game_play_history.updateMany({
+                    where: {
+                        play_id: playId,
+                        completed_at: null,
+                    },
+                    data: {
+                        score: stats.correct,
+                        max_score: stats.total,
+                        correct_count: stats.correct,
+                        wrong_count: stats.wrong,
+                        earned_ip: result.earnedIP,
+                        completed_at: completedAt,
+                        status: result.status,
+                    },
+                });
+
+            if (updated.count === 0) {
+                return res.status(200).json({
+                    message: "เกมนี้จบไปแล้ว",
+                });
+            }
+
+            await saveLevelProgress({
+                userId,
+                levelId: play.level_id,
+                score: stats.correct,
+                status: result.status,
+                passed: result.isPass,
+            });
+
+            const totalIP =
+                await recalcIntegrityPoints(userId);
+
+            return res.status(200).json({
+                message: result.isPass
+                    ? "จบเกม Firewall สำเร็จ (PASS)"
+                    : "จบเกม Firewall (FAIL)",
+
+                data: {
+                    play_id: playId,
+                    status: result.status,
+
+                    // key เดียวกับกรณี "เกมนี้จบไปแล้ว" ด้านบน
+                    // หน้า Result จึงใช้ได้ทั้งสองแบบ
+                    score: stats.correct,
+                    max_score: stats.total,
+                    correct_count: stats.correct,
+                    wrong_count: stats.wrong,
+                    earned_ip: result.earnedIP,
+
+                    answered: stats.answered,
+                    hearts_left: stats.heartsLeft,
+                    total_integrity_points: totalIP ?? 0,
+
+                    completed_at: completedAt,
+
+                    is_perfect: result.isPerfect,
+                    is_pass: result.isPass,
+                    is_fail: !result.isPass,
+                },
+            });
+        }
+
+        // ========================================================
+        // Unit 4 Level 2 : Slot (กับดักพนัน)
+        // ========================================================
+        //
+        // ไม่มีถูก/ผิด — จบบทได้เมื่อ "เครดิตหมด" (เห็นกลลวงครบวงจร)
+        // เครดิตนับจาก game_play_slot_rounds ที่ backend บันทึกเอง
+        // ไม่เชื่อค่าที่ Frontend ส่งมา
+        //   เครดิตหมด → PASS + SLOT_PASS_IP (ปรับได้ใน gamePlayService.js)
+        // ========================================================
+
+        if (gamePlayService.isSlotLevel(play.level_id)) {
+            const summary =
+                await gamePlayService.getSlotSummary(playId);
+
+            if (!summary.is_broke) {
+                return res.status(400).json({
+                    message: "ยังเล่นไม่จบ เครดิตยังไม่หมด",
+                    data: {
+                        spins: summary.spins,
+                        balance: summary.balance,
+                    },
+                });
+            }
+
+            const result = gamePlayService.calcSlotResult();
+            const completedAt = new Date();
+
+            // updateMany + completed_at: null กันจบเกมซ้ำ / ได้ IP ซ้ำ
+            const updated =
+                await prisma.game_play_history.updateMany({
+                    where: {
+                        play_id: playId,
+                        completed_at: null,
+                    },
+                    data: {
+                        // score = จำนวนครั้งที่หมุนจนเครดิตหมด
+                        score: summary.spins,
+                        max_score: 0,
+                        earned_ip: result.earnedIP,
+                        completed_at: completedAt,
+                        status: result.status,
+                    },
+                });
+
+            if (updated.count === 0) {
+                return res.status(200).json({
+                    message: "เกมนี้จบไปแล้ว",
+                });
+            }
+
+            await saveLevelProgress({
+                userId,
+                levelId: play.level_id,
+                score: summary.spins,
+                status: result.status,
+                passed: result.isPass,
+            });
+
+            const totalIP =
+                await recalcIntegrityPoints(userId);
+
+            return res.status(200).json({
+                message: "จบเกมสล็อตสำเร็จ (PASS)",
+
+                data: {
+                    play_id: playId,
+                    status: result.status,
+
+                    earned_ip: result.earnedIP,
+                    total_integrity_points: totalIP ?? 0,
+
+                    spins: summary.spins,
+                    start_balance: summary.start_balance,
+                    peak_balance: summary.peak_balance,
+                    total_bet: summary.total_bet,
+                    total_reward: summary.total_reward,
+                    rounds: summary.rounds,
+
+                    completed_at: completedAt,
+
+                    is_perfect: false,
+                    is_pass: true,
+                    is_fail: false,
                 },
             });
         }
@@ -2211,48 +3263,59 @@ exports.completeGame = async (req, res) => {
                 ).length;
 
             // ====================================================
-            // คำนวณ IP
+            // คำนวณ IP (สเกลใหม่)
+            //   - ตอบถูกได้ข้อละ 50 IP (ถูกหมด 5 ข้อ = 250)
+            //   - โบนัส +50 ถ้าถูกครบตั้งแต่ "ครั้งแรก"
+            //     (ไม่เคยมี play ที่จบแล้วของ level นี้มาก่อน) → 300
+            //   - สถานะ: ผิด > 3 = FAIL / ถูกหมด = PERFECT / อื่น ๆ = PASS
+            //     (เกณฑ์ผ่าน / ปลดล็อกเหมือนเดิม)
             // ====================================================
 
-            let status;
-            let answerIP = 0;
-            let perfectBonusIP = 0;
-            let earnedIP = 0;
+            const priorCompletedCount =
+                await prisma.game_play_history.count({
+                    where: {
+                        user_id: userId,
+                        level_id: 1,
+                        completed_at: { not: null },
+                        play_id: { not: playId },
+                    },
+                });
 
-            if (wrongCount > 3) {
+            const isFirstTry = priorCompletedCount === 0;
+
+            let status;
+
+            if (wrongCount > MIRROR_IP.MAX_WRONG_TO_PASS) {
                 status = "FAIL";
-                earnedIP = 0;
             } else if (wrongCount === 0) {
                 status = "PERFECT";
-
-                // ตอบถูกครบ 5 ข้อ
-                answerIP = correctCount;
-
-                // โบนัส PERFECT
-                perfectBonusIP = 5;
-
-                // IP รวม
-                earnedIP = answerIP + perfectBonusIP;
             } else {
                 status = "PASS";
-
-                // ตอบถูกบางข้อ = ได้คะแนน แต่ไม่ได้ IP
-                answerIP = 0;
-                perfectBonusIP = 0;
-                earnedIP = 0;
             }
+
+            const answerIP =
+                correctCount * MIRROR_IP.PER_CORRECT;
+
+            const perfectBonusIP =
+                status === "PERFECT" && isFirstTry
+                    ? MIRROR_IP.FIRST_TRY_PERFECT_BONUS
+                    : 0;
+
+            const earnedIP = answerIP + perfectBonusIP;
 
             const completedAt =
                 new Date();
 
             // ====================================================
-            // บันทึกผลการเล่น
+            // บันทึกผลการเล่น — updateMany + completed_at:null
+            // กันกดจบซ้ำพร้อมกันแล้วได้ IP ซ้ำ
             // ====================================================
 
-            const completedPlay =
-                await prisma.game_play_history.update({
+            const updated =
+                await prisma.game_play_history.updateMany({
                     where: {
                         play_id: playId,
+                        completed_at: null,
                     },
 
                     data: {
@@ -2278,6 +3341,19 @@ exports.completeGame = async (req, res) => {
                             status,
                     },
                 });
+
+            if (updated.count === 0) {
+                return res.status(200).json({
+                    message: "เกมนี้จบไปแล้ว",
+                });
+            }
+
+            const completedPlay = {
+                play_id: playId,
+                score: correctCount,
+                max_score: questionCount,
+                completed_at: completedAt,
+            };
 
             // ====================================================
             // UPDATE USER LEVEL PROGRESS
@@ -2334,6 +3410,9 @@ exports.completeGame = async (req, res) => {
                     perfect_bonus_ip:
                         perfectBonusIP,
 
+                    is_first_try:
+                        isFirstTry,
+
                     earned_ip:
                         earnedIP,
 
@@ -2378,14 +3457,16 @@ exports.completeGame = async (req, res) => {
         //    หลัง Verdict ผิด เพราะทั้งสามทางเรียก
         //    /api/game-play/case/retry เหมือนกันหมด)
         //
-        // IP = caseAnswerIP (รวม choice.ip_reward จากคำตอบ Verdict 5 ข้อ)
-        //      + โบนัสตาม Rank: MASTER +5 / EXPERT +2 / NOVICE +0 / TRAINEE +0
+        // IP (สเกลใหม่) = caseAnswerIP (รวม choice.ip_reward จากคำตอบ
+        //      Verdict 5 คดี — ตัวเลือกที่ถูกคดีละ 50 → 250)
+        //      + โบนัสตาม Rank: MASTER +50 / EXPERT +20 / NOVICE +0 / TRAINEE +0
+        //      → เต็ม 300
         // ========================================================
 
         if (play.level_id === 3) {
             const RANK_BONUS_IP = {
-                MASTER: 5,
-                EXPERT: 2,
+                MASTER: 50,
+                EXPERT: 20,
                 NOVICE: 0,
                 TRAINEE: 0,
             };
