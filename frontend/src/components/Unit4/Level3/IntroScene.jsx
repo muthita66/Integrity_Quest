@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FaChevronRight, FaEnvelopeOpenText, FaShieldAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import BookLayout from "../BookLayout";
+import useUnit4Chapter, { Unit4Checking } from "../useUnit4Chapter";
 import janeImg from "../../../assets/unit4/Jane.png";
 import "../../../styles/theme.css";
 import "./level3.css";
@@ -16,9 +17,13 @@ const CHAT = [
 
 export default function IntroScene() {
     const navigate = useNavigate();
+    // กันเข้าทาง URL ตรง ๆ ตอนบทนี้ยังไม่ปลดล็อก
+    const { checking } = useUnit4Chapter(2);
     const [chatOpen, setChatOpen] = useState(false);
     const [visibleMessages, setVisibleMessages] = useState(2);
     const chatFinished = visibleMessages === CHAT.length;
+
+    if (checking) return <Unit4Checking />;
 
     return (
         <BookLayout

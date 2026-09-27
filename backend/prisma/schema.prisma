@@ -236,16 +236,23 @@ model game_play_history {
   earned_ip                    Int                            @default(0)
   game_play_answers            game_play_answers[]
   game_play_bubbles            game_play_bubbles[]
+  game_play_budget_allocations game_play_budget_allocations[]
   game_play_case_attempts      game_play_case_attempts[]
   game_play_comparison         game_play_comparison[]
+  game_play_crisis_responses   game_play_crisis_responses[]
+  game_play_crisis_specials    game_play_crisis_specials[]
   level                        level                          @relation(fields: [level_id], references: [level_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_level_id")
   users                        users                          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
   game_play_money              game_play_money[]
   game_play_need_want          game_play_need_want[]
+  game_play_project_decisions  game_play_project_decisions[]
   game_play_receipt_hunt       game_play_receipt_hunt[]
+  game_play_slip_hunt          game_play_slip_hunt[]
+  game_play_slot_rounds        game_play_slot_rounds[]
   game_play_treasurer          game_play_treasurer?
   game_play_treasurer_events   game_play_treasurer_events[]
   game_play_treasurer_receipts game_play_treasurer_receipts[]
+  game_play_word_answers       game_play_word_answers[]
 }
 
 model game_play_items {
@@ -432,8 +439,10 @@ model items {
   game_play_money                                                game_play_money[]
   game_play_need_want                                            game_play_need_want[]
   game_play_receipt_hunt                                         game_play_receipt_hunt[]
+  game_play_slip_hunt                                            game_play_slip_hunt[]
   hint_minigame_scenarios                                        hint_minigame_scenarios[]
   level_items                                                    level_items[]
+  slip_details                                                   slip_details?
 }
 
 model level {
@@ -455,9 +464,12 @@ model level {
   introScene            introScene[]
   game_type             game_type               @relation(fields: [game_type_id], references: [game_type_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_game_type_id")
   level_type            level_type              @relation(fields: [level_type_id], references: [level_type_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_level_type_id")
+  level_crisis_events   level_crisis_events[]
   level_hints           level_hints[]
   level_items           level_items[]
+  level_projects        level_projects[]
   level_result_messages level_result_messages[]
+  level_words           level_words[]
   question              question[]
   user_level_progress   user_level_progress[]
 }
@@ -846,6 +858,203 @@ model user_sessions {
   users          users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_sessions_user_fk")
 
   @@index([user_id, started_at(sort: Desc)], map: "idx_user_sessions_user_started")
+}
+
+model slip_details {
+  id       Int     @id @default(autoincrement())
+  items_id Int     @unique
+  bank     String  @db.VarChar(100)
+  from     String  @db.VarChar(255)
+  amount   String  @db.VarChar(50)
+  answer   String  @db.VarChar(10)
+  clue     String?
+  image    String? @db.VarChar(255)
+  items    items   @relation(fields: [items_id], references: [items_id], onDelete: Cascade, onUpdate: NoAction, map: "slip_details_item_fk")
+}
+
+model game_play_slip_hunt {
+  play_slip_id      Int               @id @default(autoincrement())
+  play_id           Int
+  slip_id           Int
+  slip_order        Int
+  player_choice     String            @db.VarChar(10)
+  is_correct        Boolean
+  answered_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  items             items             @relation(fields: [slip_id], references: [items_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_slip_hunt_item")
+  game_play_history game_play_history @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_slip_hunt_play")
+
+  @@unique([play_id, slip_order], map: "unique_play_slip_order")
+  @@index([play_id], map: "idx_slip_hunt_play_id")
+  @@index([slip_id], map: "idx_slip_hunt_slip_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model game_play_slot_rounds {
+  round_id          Int               @id @default(autoincrement())
+  play_id           Int
+  spin_no           Int
+  bet               Int
+  balance_before    Int
+  reward            Int               @default(0)
+  balance_after     Int
+  result_symbols    String            @db.VarChar(50)
+  created_at        DateTime          @default(now()) @db.Timestamp(6)
+  game_play_history game_play_history @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([play_id, spin_no], map: "uq_slot_round_spin")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model game_play_budget_allocations {
+  allocation_id     Int               @id @default(autoincrement())
+  play_id           Int
+  category_code     String            @db.VarChar(20)
+  amount            Int
+  created_at        DateTime          @default(now()) @db.Timestamp(6)
+  updated_at        DateTime          @default(now()) @db.Timestamp(6)
+  game_play_history game_play_history @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([play_id, category_code], map: "uq_budget_play_category")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model game_play_crisis_responses {
+  response_id          Int                   @id @default(autoincrement())
+  play_id              Int
+  spawn_no             Int
+  event_id             Int
+  outcome              String                @db.VarChar(10)
+  choice_id            Int?
+  integrity_delta      Int
+  score_delta          Int
+  trust_delta          Int                   @default(0)
+  response_seconds     Int?
+  responded_at         DateTime              @default(now()) @db.Timestamp(6)
+  level_crisis_choices level_crisis_choices? @relation(fields: [choice_id], references: [choice_id], onDelete: NoAction, onUpdate: NoAction)
+  level_crisis_events  level_crisis_events   @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+  game_play_history    game_play_history     @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([play_id, spawn_no], map: "uq_crisis_spawn")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model game_play_crisis_specials {
+  special_id        Int               @id @default(autoincrement())
+  play_id           Int
+  special_code      String            @db.VarChar(30)
+  integrity_delta   Int               @default(0)
+  created_at        DateTime          @default(now()) @db.Timestamp(6)
+  game_play_history game_play_history @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model game_play_project_decisions {
+  decision_id       Int               @id @default(autoincrement())
+  play_id           Int
+  project_id        Int
+  decision_order    Int
+  action            String            @db.VarChar(10)
+  took_bribe        Boolean           @default(false)
+  refused_bribe     Boolean           @default(false)
+  is_correct        Boolean
+  score_delta       Int
+  integrity_delta   Int
+  decided_at        DateTime          @default(now()) @db.Timestamp(6)
+  game_play_history game_play_history @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction)
+  level_projects    level_projects    @relation(fields: [project_id], references: [project_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([play_id, project_id], map: "uq_project_decision")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model game_play_word_answers {
+  answer_id         Int               @id @default(autoincrement())
+  play_id           Int
+  word_id           Int
+  attempt_no        Int
+  typed_text        String            @db.VarChar(100)
+  is_correct        Boolean
+  answered_at       DateTime          @default(now()) @db.Timestamp(6)
+  game_play_history game_play_history @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction)
+  level_words       level_words       @relation(fields: [word_id], references: [word_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([play_id, word_id, attempt_no], map: "uq_word_attempt")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model level_crisis_choices {
+  choice_id                  Int                          @id @default(autoincrement())
+  event_id                   Int
+  choice_order               Int
+  choice_code                String                       @db.VarChar(50)
+  label                      String                       @db.VarChar(100)
+  icon_key                   String?                      @db.VarChar(50)
+  integrity_delta            Int
+  score_delta                Int
+  trust_delta                Int                          @default(0)
+  note                       String
+  game_play_crisis_responses game_play_crisis_responses[]
+  level_crisis_events        level_crisis_events          @relation(fields: [event_id], references: [event_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([event_id, choice_order], map: "uq_crisis_choice_order")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model level_crisis_events {
+  event_id                   Int                          @id @default(autoincrement())
+  level_id                   Int
+  event_code                 String                       @db.VarChar(50)
+  location_code              String                       @db.VarChar(50)
+  title                      String                       @db.VarChar(200)
+  description                String
+  time_limit                 Int
+  timeout_integrity_delta    Int
+  timeout_score_delta        Int
+  timeout_note               String
+  is_active                  Boolean                      @default(true)
+  game_play_crisis_responses game_play_crisis_responses[]
+  level_crisis_choices       level_crisis_choices[]
+  level                      level                        @relation(fields: [level_id], references: [level_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([level_id, event_code], map: "uq_crisis_event_code")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model level_projects {
+  project_id                  Int                           @id @default(autoincrement())
+  level_id                    Int
+  project_order               Int
+  name                        String                        @db.VarChar(200)
+  budget_text                 String                        @db.VarChar(100)
+  price_estimate              String                        @db.VarChar(100)
+  contractor                  String                        @db.VarChar(200)
+  documents                   String                        @db.VarChar(200)
+  history                     String                        @db.VarChar(200)
+  correct_action              String                        @db.VarChar(10)
+  has_bribe                   Boolean                       @default(false)
+  bribe_amount                String?                       @db.VarChar(100)
+  explanation                 String?
+  is_active                   Boolean                       @default(true)
+  game_play_project_decisions game_play_project_decisions[]
+  level                       level                         @relation(fields: [level_id], references: [level_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([level_id, project_order], map: "uq_level_project_order")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model level_words {
+  word_id                Int                      @id @default(autoincrement())
+  level_id               Int
+  word_order             Int
+  answer                 String                   @db.VarChar(100)
+  clue                   String
+  revealed_count         Int                      @default(0)
+  ip_reward              Int                      @default(10)
+  is_active              Boolean                  @default(true)
+  game_play_word_answers game_play_word_answers[]
+  level                  level                    @relation(fields: [level_id], references: [level_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([level_id, word_order], map: "uq_level_word_order")
 }
 
 enum quiz_type_enum {

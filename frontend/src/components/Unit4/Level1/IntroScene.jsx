@@ -8,6 +8,13 @@ import jane from "../../../assets/unit4/senior-detective.png";
 import "../../../styles/theme.css";
 import "./level1.css";
 
+// ✅ userId ไม่ต้องส่งเอง — backend อ่านจาก token (authMiddleware → req.user.id)
+// ⚠️ ถ้าโปรเจกต์เก็บ token ด้วย key อื่น หรือมี api helper อยู่แล้ว (เช่น axios instance
+//    ที่ Unit 1–3 ใช้) ให้เปลี่ยนมาใช้ตัวนั้นแทน
+const API_BASE = "http://localhost:5000";
+const SLIP_HUNT_LEVEL_ID = 11;
+const getToken = () => localStorage.getItem("token");
+
 const DIALOGS = [
     "สวัสดี วันนี้มีเคสด่วนเข้ามา บริษัทได้รับสลิปโอนเงิน 5 ใบ แต่มีบางใบที่เราไม่แน่ใจ",
     "มิจฉาชีพทำสลิปปลอมได้เนียนขึ้นมาก แต่ยังไงก็ยังพลาดในรายละเอียดเล็ก ๆ เสมอ",
@@ -20,6 +27,7 @@ export default function IntroScene() {
     const [index, setIndex] = useState(0);
     const [text, setText] = useState("");
     const [typing, setTyping] = useState(true);
+    const [creatingSession, setCreatingSession] = useState(false); // ✅ loading state
     const timer = useRef(null);
 
     useEffect(() => {
@@ -40,6 +48,39 @@ export default function IntroScene() {
         return () => clearInterval(timer.current);
     }, [index]);
 
+    // ✅ เริ่มเกม (POST /api/game-play/start) เมื่อ user คลิก "เริ่มตรวจสลิป"
+    const startGame = async () => {
+        try {
+            setCreatingSession(true);
+            const response = await fetch(`${API_BASE}/api/game-play/start`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${getToken()}`,
+                },
+                body: JSON.stringify({ level_id: SLIP_HUNT_LEVEL_ID }),
+            });
+
+            const result = await response.json();
+
+            // /start ตอบกลับ { message, data: play } (ไม่มี success)
+            if (!response.ok) {
+                console.error("startGame error:", result.message);
+                alert(result.message || "เกิดข้อผิดพลาดในการเริ่มเกม กรุณาลองใหม่");
+                setCreatingSession(false);
+                return;
+            }
+
+            // ✅ ได้ play_id กลับมา -> ไปหน้า Game พร้อม playId
+            const playId = result.data.play_id;
+            navigate(`/unit4/level1/game?playId=${playId}`);
+        } catch (error) {
+            console.error("Error:", error);
+            alert("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
+            setCreatingSession(false);
+        }
+    };
+
     // กดครั้งแรกระหว่างพิมพ์ = แสดงข้อความทั้งบรรทัดทันที ไม่ต้องรอ
     const advance = () => {
         if (typing) {
@@ -48,8 +89,12 @@ export default function IntroScene() {
             setTyping(false);
             return;
         }
-        if (index < DIALOGS.length - 1) setIndex(index + 1);
-        else navigate("/unit4/level1/game");
+        if (index < DIALOGS.length - 1) {
+            setIndex(index + 1);
+        } else {
+            // ✅ เมื่อบรรทัดสุดท้าย คลิกปุ่ม -> สร้าง game session
+            startGame();
+        }
     };
 
     const last = index === DIALOGS.length - 1;
@@ -142,8 +187,21 @@ export default function IntroScene() {
                             ))}
                         </div>
 
-                        <button type="button" className="primary-btn" onClick={advance}>
-                            {typing ? "แสดงทั้งหมด" : last ? <>เริ่มตรวจสลิป <FaPlay size={13} /></> : <>ต่อไป <FaChevronRight size={13} /></>}
+                        <button
+                            type="button"
+                            className="primary-btn"
+                            onClick={advance}
+                            disabled={creatingSession} // ✅ disable ขณะสร้าง session
+                        >
+                            {creatingSession ? (
+                                "กำลังสร้างเกม..."
+                            ) : typing ? (
+                                "แสดงทั้งหมด"
+                            ) : last ? (
+                                <>เริ่มตรวจสลิป <FaPlay size={13} /></>
+                            ) : (
+                                <>ต่อไป <FaChevronRight size={13} /></>
+                            )}
                         </button>
 
                     </div>

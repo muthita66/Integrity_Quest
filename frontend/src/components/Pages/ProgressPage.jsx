@@ -41,8 +41,29 @@ const LEVEL_ROUTES = {
     10: "/unit3/final/start",
 };
 
-const getLevelRoute = (level, unitId) =>
-    LEVEL_ROUTES[level.level_id] || `/unit/unit${unitId}`;
+// บทที่ใช้ "ลำดับด่าน" แทน level_id (ต้องตรงกับ FloatingStonePath.jsx)
+const UNIT_ORDER_ROUTES = {
+    4: [
+        "/unit4/level1/intro",
+        "/unit4/level2/intro",
+        "/unit4/level3/intro",
+    ],
+    5: [
+        "/unit5/intro",
+        "/unit5/2Intro",
+        "/unit5/game3",
+    ],
+    6: [
+        "/unit6/intro",
+        "/unit6/game2",
+        "/unit6/game3",
+    ],
+};
+
+const getLevelRoute = (level, unitId, index) =>
+    LEVEL_ROUTES[level.level_id] ||
+    UNIT_ORDER_ROUTES[unitId]?.[index] ||
+    `/unit/unit${unitId}`;
 
 // ------------------------------------------------------------
 // Filter
@@ -418,7 +439,14 @@ export default function ProgressPage() {
 
     const handleGo = (level, unitId) => {
         if (!level || level.state === "locked") return;
-        navigate(getLevelRoute(level, unitId));
+
+        // ลำดับของด่านในบท (เรียงตาม order_no) → ใช้กับบทที่ map ตามลำดับ
+        const unit = units.find((u) => Number(u.unit_id) === Number(unitId));
+        const index = [...(unit?.levels || [])]
+            .sort((a, b) => Number(a.order_no) - Number(b.order_no))
+            .findIndex((l) => l.level_id === level.level_id);
+
+        navigate(getLevelRoute(level, unitId, index));
     };
 
     return (

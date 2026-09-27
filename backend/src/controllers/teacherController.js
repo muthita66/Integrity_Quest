@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma");
+const gamePlayService = require("../services/gamePlayService");
 const { buildOverview } = require("./profileController");
 
 // ============================================================
@@ -875,6 +876,289 @@ const buildTreasurerSections = async (playId) => {
     return { summary, sections };
 };
 
+// ---------- Slip Hunt (Unit 4 Level 1) ----------
+// ตาราง game_play_slip_hunt / slip_details ใช้ SQL ตรง (อาจยังไม่อยู่ใน
+// schema.prisma) — ถ้าตารางไม่มีจะข้ามส่วนนี้ไปเฉย ๆ
+const SLIP_CHOICE_LABEL = { real: "สลิปจริง", fake: "สลิปปลอม" };
+
+const buildSlipHuntSection = async (playId) => {
+    try {
+        const rows = await prisma.$queryRaw`
+            SELECT gsh.slip_order, gsh.player_choice, gsh.is_correct,
+                   i.name AS slip_name, s.bank, s."from" AS sender,
+                   s.amount, s.answer AS correct_answer, s.clue
+            FROM game_play_slip_hunt gsh
+            LEFT JOIN items i ON i.items_id = gsh.slip_id
+            LEFT JOIN slip_details s ON s.items_id = gsh.slip_id
+            WHERE gsh.play_id = ${playId}
+            ORDER BY gsh.slip_order ASC
+        `;
+
+        if (rows.length === 0) return null;
+
+        const label = (v) => SLIP_CHOICE_LABEL[String(v).toLowerCase()] || v;
+
+        return {
+            key: "slip_hunt",
+            title: "การตรวจสลิป",
+            rows: rows.map((r) => ({
+                title: `${r.slip_order}. ${[r.bank, r.sender].filter(Boolean).join(" · ") || r.slip_name || "สลิป"}${r.amount ? ` · ${Number(r.amount).toLocaleString()} บาท` : ""
+                    }`,
+                answer: label(r.player_choice),
+                correct_answer: r.is_correct ? null : label(r.correct_answer),
+                is_correct: r.is_correct,
+                note: r.clue ? `จุดสังเกต: ${r.clue}` : "",
+            })),
+        };
+    } catch (error) {
+        console.error("buildSlipHuntSection error:", error.message);
+        return null;
+    }
+};
+
+// ---------- Slot (Unit 4 Level 2 : กับดักพนัน) ----------
+// ไม่มีถูก/ผิด — แสดงพฤติกรรมการเดิมพันแต่ละครั้ง
+// (เพิ่มเดิมพันหลังชนะ = ติดเหยื่อล่อ / เพิ่มหลังแพ้ = ไล่เอาทุนคืน)
+const buildSlotSection = async (playId) => {
+    try {
+        const rows = await prisma.$queryRaw`
+            SELECT spin_no, bet, balance_before, reward, balance_after,
+                   result_symbols
+            FROM game_play_slot_rounds
+            WHERE play_id = ${playId}
+            ORDER BY spin_no ASC
+        `;
+
+        if (rows.length === 0) return null;
+
+        const baht = (n) => `฿${Number(n).toLocaleString()}`;
+
+        return {
+            key: "slot_rounds",
+            title: "การหมุนสล็อตแต่ละครั้ง",
+            rows: rows.map((r, index) => {
+                const prev = rows[index - 1];
+                let behavior = "";
+
+                if (prev && r.bet > prev.bet) {
+                    behavior =
+                        prev.reward > 0
+                            ? "เพิ่มเดิมพันหลังชนะ"
+                            : "เพิ่มเดิมพันหลังแพ้ (ไล่เอาทุนคืน)";
+                } else if (prev && r.bet < prev.bet) {
+                    behavior = "ลดเดิมพัน";
+                }
+
+                return {
+                    title: `ครั้งที่ ${r.spin_no} · เดิมพัน ${baht(r.bet)}`,
+                    answer: `${r.result_symbols} → ${r.reward > 0 ? `ชนะ ${baht(r.reward)}` : "แพ้"
+                        }`,
+                    correct_answer: null,
+                    is_correct: null,
+                    note: [
+                        `เครดิต ${baht(r.balance_before)} → ${baht(r.balance_after)}`,
+                        behavior,
+                    ]
+                        .filter(Boolean)
+                        .join(" · "),
+                };
+            }),
+        };
+    } catch (error) {
+        console.error("buildSlotSection error:", error.message);
+        return null;
+    }
+};
+
+// ---------- Word Clue (Unit 5 Level 1 : ตามหาคำจากคำใบ้) ----------
+// 1 แถวต่อ 1 คำ: คำที่พิมพ์ผิดทั้งหมด + ตอบถูกในครั้งที่เท่าไร
+const buildWordSection = async (playId) => {
+    try {
+        const rows = await prisma.$queryRaw`
+            SELECT lw.word_id, lw.word_order, lw.answer, lw.clue,
+                   a.attempt_no, a.typed_text, a.is_correct
+            FROM game_play_word_answers a
+            JOIN level_words lw ON lw.word_id = a.word_id
+            WHERE a.play_id = ${playId}
+            ORDER BY lw.word_order ASC, a.attempt_no ASC
+        `;
+
+        if (rows.length === 0) return null;
+
+        const byWord = new Map();
+        for (const r of rows) {
+            if (!byWord.has(r.word_id)) byWord.set(r.word_id, { ...r, tries: [] });
+            byWord.get(r.word_id).tries.push(r);
+        }
+
+        return {
+            key: "word_clue",
+            title: "การหาคำจากคำใบ้",
+            rows: [...byWord.values()].map((w) => {
+                const correctTry = w.tries.find((t) => t.is_correct);
+                const wrongTries = w.tries.filter((t) => !t.is_correct);
+
+                return {
+                    title: `${w.word_order}. ${w.clue}`,
+                    answer: correctTry
+                        ? `${w.answer} (ถูกในครั้งที่ ${correctTry.attempt_no})`
+                        : "ยังหาไม่เจอ",
+                    correct_answer: correctTry ? null : w.answer,
+                    is_correct: correctTry
+                        ? wrongTries.length === 0 ? true : null
+                        : false,
+                    note: wrongTries.length
+                        ? `พิมพ์ผิด: ${wrongTries.map((t) => t.typed_text).join(", ")}`
+                        : "",
+                };
+            }),
+        };
+    } catch (error) {
+        console.error("buildWordSection error:", error.message);
+        return null;
+    }
+};
+
+// ---------- Budget (Unit 5 Level 2 : จัดสรรงบประมาณให้เมือง) ----------
+const BUDGET_LABEL = {
+    school: "การศึกษา (โรงเรียน)",
+    hospital: "สาธารณสุข (โรงพยาบาล)",
+    road: "คมนาคม (ถนน)",
+    fire: "ความปลอดภัย (ดับเพลิง)",
+    park: "สวนสาธารณะ",
+    water: "ระบบน้ำสะอาด",
+};
+
+const buildBudgetSection = async (playId) => {
+    try {
+        const budgets = await gamePlayService.getBudgetAllocations(playId);
+        if (!budgets) return null;
+
+        const result = gamePlayService.calcBudgetResult(budgets);
+        const total = gamePlayService.BUDGET_TOTAL;
+
+        return {
+            key: "budget_allocation",
+            title: "การจัดสรรงบประมาณ",
+            rows: [
+                ...gamePlayService.BUDGET_CATEGORIES.map((code) => ({
+                    title: BUDGET_LABEL[code] || code,
+                    answer: `${budgets[code]} เหรียญ (${Math.round((budgets[code] / total) * 100)}%)`,
+                    correct_answer: null,
+                    is_correct: null,
+                    note: budgets[code] === 0 ? "ไม่ได้รับงบเลย" : "",
+                })),
+                {
+                    title: "สรุป",
+                    answer: `คะแนน ${result.score}/100 · Rank ${result.rank}`,
+                    correct_answer: null,
+                    is_correct: null,
+                    note: `ความสุขประชาชน ${result.happiness}% (ยิ่งกระจายงบสมดุลยิ่งสูง)`,
+                },
+            ],
+        };
+    } catch (error) {
+        console.error("buildBudgetSection error:", error.message);
+        return null;
+    }
+};
+
+// ---------- Integrity Inspector (Unit 5 Level 3) ----------
+const ACTION_LABEL = { approve: "อนุมัติ", reject: "ปฏิเสธ" };
+
+const buildInspectorSection = async (playId) => {
+    try {
+        const decisions = await gamePlayService.getProjectDecisions(playId);
+        if (decisions.length === 0) return null;
+
+        return {
+            key: "project_decisions",
+            title: "การตรวจเอกสารโครงการ",
+            rows: decisions.map((d) => ({
+                title: `${d.decision_order}. ${d.name} · งบ ${d.budget_text} / ราคากลาง ${d.price_estimate}`,
+                answer: d.took_bribe
+                    ? "รับสินบน แล้วอนุมัติ"
+                    : ACTION_LABEL[d.action] || d.action,
+                correct_answer: d.is_correct
+                    ? null
+                    : `${ACTION_LABEL[d.correct_action]}${d.has_bribe ? " (และไม่รับสินบน)" : ""}`,
+                is_correct: d.is_correct,
+                note: [
+                    d.refused_bribe ? "ปฏิเสธสินบน" : null,
+                    `คะแนน ${d.score_delta > 0 ? "+" : ""}${d.score_delta}`,
+                    d.integrity_delta ? `Integrity ${d.integrity_delta}` : null,
+                    d.explanation || null,
+                ]
+                    .filter(Boolean)
+                    .join(" · "),
+            })),
+        };
+    } catch (error) {
+        console.error("buildInspectorSection error:", error.message);
+        return null;
+    }
+};
+
+// ---------- Crisis Response (Unit 6 Level 1) ----------
+const SPECIAL_LABEL = {
+    fakeNews: "📢 ข่าวปลอมระบาด",
+    virtueDay: "🎉 วันคุณธรรม",
+    teacherHelp: "👨‍🏫 ครูเวรมาช่วย",
+};
+
+const buildCrisisSection = async (playId) => {
+    try {
+        const timeline = await gamePlayService.getCrisisTimeline(playId);
+        if (timeline.length === 0) return null;
+
+        return {
+            key: "crisis_responses",
+            title: "การรับมือเหตุการณ์ในโรงเรียน (เรียงตามเวลา)",
+            rows: timeline.map((t) => {
+                if (t.kind === "special") {
+                    return {
+                        title: `เหตุการณ์พิเศษ: ${SPECIAL_LABEL[t.special_code] || t.special_code}`,
+                        answer: t.integrity_delta
+                            ? `Integrity ${t.integrity_delta > 0 ? "+" : ""}${t.integrity_delta}`
+                            : "-",
+                        correct_answer: null,
+                        is_correct: null,
+                        note: "เกิดขึ้นเองแบบสุ่ม ไม่ใช่การตัดสินใจของนิสิต",
+                    };
+                }
+
+                const answer =
+                    t.outcome === "timeout"
+                        ? "ไม่ได้ช่วย (หลุดมือ)"
+                        : t.outcome === "auto"
+                            ? `ครูเวรช่วยแก้ให้ (${t.choice_label})`
+                            : t.choice_label;
+
+                return {
+                    title: `${t.spawn_no}. ${t.title}`,
+                    answer,
+                    correct_answer: null,
+                    // เลือกแล้ว Integrity ไม่ลด = ดี / ลด หรือ หลุดมือ = ไม่ดี
+                    is_correct: t.outcome === "auto" ? null : t.integrity_delta >= 0,
+                    note: [
+                        `คะแนน ${t.score_delta > 0 ? "+" : ""}${t.score_delta}`,
+                        t.integrity_delta ? `Integrity ${t.integrity_delta > 0 ? "+" : ""}${t.integrity_delta}` : null,
+                        t.outcome === "choice" && t.response_seconds != null
+                            ? `ตัดสินใจใน ${t.response_seconds} วิ`
+                            : null,
+                        t.outcome === "timeout" ? t.timeout_note : t.note,
+                    ]
+                        .filter(Boolean)
+                        .join(" · "),
+                };
+            }),
+        };
+    } catch (error) {
+        console.error("buildCrisisSection error:", error.message);
+        return null;
+    }
+};
+
 exports.getLevelPlayDetail = async (req, res) => {
     try {
         const studentUserId = Number(req.params.id);
@@ -923,7 +1207,7 @@ exports.getLevelPlayDetail = async (req, res) => {
             return res.json({ data: { level, play: null, sections: [] } });
         }
 
-        const [questions, bubbles, needWant, comparison, cases, receipt, money, treasurer] =
+        const [questions, bubbles, needWant, comparison, cases, receipt, money, treasurer, slipHunt, slot, wordClue, budget, inspector, crisis] =
             await Promise.all([
                 buildQuestionSection(play.play_id),
                 buildBubbleSection(play.play_id),
@@ -933,6 +1217,12 @@ exports.getLevelPlayDetail = async (req, res) => {
                 buildReceiptSection(play.play_id),
                 buildMoneySection(play.play_id, levelId),
                 buildTreasurerSections(play.play_id),
+                buildSlipHuntSection(play.play_id),
+                buildSlotSection(play.play_id),
+                buildWordSection(play.play_id),
+                buildBudgetSection(play.play_id),
+                buildInspectorSection(play.play_id),
+                buildCrisisSection(play.play_id),
             ]);
 
         const sections = [
@@ -944,6 +1234,12 @@ exports.getLevelPlayDetail = async (req, res) => {
             receipt,
             money,
             ...treasurer.sections,
+            slipHunt,
+            slot,
+            wordClue,
+            budget,
+            inspector,
+            crisis,
         ].filter(Boolean);
 
         return res.json({

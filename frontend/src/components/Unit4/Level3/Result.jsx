@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Confetti from "react-confetti";
 
 import rankS from "../../../assets/unit4/s.png";
@@ -20,16 +20,78 @@ import {
 import { RiHeartPulseFill } from "react-icons/ri";
 import BookLayout from "../BookLayout";
 import "../Level3/level3.css";
+
+// ============================================================
+// ผลของ Unit 4 Level 3 — ดึงจาก DB ด้วย playId (ไม่ใช้ location.state)
+// เรียก POST /api/game-play/complete ซ้ำได้: ถ้ารอบนี้จบแล้ว backend
+// จะคืนผลเดิม (ไม่คิด IP ซ้ำ) → refresh หน้านี้ก็ยังเห็นผลเดิม
+// ============================================================
+
+const API_URL = "http://localhost:5000";
+const HEARTS = 4; // ต้องตรงกับ FIREWALL_HEARTS ใน gamePlayService.js
+
 export default function ResultPage() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const playId = Number(searchParams.get("playId"));
 
-  const {
-    score = 0,
-    hp = 0,
-    correctAnswers = 0,
-    wrongAnswers = 0,
-  } = location.state || {};
+  const [loading, setLoading] = useState(true);
+  const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    if (!Number.isInteger(playId) || playId <= 0) {
+      navigate("/unit4/book", { replace: true });
+      return;
+    }
+
+    let isMounted = true;
+
+    const load = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/game-play/complete`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ play_id: playId }),
+        });
+
+        if (response.status === 401) {
+          navigate("/", { replace: true });
+          return;
+        }
+
+        const data = await response.json();
+
+        if (!response.ok || !data.data) {
+          throw new Error(data.message || "โหลดผลลัพธ์ไม่สำเร็จ");
+        }
+
+        if (isMounted) setResult(data.data);
+      } catch (error) {
+        console.error("Load firewall result error:", error);
+        alert("ไม่สามารถโหลดผลลัพธ์: " + error.message);
+        navigate("/unit4/book", { replace: true });
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [playId, navigate]);
+
+  const maxScore = result?.max_score || 10;
+  const correctAnswers = result?.correct_count ?? result?.score ?? 0;
+  const wrongAnswers = result?.wrong_count ?? 0;
+  const score = Math.round((correctAnswers / maxScore) * 100);
+  const hp = Math.max(0, HEARTS - wrongAnswers) * (100 / HEARTS);
+  const earnedIP = result?.earned_ip ?? 0;
+  const isPass = ["PASS", "PERFECT"].includes(result?.status);
 
   const getRank = () => {
     if (score >= 90) {
@@ -73,25 +135,22 @@ export default function ResultPage() {
 
   const { color, image, message } = getRank();
 
-  useEffect(() => {
-    try {
-      const save = JSON.parse(localStorage.getItem("unit4")) || {};
-      localStorage.setItem("unit4", JSON.stringify({
-        ...save,
-        level3: true,
-        level3done: true,
-        level3Points: Math.min(160, Math.max(0, Math.round((score / 100) * 160))),
-      }));
-    } catch {
-      localStorage.setItem("unit4", JSON.stringify({
-        level1: true,
-        level2: true,
-        level3: true,
-        level3done: true,
-        level3Points: Math.min(160, Math.max(0, Math.round((score / 100) * 160))),
-      }));
-    }
-  }, [score]);
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          fontSize: 18,
+          color: "var(--text-primary)",
+        }}
+      >
+        กำลังโหลดผลลัพธ์...
+      </div>
+    );
+  }
 
   return (
     <>
@@ -469,7 +528,7 @@ export default function ResultPage() {
                 <RiHeartPulseFill /><h3>{hp}%</h3><p>Server HP</p>
               </div>
               <div className="stat-card">
-                <FaShieldAlt /><h3>MAX</h3><p>Firewall</p>
+                <FaShieldAlt /><h3>+{earnedIP}</h3><p>IP ที่ได้รับ</p>
               </div>
               <div className="stat-card correct-card">
                 <FaCheckCircle /><h3>{correctAnswers}</h3><p>ตอบถูก</p>
@@ -478,9 +537,14 @@ export default function ResultPage() {
                 <FaTimesCircle /><h3>{wrongAnswers}</h3><p>ตอบผิด</p>
               </div>
             </div>
-            <div className="result-book-summary">ระบบได้รับการปกป้องแล้ว · ขอบคุณที่ช่วยตรวจสอบภัยดิจิทัล</div>
+            <div className="result-book-summary">
+              {isPass
+                ? "ระบบได้รับการปกป้องแล้ว · ขอบคุณที่ช่วยตรวจสอบภัยดิจิทัล"
+                : "ยังไม่ผ่านภารกิจ · ต้องตอบถูกอย่างน้อย 6 ข้อ ลองอีกครั้งนะ"}
+            </div>
             <div className="result-buttons">
-              <button className="btn retry-btn" onClick={() => navigate("/unit4/level3/game")}>
+              <button className="btn retry-btn" onClick={() => navigate(`/unit4/level3/game?r=${Date.now()}`)}>
+
                 <FaRedoAlt /> เล่นอีกครั้ง
               </button>
               <button className="btn home-btn" onClick={() => navigate("/unit4/book")}>
