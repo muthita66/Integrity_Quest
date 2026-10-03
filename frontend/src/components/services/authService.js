@@ -11,3 +11,9 @@ export const register = async (data) => {
     const res = await axios.post(`${API_URL}/register`, data);
     return res.data;
 };
+
+// ภาควิชาทั้งหมด (ใช้ตอนสมัครอาจารย์ — เลือกคณะก่อนแล้วกรองในหน้าเว็บ)
+export const getDepartments = async () => {
+    const res = await axios.get(`${API_URL}/departments`);
+    return res.data;
+};

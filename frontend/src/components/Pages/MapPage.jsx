@@ -9,6 +9,7 @@ import units from "../MapPage/GameMap/Unitdata";
 import bg from "../../assets/bg_game.png";
 import Chest from "../MapPage/GameMap/Chest";
 import FloatingStonePath from "../MapPage/GameMap/FloatingStonePath";
+import StreakRewardModal from "../MapPage/StreakRewardModal";
 
 const API_BASE_URL = "http://localhost:5000";
 
@@ -19,6 +20,23 @@ function MapPage() {
     const [progressUnits, setProgressUnits] = useState([]);
     const [loadingProgress, setLoadingProgress] = useState(true);
     const [progressError, setProgressError] = useState("");
+    const [streakReward, setStreakReward] = useState(null);
+
+    // รางวัลความขยัน: ถ้า Login ครั้งนี้เพิ่งครบ 7 วัน (เก็บไว้ตอน Login
+    // ใน sessionStorage) ให้เด้ง popup ครั้งเดียวตอนเปิดหน้า /map ครั้งแรก
+    // แล้วลบทิ้งทันที จะได้ไม่เด้งซ้ำตอน refresh/เข้าหน้านี้รอบถัดไป
+    useEffect(() => {
+        try {
+            const raw = sessionStorage.getItem("streakReward");
+
+            if (raw) {
+                setStreakReward(JSON.parse(raw));
+                sessionStorage.removeItem("streakReward");
+            }
+        } catch (error) {
+            console.error("Read streak reward error:", error);
+        }
+    }, []);
 
     useEffect(() => {
         console.log("location.state:", location.state);
@@ -203,255 +221,261 @@ function MapPage() {
             event.stopPropagation();
 
             alert(
-                "Unit นี้ยังไม่ปลดล็อก\nกรุณาผ่าน Unit ก่อนหน้าก่อน"
+                "🔒 Unit นี้ยังไม่ปลดล็อก\nกรุณาผ่าน Unit ก่อนหน้าก่อน"
             );
         }
     };
 
     return (
-        <div
-            className="map-page"
-            style={{
-                background:
-                    `linear-gradient(
+        <>
+            <StreakRewardModal
+                reward={streakReward}
+                onClose={() => setStreakReward(null)}
+            />
+            <div
+                className="map-page"
+                style={{
+                    background:
+                        `linear-gradient(
                         rgba(255, 255, 255, 0.2),
                         rgba(255, 255, 255, 0.3)
                     ), url(${bg})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                display: "flex",
-                flexDirection: "column",
-                height: "100vh",
-                fontFamily:
-                    "'Prompt', sans-serif",
-            }}
-        >
-            <Header />
-
-            <div
-                className="content"
-                style={{
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
                     display: "flex",
-                    flex: 1,
-                    overflow: "hidden",
+                    flexDirection: "column",
+                    height: "100vh",
+                    fontFamily:
+                        "'Prompt', sans-serif",
                 }}
             >
-                {/* Game Map Board */}
+                <Header />
+
                 <div
-                    className="game-map"
+                    className="content"
                     style={{
-                        position: "relative",
+                        display: "flex",
                         flex: 1,
+                        overflow: "hidden",
                     }}
                 >
-                    <FloatingStonePath
-                        progressUnits={progressUnits}
-                        loading={loadingProgress}
-                    />
+                    {/* Game Map Board */}
+                    <div
+                        className="game-map"
+                        style={{
+                            position: "relative",
+                            flex: 1,
+                        }}
+                    >
+                        <FloatingStonePath
+                            progressUnits={progressUnits}
+                            loading={loadingProgress}
+                        />
 
-                    {visibleUnits.map((unit) => {
-                        const progress =
-                            getUnitProgress(
-                                unit.id
-                            );
+                        {visibleUnits.map((unit) => {
+                            const progress =
+                                getUnitProgress(
+                                    unit.id
+                                );
 
-                        const locked =
-                            isUnitLocked(
-                                unit.id
-                            );
+                            const locked =
+                                isUnitLocked(
+                                    unit.id
+                                );
 
-                        const played =
-                            hasPlayedUnit(
-                                unit.id
-                            );
+                            const played =
+                                hasPlayedUnit(
+                                    unit.id
+                                );
 
-                        /*
-                         * 3 สถานะ:
-                         * Locked                   -> เทาจาง
-                         * ปลดล็อกแล้ว แต่ยังไม่เล่น -> สีปกติ + เรืองแสงสีทอง
-                         * เล่นแล้ว                  -> สีปกติ
-                         */
-                        const isReadyToPlay =
-                            !locked && !played;
+                            /*
+                             * 3 สถานะ:
+                             * Locked                   -> เทาจาง
+                             * ปลดล็อกแล้ว แต่ยังไม่เล่น -> สีปกติ + เรืองแสงสีทอง
+                             * เล่นแล้ว                  -> สีปกติ
+                             */
+                            const isReadyToPlay =
+                                !locked && !played;
 
-                        const unitFilter = locked
-                            ? "grayscale(1) opacity(0.55)"
-                            : isReadyToPlay
-                                ? "drop-shadow(0 0 14px rgba(255, 215, 0, 0.95)) drop-shadow(0 0 28px rgba(255, 190, 0, 0.6))"
-                                : "none";
+                            const unitFilter = locked
+                                ? "grayscale(1) opacity(0.55)"
+                                : isReadyToPlay
+                                    ? "drop-shadow(0 0 14px rgba(255, 215, 0, 0.95)) drop-shadow(0 0 28px rgba(255, 190, 0, 0.6))"
+                                    : "none";
 
-                        return (
-                            <div
-                                key={unit.id}
-                                onClickCapture={(event) =>
-                                    handleLockedUnitClick(
-                                        event,
-                                        unit.id
-                                    )
-                                }
-                                style={{
-                                    position:
-                                        "absolute",
-                                    left:
-                                        unit.left,
-                                    top:
-                                        unit.top,
-                                    transform:
-                                        "translate(-50%, -50%) scale(1.15)",
-                                    zIndex: 10,
-                                    cursor:
+                            return (
+                                <div
+                                    key={unit.id}
+                                    onClickCapture={(event) =>
+                                        handleLockedUnitClick(
+                                            event,
+                                            unit.id
+                                        )
+                                    }
+                                    style={{
+                                        position:
+                                            "absolute",
+                                        left:
+                                            unit.left,
+                                        top:
+                                            unit.top,
+                                        transform:
+                                            "translate(-50%, -50%) scale(1.15)",
+                                        zIndex: 10,
+                                        cursor:
+                                            locked
+                                                ? "not-allowed"
+                                                : "pointer",
+
+                                        filter: unitFilter,
+
+                                        transition:
+                                            "filter 0.25s ease",
+                                    }}
+                                    title={
                                         locked
-                                            ? "not-allowed"
-                                            : "pointer",
+                                            ? "Unit นี้ยังไม่ปลดล็อก"
+                                            : played
+                                                ? "Unit นี้เล่นแล้ว"
+                                                : "ปลดล็อกแล้ว พร้อมเล่น!"
+                                    }
+                                >
+                                    <UnitNode
+                                        unit={unit}
+                                    />
 
-                                    filter: unitFilter,
+                                </div>
+                            );
+                        })}
 
-                                    transition:
-                                        "filter 0.25s ease",
-                                }}
-                                title={
-                                    locked
-                                        ? "Unit นี้ยังไม่ปลดล็อก"
-                                        : played
-                                            ? "Unit นี้เล่นแล้ว"
-                                            : "ปลดล็อกแล้ว พร้อมเล่น!"
-                                }
-                            >
-                                <UnitNode
-                                    unit={unit}
-                                />
+                        <Chest
+                            left="90%"
+                            top="69%"
+                        />
 
-                            </div>
-                        );
-                    })}
-
-                    <Chest
-                        left="90%"
-                        top="69%"
-                    />
-
-                    {/* Loading */}
-                    {loadingProgress && (
-                        <div
-                            style={{
-                                position:
-                                    "absolute",
-                                inset: 0,
-                                display:
-                                    "flex",
-                                alignItems:
-                                    "center",
-                                justifyContent:
-                                    "center",
-                                background:
-                                    "rgba(255,255,255,0.25)",
-                                zIndex: 50,
-                                pointerEvents:
-                                    "none",
-                            }}
-                        >
-                            <div
-                                style={{
-                                    background:
-                                        "rgba(255,255,255,0.95)",
-                                    padding:
-                                        "14px 24px",
-                                    borderRadius:
-                                        "16px",
-                                    boxShadow:
-                                        "0 8px 25px rgba(0,0,0,0.2)",
-                                    fontWeight: 700,
-                                    color:
-                                        "#374151",
-                                }}
-                            >
-                                กำลังโหลด Progress...
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Error */}
-                    {!loadingProgress &&
-                        progressError && (
+                        {/* Loading */}
+                        {loadingProgress && (
                             <div
                                 style={{
                                     position:
                                         "absolute",
-                                    top:
-                                        "20px",
-                                    left:
-                                        "50%",
-                                    transform:
-                                        "translateX(-50%)",
-                                    zIndex: 60,
+                                    inset: 0,
+                                    display:
+                                        "flex",
+                                    alignItems:
+                                        "center",
+                                    justifyContent:
+                                        "center",
                                     background:
-                                        "rgba(255,255,255,0.96)",
-                                    padding:
-                                        "12px 18px",
-                                    borderRadius:
-                                        "14px",
-                                    boxShadow:
-                                        "0 8px 25px rgba(0,0,0,0.2)",
-                                    color:
-                                        "#b91c1c",
-                                    fontWeight:
-                                        700,
+                                        "rgba(255,255,255,0.25)",
+                                    zIndex: 50,
+                                    pointerEvents:
+                                        "none",
                                 }}
                             >
-                                {progressError}
+                                <div
+                                    style={{
+                                        background:
+                                            "rgba(255,255,255,0.95)",
+                                        padding:
+                                            "14px 24px",
+                                        borderRadius:
+                                            "16px",
+                                        boxShadow:
+                                            "0 8px 25px rgba(0,0,0,0.2)",
+                                        fontWeight: 700,
+                                        color:
+                                            "#374151",
+                                    }}
+                                >
+                                    กำลังโหลด Progress...
+                                </div>
                             </div>
                         )}
+
+                        {/* Error */}
+                        {!loadingProgress &&
+                            progressError && (
+                                <div
+                                    style={{
+                                        position:
+                                            "absolute",
+                                        top:
+                                            "20px",
+                                        left:
+                                            "50%",
+                                        transform:
+                                            "translateX(-50%)",
+                                        zIndex: 60,
+                                        background:
+                                            "rgba(255,255,255,0.96)",
+                                        padding:
+                                            "12px 18px",
+                                        borderRadius:
+                                            "14px",
+                                        boxShadow:
+                                            "0 8px 25px rgba(0,0,0,0.2)",
+                                        color:
+                                            "#b91c1c",
+                                        fontWeight:
+                                            700,
+                                    }}
+                                >
+                                    {progressError}
+                                </div>
+                            )}
+                    </div>
+
+                    {/* Sidebar */}
+                    <div
+                        className="sidebar"
+                        style={{
+                            width: "280px",
+                            padding: "20px",
+                            zIndex: 20,
+                        }}
+                    >
+                        <DailyQuest />
+                        <Leaderboard />
+
+                        <PrePost
+                            completedUnits={
+                                progressUnits.filter(
+                                    (unit) =>
+                                        !unit.is_locked &&
+                                        Number(
+                                            unit.completion_percentage
+                                        ) >= 100
+                                ).length
+                            }
+                            totalUnits={
+                                progressUnits.length ||
+                                3
+                            }
+                        />
+                    </div>
                 </div>
 
-                {/* Sidebar */}
+                {/* Footer */}
                 <div
-                    className="sidebar"
+                    className="footer"
                     style={{
-                        width: "280px",
-                        padding: "20px",
+                        height: "2vh",
+                        width: "19vw",
+                        left: "81.7%",
                         zIndex: 20,
+                        position: "relative",
                     }}
                 >
-                    <DailyQuest />
-                    <Leaderboard />
-
-                    <PrePost
-                        completedUnits={
-                            progressUnits.filter(
-                                (unit) =>
-                                    !unit.is_locked &&
-                                    Number(
-                                        unit.completion_percentage
-                                    ) >= 100
-                            ).length
-                        }
-                        totalUnits={
-                            progressUnits.length ||
-                            3
-                        }
-                    />
+                    <a href="#about">
+                        About Project
+                    </a>
+                    <a href="#help">
+                        Help Center
+                    </a>
                 </div>
             </div>
-
-            {/* Footer */}
-            <div
-                className="footer"
-                style={{
-                    height: "2vh",
-                    width: "19vw",
-                    left: "81.7%",
-                    zIndex: 20,
-                    position: "relative",
-                }}
-            >
-                <a href="#about">
-                    About Project
-                </a>
-                <a href="#help">
-                    Help Center
-                </a>
-            </div>
-        </div>
+        </>
     );
 }
 

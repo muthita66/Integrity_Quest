@@ -1,16 +1,10 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
-    FiUsers,
-    FiActivity,
-    FiClipboard,
-    FiTrendingUp,
-    FiClock,
-    FiAward,
     FiSearch,
     FiDownload,
     FiSettings,
-    FiLogOut,
     FiChevronUp,
     FiChevronDown,
     FiChevronRight,
@@ -19,18 +13,25 @@ import {
     FiMinus,
     FiArrowUp,
     FiArrowDown,
+    FiPlus,
+    FiMoreVertical,
+    FiTrash2,
 } from "react-icons/fi";
 
 import {
     getTeacherDashboard,
     getStudentProgress,
     getLevelPlayDetail,
+    addTeacherGroup,
+    deleteTeacherGroup,
 } from "../services/teacherService";
+import { getFaculties } from "../services/masterService";
+import bgGame from "../../assets/bg_game.png";
 
 // ============================================================
 // Teacher Dashboard (ขั้นที่ 1)
 // ------------------------------------------------------------
-// - ขอบเขต: คณะของฉัน / ทั้งหมด
+// - ขอบเขต: กลุ่มนักเรียนที่อาจารย์ดูแล (เลือกตอนสมัคร/เพิ่มทีหลัง) / ทั้งหมด
 // - การ์ดสรุป + เทียบ Pre-Test / Post-Test
 // - ตารางนิสิต: ค้นหา / กรอง / เรียง / Export CSV
 // ============================================================
@@ -103,8 +104,8 @@ const exportCsv = (rows) => {
         )
         .join("\n");
 
-    // \uFEFF ให้ Excel อ่านภาษาไทยถูก
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    // ﻿ ให้ Excel อ่านภาษาไทยถูก
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -117,17 +118,45 @@ const exportCsv = (rows) => {
 // ชิ้นส่วน UI
 // ============================================================
 
-function StatCard({ icon: Icon, label, value, sub, color }) {
-    return (
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-3">
-                <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${color}`}>
-                    <Icon size={18} />
-                </span>
-                <p className="text-sm text-gray-500">{label}</p>
+// การ์ดสรุป (พื้นขาวเหมือนเดิม) จัดเนื้อหาแบบ:
+//   center = หัวข้อ + ตัวเลขใหญ่กลางการ์ด
+//   split  = หัวข้ออยู่ซ้าย / ตัวเลขใหญ่อยู่ขวา
+function StatCard({ label, value, sub, layout = "split", tone = "text-gray-800" }) {
+    if (layout === "center") {
+        return (
+            <div className="flex flex-col items-center justify-center rounded-2xl bg-white p-5 text-center shadow-sm">
+                <p className="text-lg font-bold text-gray-900">{label}</p>
+                <p className={`mt-1 text-5xl font-extrabold leading-tight ${tone}`}>{value}</p>
+                {sub && <p className="mt-1 text-xs font-semibold text-gray-400">{sub}</p>}
             </div>
-            <p className="mt-3 text-3xl font-bold text-gray-800">{value}</p>
-            {sub && <p className="mt-1 text-xs text-gray-400">{sub}</p>}
+        );
+    }
+
+    return (
+        <div className="flex items-center justify-between gap-4 rounded-2xl bg-white p-5 shadow-sm">
+            <p className="text-lg font-bold leading-tight text-gray-900">{label}</p>
+            <div className="text-right">
+                <p className={`text-4xl font-extrabold leading-tight ${tone}`}>{value}</p>
+                {sub && <p className="mt-0.5 text-xs font-semibold text-gray-400">{sub}</p>}
+            </div>
+        </div>
+    );
+}
+
+// การ์ดที่มีกล่องย่อย 2 ช่องซ้อนข้างใน (Pre-test / Post-test)
+function PairStatCard({ label, items, sub }) {
+    return (
+        <div className="flex flex-col items-center rounded-2xl bg-white p-5 text-center shadow-sm">
+            <p className="text-lg font-bold text-gray-900">{label}</p>
+            <div className="mt-2 grid w-full grid-cols-2 gap-3">
+                {items.map((item) => (
+                    <div key={item.label} className="rounded-2xl bg-gray-50 px-3 py-2">
+                        <p className="text-sm font-bold text-gray-900">{item.label}</p>
+                        <p className="text-3xl font-extrabold leading-tight text-gray-800">{item.value}</p>
+                    </div>
+                ))}
+            </div>
+            {sub && <p className="mt-2 text-xs font-semibold text-gray-400">{sub}</p>}
         </div>
     );
 }
@@ -426,7 +455,10 @@ function LevelAnswersModal({ userId, studentName, level, onClose }) {
         0
     );
 
-    return (
+    // ใช้ portal ไปไว้ที่ document.body โดยตรง เพราะ <main> ที่ครอบตารางอยู่มี
+    // backdrop-blur-md (ใช้ backdrop-filter) ซึ่งทำให้ลูกที่เป็น position:fixed
+    // (เช่น popup นี้) ยึดตำแหน่ง/ขนาดตาม <main> แทนที่จะเต็มจอจริง ๆ
+    return createPortal(
         <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
             onClick={onClose}
@@ -487,7 +519,7 @@ function LevelAnswersModal({ userId, studentName, level, onClose }) {
                                     </p>
                                 </div>
                                 <div className="rounded-xl bg-emerald-50 p-3">
-                                    <p className="text-[11px] text-emerald-600">IP รอบนี้</p>
+                                    <p className="text-[11px] text-emerald-600">Integrity Point</p>
                                     <p className="text-sm font-bold text-emerald-700">{play.earned_ip}</p>
                                 </div>
                                 <div className="rounded-xl bg-gray-50 p-3">
@@ -574,7 +606,8 @@ function LevelAnswersModal({ userId, studentName, level, onClose }) {
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 
@@ -640,8 +673,8 @@ function StudentDetail({ detail, userId, studentName }) {
                                             onClick={() => level.times_played && setOpenLevel(level)}
                                             title={level.times_played ? "กดเพื่อดูคำตอบรอบล่าสุด" : undefined}
                                             className={`align-top ${level.times_played
-                                                    ? "cursor-pointer hover:bg-emerald-50"
-                                                    : ""
+                                                ? "cursor-pointer hover:bg-emerald-50"
+                                                : ""
                                                 }`}
                                         >
                                             <td className="py-2 pr-2">
@@ -713,20 +746,162 @@ function StudentDetail({ detail, userId, studentName }) {
 }
 
 // ============================================================
+// Popup: เพิ่มกลุ่มนักเรียนที่ดูแล (ปุ่ม "+ เพิ่มกลุ่ม" บนแดชบอร์ด)
+// ------------------------------------------------------------
+// เว้นว่างช่องไหน = ทุกค่าของช่องนั้น แต่ต้องเลือก/กรอกอย่างน้อย 1 อย่าง
+// เพิ่มสำเร็จแล้วเรียก onAdded(กลุ่มที่สร้าง) ให้หน้าแดชบอร์ดสลับไปดูกลุ่มนั้นทันที
+// ============================================================
+
+function AddGroupModal({ faculties, onClose, onAdded }) {
+    const [faculty, setFaculty] = useState("");
+    const [major, setMajor] = useState("");
+    const [year, setYear] = useState("");
+    const [note, setNote] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
+
+    const majorOptions = faculty
+        ? faculties.find((f) => String(f.faculty_id) === String(faculty))?.majors || []
+        : [];
+
+    // ปิดด้วย Esc
+    useEffect(() => {
+        const onKey = (e) => e.key === "Escape" && onClose();
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [onClose]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!faculty && !major && !year && !note.trim()) {
+            setError("กรุณาเลือกหรือกรอกอย่างน้อย 1 เงื่อนไข");
+            return;
+        }
+
+        setSaving(true);
+        setError("");
+
+        try {
+            const created = await addTeacherGroup({
+                faculty: faculty || null,
+                major: major || null,
+                year: year || null,
+                note: note.trim() || null,
+            });
+            onAdded(created);
+        } catch (err) {
+            setError(err.message || "เพิ่มกลุ่มไม่สำเร็จ");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            onClick={onClose}
+        >
+            <div
+                className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-gray-800">เพิ่มกลุ่มนักเรียน</h3>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-red-500"
+                        aria-label="ปิด"
+                    >
+                        <FiX size={18} />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-3">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                        <select
+                            value={faculty}
+                            onChange={(e) => {
+                                setFaculty(e.target.value);
+                                setMajor("");
+                            }}
+                            className="rounded-lg border border-gray-200 px-2 py-2 text-sm outline-none focus:border-emerald-500"
+                        >
+                            <option value="">ทุกคณะ</option>
+                            {faculties.map((f) => (
+                                <option key={f.faculty_id} value={f.faculty_id}>
+                                    {f.faculty_name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            value={major}
+                            onChange={(e) => setMajor(e.target.value)}
+                            className="rounded-lg border border-gray-200 px-2 py-2 text-sm outline-none focus:border-emerald-500"
+                        >
+                            <option value="">{faculty ? "ทุกสาขา" : "ทุกสาขา (เลือกคณะก่อน)"}</option>
+                            {majorOptions.map((m) => (
+                                <option key={m.major_id} value={m.major_id}>
+                                    {m.major_name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            value={year}
+                            onChange={(e) => setYear(e.target.value)}
+                            className="rounded-lg border border-gray-200 px-2 py-2 text-sm outline-none focus:border-emerald-500"
+                        >
+                            <option value="">ทุกชั้นปี</option>
+                            <option value="1">ปี 1</option>
+                            <option value="2">ปี 2</option>
+                            <option value="3">ปี 3</option>
+                            <option value="4">ปี 4</option>
+                        </select>
+                    </div>
+
+                    <input
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        placeholder="รายละเอียดกลุ่ม เช่น วิชาที่สอน (ไม่บังคับ)"
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    />
+
+                    {error && <p className="text-xs text-red-500">{error}</p>}
+
+                    <button
+                        type="submit"
+                        disabled={saving}
+                        className="w-full rounded-lg bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                        {saving ? "กำลังบันทึก..." : "เพิ่มกลุ่ม"}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+// ============================================================
 // Page
 // ============================================================
 
 export default function TeacherPage() {
     const navigate = useNavigate();
 
-    const [scope, setScope] = useState("faculty");
+    // scope: null = ยังไม่ได้เลือกเอง (ให้ backend เลือกกลุ่มแรกให้อัตโนมัติ)
+    // "all" = นิสิตทั้งหมด, "group:<id>" = เฉพาะกลุ่มนั้น
+    const [scope, setScope] = useState(null);
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    const [faculties, setFaculties] = useState([]);
+    const [showAddGroup, setShowAddGroup] = useState(false);
+
     const [search, setSearch] = useState("");
-    const [majorFilter, setMajorFilter] = useState("");
-    const [yearFilter, setYearFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [sort, setSort] = useState({ key: "integrity_points", dir: "desc" });
 
@@ -755,6 +930,16 @@ export default function TeacherPage() {
     };
 
     // --------------------------------------------------------
+    // คณะ/สาขา (ใช้ตอนเปิด popup เพิ่มกลุ่ม)
+    // --------------------------------------------------------
+
+    useEffect(() => {
+        getFaculties()
+            .then(setFaculties)
+            .catch((err) => console.log(err));
+    }, []);
+
+    // --------------------------------------------------------
     // โหลดข้อมูล (โหลดใหม่เมื่อเปลี่ยนขอบเขต)
     // --------------------------------------------------------
 
@@ -768,11 +953,13 @@ export default function TeacherPage() {
         setLoading(true);
         setError("");
 
-        getTeacherDashboard(scope)
+        getTeacherDashboard(scope || undefined)
             .then((result) => {
                 if (!isMounted) return;
                 setData(result);
-                setMajorFilter("");
+                // ครั้งแรกที่ยังไม่ได้เลือก scope เอง → ใช้ค่าเริ่มต้นจาก backend
+                // (กลุ่มแรกของอาจารย์) มาไฮไลท์ปุ่มให้ตรงกัน
+                if (!scope) setScope(result.scope);
                 setExpandedId(null);
                 setDetails({});
             })
@@ -803,20 +990,59 @@ export default function TeacherPage() {
     }, [scope, navigate]);
 
     const students = useMemo(() => data?.students || [], [data]);
+    const groups = data?.groups || [];
+    const activeScope = scope || data?.scope || "all";
+    const activeGroup =
+        groups.find((g) => activeScope === `group:${g.group_id}`) || null;
     const summary = data?.summary;
     const teacher = data?.teacher;
 
-    // ตัวเลือกสาขา / ชั้นปี จากข้อมูลที่มีจริง
-    const majorOptions = useMemo(() => {
-        const map = new Map();
-        students.forEach((s) => map.set(s.major_id, s.major_name));
-        return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1], "th"));
-    }, [students]);
+    const handleGroupAdded = (newGroup) => {
+        setShowAddGroup(false);
+        setScope(`group:${newGroup.group_id}`);
+    };
 
-    const yearOptions = useMemo(
-        () => [...new Set(students.map((s) => s.year).filter(Boolean))].sort(),
-        [students]
-    );
+    // --------------------------------------------------------
+    // เมนูสามจุด → "ลบกลุ่มนี้" (แสดงเฉพาะตอนเลือกดูกลุ่มใดกลุ่มหนึ่งอยู่)
+    // --------------------------------------------------------
+
+    const [groupMenuOpen, setGroupMenuOpen] = useState(false);
+    const [deletingGroup, setDeletingGroup] = useState(false);
+    const groupMenuRef = useRef(null);
+
+    useEffect(() => {
+        if (!groupMenuOpen) return;
+
+        const onClickOutside = (e) => {
+            if (groupMenuRef.current && !groupMenuRef.current.contains(e.target)) {
+                setGroupMenuOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", onClickOutside);
+        return () => document.removeEventListener("mousedown", onClickOutside);
+    }, [groupMenuOpen]);
+
+    const handleDeleteGroup = async () => {
+        if (!activeGroup) return;
+
+        if (!window.confirm(`ลบ "${activeGroup.label}" ใช่หรือไม่? ย้อนกลับไม่ได้`)) {
+            return;
+        }
+
+        setDeletingGroup(true);
+
+        try {
+            await deleteTeacherGroup(activeGroup.group_id);
+            setGroupMenuOpen(false);
+            // ให้ backend เลือกกลุ่มที่เหลือ (หรือ "นิสิตทั้งหมด" ถ้าไม่เหลือเลย) ให้เอง
+            setScope(null);
+        } catch (err) {
+            alert(err.message || "ลบกลุ่มไม่สำเร็จ");
+        } finally {
+            setDeletingGroup(false);
+        }
+    };
 
     // --------------------------------------------------------
     // กรอง + เรียง
@@ -826,8 +1052,6 @@ export default function TeacherPage() {
         const keyword = search.trim().toLowerCase();
 
         const filtered = students.filter((s) => {
-            if (majorFilter && String(s.major_id) !== majorFilter) return false;
-            if (yearFilter && String(s.year) !== yearFilter) return false;
             if (statusFilter && s.status !== statusFilter) return false;
 
             if (keyword) {
@@ -856,7 +1080,7 @@ export default function TeacherPage() {
 
             return sort.dir === "asc" ? result : -result;
         });
-    }, [students, search, majorFilter, yearFilter, statusFilter, sort]);
+    }, [students, search, statusFilter, sort]);
 
     const toggleSort = (key) =>
         setSort((prev) =>
@@ -898,7 +1122,13 @@ export default function TeacherPage() {
     // ========================================================
 
     return (
-        <div className="fixed inset-0 overflow-y-auto bg-slate-100">
+        <div
+            className="fixed inset-0 overflow-y-auto bg-slate-100 bg-cover bg-center bg-no-repeat"
+            style={{
+                backgroundImage: `linear-gradient(rgba(241, 245, 249, 0.35), rgba(241, 245, 249, 0.35)), url(${bgGame})`,
+                backgroundAttachment: "fixed",
+            }}
+        >
             {/* ================= TOP BAR ================= */}
             <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/90 backdrop-blur">
                 <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3">
@@ -923,46 +1153,122 @@ export default function TeacherPage() {
                             <FiSettings />
                             ตั้งค่าบัญชี
                         </button>
+                        {/* ปุ่ม Logout แบบ Uiverse (สไตล์อยู่ใน styles/button.css → .Btn) */}
                         <button
                             type="button"
                             onClick={handleLogout}
-                            className="inline-flex items-center gap-2 rounded-lg bg-red-500 px-3 py-2 text-sm font-semibold text-white hover:bg-red-600"
+                            className="Btn"
+                            title="ออกจากระบบ"
+                            aria-label="Logout"
                         >
-                            <FiLogOut />
-                            Logout
+                            <div className="sign">
+                                <svg viewBox="0 0 512 512">
+                                    <path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z" />
+                                </svg>
+                            </div>
+                            <div className="text">Logout</div>
                         </button>
                     </div>
                 </div>
             </header>
 
-            <main className="mx-auto max-w-7xl space-y-6 p-6">
+            <main className="mx-auto my-6 w-[calc(100%-2rem)] max-w-7xl space-y-6 rounded-3xl border border-white/50 bg-white/30 p-6 shadow-xl backdrop-blur-md">
                 {/* ================= SCOPE ================= */}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="inline-flex rounded-xl bg-white p-1 shadow-sm">
-                        {[
-                            {
-                                key: "faculty",
-                                label: `คณะของฉัน${teacher?.faculty_name ? ` (${teacher.faculty_name})` : ""}`,
-                            },
-                            { key: "all", label: "นิสิตทั้งหมด" },
-                        ].map((option) => (
+                <div className="space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className="inline-flex flex-wrap rounded-xl bg-white p-1 shadow-sm">
+                                {groups.map((g) => (
+                                    <button
+                                        key={g.group_id}
+                                        type="button"
+                                        onClick={() => setScope(`group:${g.group_id}`)}
+                                        className={`rounded-lg px-4 py-2 text-sm font-medium transition ${activeScope === `group:${g.group_id}`
+                                            ? "bg-emerald-600 text-white shadow"
+                                            : "text-gray-600 hover:bg-gray-50"
+                                            }`}
+                                    >
+                                        {g.label}
+                                    </button>
+                                ))}
+
+                                <button
+                                    type="button"
+                                    onClick={() => setScope("all")}
+                                    className={`rounded-lg px-4 py-2 text-sm font-medium transition ${activeScope === "all"
+                                        ? "bg-emerald-600 text-white shadow"
+                                        : "text-gray-600 hover:bg-gray-50"
+                                        }`}
+                                >
+                                    นิสิตทั้งหมด
+                                </button>
+                            </div>
+
                             <button
-                                key={option.key}
                                 type="button"
-                                onClick={() => setScope(option.key)}
-                                disabled={option.key === "faculty" && data && !teacher?.faculty_id}
-                                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${scope === option.key
-                                    ? "bg-emerald-600 text-white shadow"
-                                    : "text-gray-600 hover:bg-gray-50"
-                                    } disabled:cursor-not-allowed disabled:opacity-40`}
+                                onClick={() => setShowAddGroup(true)}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-emerald-400 bg-white/70 px-3 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50"
                             >
-                                {option.label}
+                                <FiPlus />
+                                เพิ่มกลุ่ม
                             </button>
-                        ))}
+                        </div>
+
+                        {loading && data && (
+                            <span className="text-sm text-gray-400">กำลังโหลด...</span>
+                        )}
                     </div>
 
-                    {loading && data && (
-                        <span className="text-sm text-gray-400">กำลังโหลด...</span>
+                    {/* บรรทัดถัดมา: เงื่อนไขของกลุ่มที่เลือกอยู่ (คณะ/สาขา/ชั้นปี/รายละเอียด)
+                        + เมนูสามจุดมุมขวาสำหรับลบกลุ่มนี้ */}
+                    {activeGroup && (
+                        <div className="flex items-start justify-between gap-3 rounded-xl bg-white/60 px-3 py-2">
+                            <p className="text-sm text-gray-600">
+                                คณะ:{" "}
+                                <span className="font-semibold text-gray-800">
+                                    {activeGroup.faculty_name || "ทุกคณะ"}
+                                </span>
+                                {" · "}สาขา:{" "}
+                                <span className="font-semibold text-gray-800">
+                                    {activeGroup.major_name || "ทุกสาขา"}
+                                </span>
+                                {" · "}ชั้นปี:{" "}
+                                <span className="font-semibold text-gray-800">
+                                    {activeGroup.year ? `ปี ${activeGroup.year}` : "ทุกชั้นปี"}
+                                </span>
+                                {activeGroup.note && (
+                                    <>
+                                        {" · "}
+                                        {activeGroup.note}
+                                    </>
+                                )}
+                            </p>
+
+                            <div className="relative shrink-0" ref={groupMenuRef}>
+                                <button
+                                    type="button"
+                                    onClick={() => setGroupMenuOpen((prev) => !prev)}
+                                    className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                                    aria-label="ตัวเลือกเพิ่มเติมของกลุ่มนี้"
+                                >
+                                    <FiMoreVertical size={16} />
+                                </button>
+
+                                {groupMenuOpen && (
+                                    <div className="absolute right-0 top-full z-10 mt-1 w-40 overflow-hidden rounded-lg border border-gray-100 bg-white shadow-lg">
+                                        <button
+                                            type="button"
+                                            onClick={handleDeleteGroup}
+                                            disabled={deletingGroup}
+                                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                        >
+                                            <FiTrash2 size={14} />
+                                            {deletingGroup ? "กำลังลบ..." : "ลบกลุ่มนี้"}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     )}
                 </div>
 
@@ -977,48 +1283,32 @@ export default function TeacherPage() {
                 {summary && (
                     <>
                         {/* ================= การ์ดสรุป ================= */}
-                        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                             <StatCard
-                                icon={FiUsers}
+                                layout="center"
                                 label="นิสิตทั้งหมด"
                                 value={summary.total_students}
                                 sub={`เล่นครบทุกด่าน ${summary.completed_all} คน`}
-                                color="bg-emerald-100 text-emerald-700"
                             />
-                            <StatCard
-                                icon={FiActivity}
-                                label="ใช้งานใน 7 วัน"
-                                value={summary.active_7_days}
-                                sub={`จาก ${summary.total_students} คน`}
-                                color="bg-sky-100 text-sky-700"
-                            />
-                            <StatCard
-                                icon={FiClipboard}
+                            <PairStatCard
                                 label="ทำ Pre / Post-Test"
-                                value={`${summary.pre_test_done} / ${summary.post_test_done}`}
+                                items={[
+                                    { label: "Pre-test", value: summary.pre_test_done },
+                                    { label: "Post-test", value: summary.post_test_done },
+                                ]}
                                 sub="จำนวนคน"
-                                color="bg-violet-100 text-violet-700"
                             />
                             <StatCard
-                                icon={FiTrendingUp}
                                 label="Progress เฉลี่ย"
                                 value={`${summary.avg_progress}%`}
                                 sub="ภาพรวมทุกบท"
-                                color="bg-amber-100 text-amber-700"
                             />
+                            {/* นิสิตที่ไม่ได้เข้าใช้งานใน 7 วัน (รวมที่ยังไม่เคยเข้า) */}
                             <StatCard
-                                icon={FiAward}
-                                label="IP เฉลี่ย"
-                                value={summary.avg_integrity_points}
-                                sub="Integrity Points"
-                                color="bg-yellow-100 text-yellow-700"
-                            />
-                            <StatCard
-                                icon={FiClock}
-                                label="เวลาใช้งานเฉลี่ย"
-                                value={formatMinutes(summary.avg_time_spent)}
-                                sub="ต่อคน · นับเฉพาะตอนใช้งานจริง"
-                                color="bg-rose-100 text-rose-700"
+                                label="นิสิตที่มีความเสี่ยง"
+                                tone="text-red-600"
+                                value={`${Math.max(summary.total_students - summary.active_7_days, 0)} คน`}
+                                sub="ไม่ได้เข้าใช้งานใน 7 วัน"
                             />
                         </section>
 
@@ -1080,28 +1370,6 @@ export default function TeacherPage() {
                                         className="w-64 rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500"
                                     />
                                 </div>
-
-                                <select
-                                    value={majorFilter}
-                                    onChange={(e) => setMajorFilter(e.target.value)}
-                                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                                >
-                                    <option value="">ทุกสาขา</option>
-                                    {majorOptions.map(([id, name]) => (
-                                        <option key={id} value={id}>{name}</option>
-                                    ))}
-                                </select>
-
-                                <select
-                                    value={yearFilter}
-                                    onChange={(e) => setYearFilter(e.target.value)}
-                                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                                >
-                                    <option value="">ทุกชั้นปี</option>
-                                    {yearOptions.map((y) => (
-                                        <option key={y} value={y}>ปี {y}</option>
-                                    ))}
-                                </select>
 
                                 <select
                                     value={statusFilter}
@@ -1178,7 +1446,7 @@ export default function TeacherPage() {
                                                         </td>
                                                         <td className="px-4 py-3 text-gray-600">
                                                             <p>{s.major_name}</p>
-                                                            {scope === "all" && (
+                                                            {activeScope === "all" && (
                                                                 <p className="text-xs text-gray-400">{s.faculty_name}</p>
                                                             )}
                                                         </td>
@@ -1256,6 +1524,14 @@ export default function TeacherPage() {
                     </>
                 )}
             </main>
+
+            {showAddGroup && (
+                <AddGroupModal
+                    faculties={faculties}
+                    onClose={() => setShowAddGroup(false)}
+                    onAdded={handleGroupAdded}
+                />
+            )}
         </div>
     );
 }

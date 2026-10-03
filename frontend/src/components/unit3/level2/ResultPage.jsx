@@ -298,8 +298,8 @@ export default function MoneyResultPage() {
                         {/* IP breakdown — เฉพาะตอนผ่านด่านเท่านั้น */}
                         {win && (
                             <div className="mrp-rise-2 mt-3 rounded border border-[#1E2A44]/15 bg-white/60 px-5 py-3">
-                                <p className="mrp-display text-sm font-semibold tracking-wide text-[#1E2A44]">
-                                    IP ที่ได้รับ
+                                <p className="mrp-display text-sm font-bold tracking-wide text-[#1E2A44]">
+                                    Integrity Points
                                 </p>
                                 <div className="mt-2 space-y-1.5 text-sm text-[#1E2A44]/85">
                                     <div className="flex items-center justify-between">
@@ -325,10 +325,10 @@ export default function MoneyResultPage() {
                                 </div>
                                 <div className="mt-2 flex items-center justify-between border-t border-[#1E2A44]/15 pt-2">
                                     <span className="mrp-display text-sm font-semibold text-[#1E2A44]">
-                                        ได้ IP ทั้งหมด
+                                        Total IP Earned
                                     </span>
                                     <span className="mrp-display text-lg font-bold text-[#2E6B4F]">
-                                        +{earnedIP}
+                                        {earnedIP}
                                     </span>
                                 </div>
                             </div>

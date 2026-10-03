@@ -29,6 +29,7 @@ export default function AuthPage() {
     handleRegisterChange,
     handleLoginSubmit,
     handleRegisterSubmit,
+    updateStudentGroups,
   } = useAuth();
 
   return (
@@ -51,7 +52,7 @@ export default function AuthPage() {
         }}
       >
         <div
-          className={`w-full rounded-2xl bg-white p-8 shadow-xl sarabun-regular md:p-10 ${isLogin ? "max-w-2xl" : "max-w-3xl"
+          className={`w-full rounded-3xl border border-white/50 bg-white/30 p-8 shadow-xl backdrop-blur-md sarabun-regular md:p-10 ${isLogin ? "max-w-2xl" : "max-w-3xl"
             }`}
         >
           <AuthHeader isLogin={isLogin} role={role} />
@@ -75,6 +76,7 @@ export default function AuthPage() {
               departments={departments}
               handleRegisterChange={handleRegisterChange}
               handleRegisterSubmit={handleRegisterSubmit}
+              updateStudentGroups={updateStudentGroups}
               setIsLogin={setIsLogin}
               role={role}
               setRole={setRole}

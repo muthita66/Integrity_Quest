@@ -2,7 +2,7 @@ import bgGameLevel1 from "../../../../assets/unit3/level1/bgGameLevel1.png";
 
 export default function GameBoard({ children }) {
     return (
-        <div className="relative w-full max-w-6xl aspect-video overflow-hidden border-4 border-black shadow-2xl bg-[#9b5f2e] sarabun-bold">
+        <div className="relative w-full h-full overflow-hidden bg-[#9b5f2e] sarabun-bold">
             {/* Desk Background */}
             <div
                 className="absolute inset-0 pt-28 bg-cover bg-center"

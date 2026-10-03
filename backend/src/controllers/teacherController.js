@@ -5,10 +5,11 @@ const { buildOverview } = require("./profileController");
 // ============================================================
 // Teacher Dashboard API
 // ------------------------------------------------------------
-// GET /api/teacher/dashboard?scope=faculty|all
+// GET /api/teacher/dashboard?scope=all|group:<group_id>
 //
-// scope = faculty (ค่าเริ่มต้น) → เฉพาะนิสิตในคณะเดียวกับอาจารย์
-// scope = all                   → นิสิตทั้งหมด
+// scope = group:<id> → เฉพาะนิสิตที่ตรงเงื่อนไขของกลุ่มนั้น (ค่าเริ่มต้น
+//                        ถ้าไม่ระบุ scope มา จะใช้กลุ่มแรกของอาจารย์)
+// scope = all        → นิสิตทั้งหมด
 //
 // ทุก route ต้องผ่าน authenticateToken + requireTeacher
 // ============================================================
@@ -112,23 +113,71 @@ exports.getDashboard = async (req, res) => {
         const facultyById = new Map(faculties.map((f) => [f.faculty_id, f]));
         const majorById = new Map(majors.map((m) => [m.major_id, m]));
 
-        // ไม่มีคณะ (ข้อมูลอาจารย์ไม่ครบ) → ดูทั้งหมด
-        const scope =
-            req.query.scope === "all" || !teacherFacultyId ? "all" : "faculty";
+        // --------------------------------------------------------
+        // 2. กลุ่มนักเรียนที่อาจารย์คนนี้ดูแล + เลือก scope ที่ใช้งานอยู่
+        // ------------------------------------------------------------
+        // scope: "all" (นิสิตทั้งหมด) หรือ "group:<group_id>" (เฉพาะกลุ่มนั้น)
+        // ค่าเริ่มต้น = กลุ่มแรกของอาจารย์ (ไม่ใช่ "all" อีกต่อไป เพราะอาจารย์
+        // ต้องเห็นเฉพาะนิสิตในกลุ่มที่ตัวเองรับผิดชอบเป็นค่าเริ่มต้น) — ถ้า
+        // อาจารย์เก่ายังไม่มีกลุ่มเลย (ข้อมูลก่อนฟีเจอร์นี้) ค่อย fallback เป็น all
+        // --------------------------------------------------------
+
+        const teacherGroupRows = await prisma.teacher_student_groups.findMany({
+            where: { teacher_id: teacher.teacher_id },
+            orderBy: { group_id: "asc" },
+        });
+
+        const groups = teacherGroupRows.map((g, index) => ({
+            group_id: g.group_id,
+            label: `กลุ่มที่ ${index + 1}`,
+            faculty_id: g.faculty_id,
+            faculty_name: facultyById.get(g.faculty_id)?.faculty_name || null,
+            major_id: g.major_id,
+            major_name: majorById.get(g.major_id)?.major_name || null,
+            year: g.year,
+            note: g.note,
+        }));
+
+        const requestedScope =
+            req.query.scope || (groups[0] ? `group:${groups[0].group_id}` : "all");
+
+        const activeGroup =
+            String(requestedScope) !== "all"
+                ? groups.find((g) => `group:${g.group_id}` === String(requestedScope)) ||
+                null
+                : null;
+
+        const scope = activeGroup ? `group:${activeGroup.group_id}` : "all";
 
         // --------------------------------------------------------
-        // 2. นิสิตตาม scope
+        // 3. นิสิตตามกลุ่มที่เลือก
+        // ------------------------------------------------------------
+        // ไม่มีช่องไหนระบุในกลุ่ม (เว้นว่าง) = ทุกค่าของช่องนั้น
+        // เลือก "นิสิตทั้งหมด" (activeGroup = null) = ไม่กรองเลย
         // --------------------------------------------------------
 
-        const facultyMajorIds = majors
-            .filter((m) => m.faculty_id === teacherFacultyId)
-            .map((m) => m.major_id);
+        const matchingMajorIds = activeGroup
+            ? majors
+                .filter((m) => {
+                    if (
+                        activeGroup.faculty_id &&
+                        m.faculty_id !== activeGroup.faculty_id
+                    ) {
+                        return false;
+                    }
+                    if (activeGroup.major_id && m.major_id !== activeGroup.major_id) {
+                        return false;
+                    }
+                    return true;
+                })
+                .map((m) => m.major_id)
+            : null;
 
         const students = await prisma.students.findMany({
-            where:
-                scope === "faculty"
-                    ? { major_id: { in: facultyMajorIds } }
-                    : {},
+            where: {
+                ...(matchingMajorIds ? { major_id: { in: matchingMajorIds } } : {}),
+                ...(activeGroup?.year ? { entry_year: activeGroup.year } : {}),
+            },
             select: {
                 user_id: true,
                 first_name: true,
@@ -142,7 +191,7 @@ exports.getDashboard = async (req, res) => {
         const userIds = students.map((s) => s.user_id);
 
         // --------------------------------------------------------
-        // 3. ดึงข้อมูลประกอบทั้งหมดแบบ batch (ไม่ query ทีละคน)
+        // 4. ดึงข้อมูลประกอบทั้งหมดแบบ batch (ไม่ query ทีละคน)
         // --------------------------------------------------------
 
         const [
@@ -272,7 +321,7 @@ exports.getDashboard = async (req, res) => {
             entry && entry.max ? Math.round((entry.score / entry.max) * 100) : null;
 
         // --------------------------------------------------------
-        // 4. แถวของนิสิตแต่ละคน
+        // 5. แถวของนิสิตแต่ละคน
         // --------------------------------------------------------
 
         const today = todayInBangkok();
@@ -349,7 +398,7 @@ exports.getDashboard = async (req, res) => {
             .sort((a, b) => b.integrity_points - a.integrity_points);
 
         // --------------------------------------------------------
-        // 5. สรุปภาพรวม
+        // 6. สรุปภาพรวม
         // --------------------------------------------------------
 
         const activeIn7Days = rows.filter(
@@ -386,12 +435,85 @@ exports.getDashboard = async (req, res) => {
                         facultyById.get(teacherFacultyId)?.faculty_name || "",
                 },
                 scope,
+                groups,
                 summary,
                 students: rows,
             },
         });
     } catch (error) {
         console.error("Teacher dashboard error:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
+// ============================================================
+// POST /api/teacher/groups
+// ------------------------------------------------------------
+// เพิ่มกลุ่มนักเรียนที่อาจารย์คนนี้ดูแล (ปุ่ม "+ เพิ่มกลุ่ม" บนแดชบอร์ด)
+// เว้นว่างช่องไหน = ทุกค่าของช่องนั้น แต่ต้องมีอย่างน้อย 1 เงื่อนไข/รายละเอียด
+// ============================================================
+
+exports.addGroup = async (req, res) => {
+    try {
+        const teacher = req.teacher;
+        const { faculty, major, year, note } = req.body;
+
+        if (!faculty && !major && !year && !(note && String(note).trim())) {
+            return res.status(400).json({
+                message: "กรุณาเลือกอย่างน้อย 1 เงื่อนไข (คณะ/สาขา/ชั้นปี/รายละเอียด)",
+            });
+        }
+
+        const group = await prisma.teacher_student_groups.create({
+            data: {
+                teacher_id: teacher.teacher_id,
+                faculty_id: faculty ? Number(faculty) : null,
+                major_id: major ? Number(major) : null,
+                year: year ? Number(year) : null,
+                note: note ? String(note).trim() : null,
+            },
+        });
+
+        return res.status(201).json({
+            message: "เพิ่มกลุ่มสำเร็จ",
+            data: group,
+        });
+    } catch (error) {
+        console.error("Add teacher group error:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
+// ============================================================
+// DELETE /api/teacher/groups/:id
+// ------------------------------------------------------------
+// ลบกลุ่มนักเรียนที่อาจารย์ดูแล (ปุ่มสามจุด → "ลบกลุ่มนี้" บนแดชบอร์ด)
+// เช็กว่ากลุ่มนั้นเป็นของอาจารย์คนที่ login อยู่จริงก่อนลบ
+// ============================================================
+
+exports.deleteGroup = async (req, res) => {
+    try {
+        const teacher = req.teacher;
+        const groupId = Number(req.params.id);
+
+        if (!Number.isInteger(groupId)) {
+            return res.status(400).json({ message: "รหัสกลุ่มไม่ถูกต้อง" });
+        }
+
+        const group = await prisma.teacher_student_groups.findUnique({
+            where: { group_id: groupId },
+            select: { group_id: true, teacher_id: true },
+        });
+
+        if (!group || group.teacher_id !== teacher.teacher_id) {
+            return res.status(404).json({ message: "ไม่พบกลุ่มนี้" });
+        }
+
+        await prisma.teacher_student_groups.delete({ where: { group_id: groupId } });
+
+        return res.json({ message: "ลบกลุ่มสำเร็จ" });
+    } catch (error) {
+        console.error("Delete teacher group error:", error);
         return res.status(500).json({ message: "Server error" });
     }
 };

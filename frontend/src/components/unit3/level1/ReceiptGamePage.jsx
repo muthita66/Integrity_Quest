@@ -52,7 +52,7 @@ export default function ReceiptGamePage() {
     }, [isGameOver, musicRef]);
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+        <div className="relative flex h-screen w-full items-center justify-center overflow-hidden">
             <img
                 src={bgGame1}
                 alt=""

@@ -146,15 +146,6 @@ export default function Unit2Level1ResultPage() {
     const navigate = useNavigate();
     const { state } = useLocation();
     const prefersReducedMotion = useReducedMotion();
-
-    /*
-     * ผลจริงจาก Backend (completeGame ของ level_id=5) — ไม่มีการ
-     * คำนวณ pass/score/items ที่ Frontend อีกต่อไป เดิมหน้านี้รับค่า
-     * ที่ Frontend คำนวณเองผ่าน router state (ไม่เคยตรวจกับ DB) และ
-     * มี FALLBACK_ITEMS/ข้อความ hardcode ไว้เผื่อไม่มี state เลย ซึ่ง
-     * ทำให้ดูผลลัพธ์ปลอมได้ถ้าเข้าหน้านี้ตรง ๆ — ตอนนี้ถ้าไม่มีผลจริง
-     * ส่งมา ให้ถือว่าเข้าหน้านี้มาไม่ถูกทาง พากลับไปเล่นใหม่แทน
-     */
     const result = state?.result;
 
     useEffect(() => {
@@ -172,12 +163,6 @@ export default function Unit2Level1ResultPage() {
     const baseIP = result?.base_ip ?? 0;
     const bonusIP = result?.bonus_ip ?? 0;
     const totalIntegrityPoints = result?.total_integrity_points ?? 0;
-
-    /*
-     * ข้อความ verdict/feedback — ดึงจาก DB (level_result_messages,
-     * level_id=5, status PASS/FAIL) เหมือนแนวทางที่ใช้กับ Level 2/3
-     * เดิมข้อความเหล่านี้ hardcode ไว้ในไฟล์นี้ตรง ๆ
-     */
     const [resultText, setResultText] = useState(null);
     const [messageError, setMessageError] = useState(false);
 
@@ -209,13 +194,6 @@ export default function Unit2Level1ResultPage() {
 
     const verdictWord = resultText?.verdict_label ?? (pass ? "ผ่านแล้ว" : "ยังไม่ผ่าน");
     const sealColor = pass ? "#3F5A34" : "#7A2E2E";
-
-    /*
-     * รูปตัวละคร — ยังเป็นไฟล์ local 2 รูปตายตัวตามผล PASS/FAIL
-     * (ไม่ใช่เนื้อหาที่ทีม content ต้องแก้บ่อยเหมือนข้อความ จึงยังไม่
-     * ย้ายเข้า DB รอบนี้ ต่างจาก character_image ของ FinalLevel ที่มี
-     * ถึง 4 แบบตาม Rank และเก็บเป็น asset สาธารณะอยู่แล้ว)
-     */
     const characterImg = pass ? GoalCelebration : SadExpression;
     const charGlowColor = pass
         ? "rgba(238, 233, 124, 0.6)"
@@ -258,11 +236,8 @@ export default function Unit2Level1ResultPage() {
 
     if (!result || !resultText) {
         return (
-            <div
-                className="min-h-screen flex items-center justify-center bg-cover bg-center sarabun-bold"
-                style={{ backgroundImage: `url(${bgGame})` }}
-            >
-                <p className="text-xl text-white drop-shadow">
+            <div className="min-h-screen flex items-center justify-center bg-black sarabun-bold">
+                <p className="text-xl text-white">
                     {messageError
                         ? "ไม่สามารถโหลดข้อมูลผลลัพธ์ได้"
                         : "กำลังโหลดผลลัพธ์..."}
@@ -377,13 +352,13 @@ export default function Unit2Level1ResultPage() {
                     />
 
                     {/* เนื้อหา */}
-                    <div className="relative z-10 flex flex-col items-center px-10 pt-10 pb-10 sarabun-bold">
-                        <p className="text-sm mb-1" style={{ color: "#5a4326" }}>
+                    <div className="relative z-10 flex flex-col items-center px-8 pt-6 pb-6 md:px-10 md:pt-8 md:pb-8 sarabun-bold">
+                        <p className="text-xs md:text-sm mb-0.5" style={{ color: "#5a4326" }}>
                             บันทึกการตัดสินใจ
                         </p>
 
                         <h1
-                            className="text-xl md:text-2xl font-black mb-3 text-center"
+                            className="text-lg md:text-xl font-black mb-2 text-center"
                             style={{
                                 color: "#000000",
                                 textShadow: "0 1px 0 rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.12)",
@@ -393,7 +368,7 @@ export default function Unit2Level1ResultPage() {
                         </h1>
 
                         {/* รายการสินค้าแบบลิสต์บนกระดาษ */}
-                        <div className="relative w-full max-w-md mb-5">
+                        <div className="relative w-full max-w-md mb-3">
 
                             <motion.ul
                                 variants={listVariants}
@@ -406,7 +381,7 @@ export default function Unit2Level1ResultPage() {
                                     <motion.li
                                         key={item.item_id}
                                         variants={lineVariants}
-                                        className="flex items-center justify-between gap-3 px-3 py-1.5 rounded-md"
+                                        className="flex items-center justify-between gap-2 px-3 py-1 rounded-md"
                                         style={{
                                             background: item.is_correct
                                                 ? "rgba(63,90,52,0.08)"
@@ -470,7 +445,7 @@ export default function Unit2Level1ResultPage() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: scoreDelay - 0.1 }}
-                            className="w-full max-w-md mb-4"
+                            className="w-full max-w-md mb-2"
                         >
                             <div className="flex items-center justify-between text-sm font-black" style={{ color: "#3B2A1E" }}>
                                 <span className="uppercase tracking-wide">คะแนนรวม</span>
@@ -481,17 +456,17 @@ export default function Unit2Level1ResultPage() {
                                 <div className="flex items-center justify-between text-base font-bold mt-1" style={{ color: "#2F6B4F" }}>
                                     <span>Integrity Points</span>
                                     <span className="tabular-nums">
-                                        +{earnedIP} IP
+                                        {earnedIP} IP
                                         {bonusIP > 0 && (
                                             <span className="ml-1 text-xs font-semibold" style={{ color: "#8A6D3B" }}>
-                                                (พื้นฐาน {baseIP} + โบนัสรอบแรก {bonusIP})
+                                                (Integrity Points {baseIP} + Bonus First Round {bonusIP})
                                             </span>
                                         )}
                                     </span>
                                 </div>
                             )}
 
-                            <p className="text-sm font-light mt-2">
+                            <p className="text-xs md:text-sm font-light mt-1.5">
                                 {resultText.description}
                             </p>
                         </motion.div>

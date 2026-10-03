@@ -253,7 +253,7 @@ export default function SettingsPage() {
             >
                 {/* ระยะห่างจากขอบเว็บเท่ากันทุกด้าน (บน = ล่าง = ซ้าย = ขวา) */}
                 <div className="flex min-h-full items-center justify-center p-6 lg:p-8 sarabun-regular">
-                    <div className="w-full max-w-6xl rounded-2xl bg-white p-6 shadow-xl lg:p-8">
+                    <div className="w-full max-w-6xl rounded-2xl bg-white/80 p-6 shadow-2xl backdrop-blur-lg border border-white/20">
                         {/* HEADER */}
                         <button
                             type="button"
@@ -279,12 +279,12 @@ export default function SettingsPage() {
                             <div className="grid gap-8 lg:grid-cols-[3fr_2fr] lg:gap-10">
                                 {/* ================= ซ้าย: ข้อมูลส่วนตัว ================= */}
                                 <form onSubmit={handleSaveProfile} className="flex flex-col gap-4">
-                                    <h2 className="text-lg font-semibold text-gray-800">
+                                    <h2 className="text-lg font-semibold text-black">
                                         ข้อมูลส่วนตัว
                                     </h2>
 
                                     <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
-                                        <label className="block">
+                                        <label className="block text-black">
                                             <Label>Username</Label>
                                             <FormInput icon={FiUser} placeholder="Username" {...field("username")} />
                                         </label>
