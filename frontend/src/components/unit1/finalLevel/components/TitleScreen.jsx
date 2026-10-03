@@ -4,7 +4,7 @@ import bgGame1 from "../../../../assets/unit1/finalLevel/bgGame1.png";
 export default function TitleScreen({ onStart }) {
     return (
         <div
-            className="relative overflow-hidden text-center w-full h-full bg-cover bg-center flex items-center justify-center"
+            className="relative overflow-hidden text-center w-screen h-screen bg-cover bg-center flex items-center justify-center"
             style={{ backgroundImage: `url(${bgGame1})` }}
         >
             {/* Overlay */}

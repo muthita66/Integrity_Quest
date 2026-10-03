@@ -69,13 +69,15 @@ export default function NavBar({
             </button>
 
             {/* Exit button — fixed top-right */}
-            <button
-                type="button"
-                onClick={() => setShowExitDialog(true)}
-                className={`fixed top-4 right-4 z-50 ${ICON_BUTTON_CLASS}`}
-            >
-                <FaHome size={22} />
-            </button>
+            {stage !== "file" && (
+                <button
+                    type="button"
+                    onClick={() => setShowExitDialog(true)}
+                    className={`fixed top-4 right-4 z-50 ${ICON_BUTTON_CLASS}`}
+                >
+                    <FaHome size={22} />
+                </button>
+            )}
 
             <ExitDialog
                 isOpen={showExitDialog}

@@ -15,7 +15,6 @@ import IntroScenes from "./scenes/IntroFinalLevel";
 import BgGameLevel from "../../../assets/unit1/finalLevel/bgGameFinal.png";
 import GameOverPopup from "./components/GameOverPopup";
 
-
 const FONT_STYLE = `
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700;900&family=Sarabun:wght@300;400;500;600;700&display=swap');
 
@@ -108,47 +107,68 @@ export default function FinalLevel() {
   const game = useCaseGame();
 
   return (
-    <div className="min-h-screen w-full cid-body overflow-y-auto flex flex-col items-center relative sarabun-bold">
-      <img src={BgGameLevel} alt="" className="fixed inset-0 w-full h-full object-cover z-0" />
+    <div className="min-h-screen w-full cid-body overflow-hidden relative sarabun-bold">
+      <img
+        src={BgGameLevel}
+        alt=""
+        className="fixed inset-0 w-full h-full object-cover z-0"
+      />
+
       <style>{FONT_STYLE}</style>
 
-      <div className="absolute inset-0 bg-black/50" />
+      <div className="absolute inset-0 bg-black/50 z-0" />
 
-      {/* Game-over popup (evidence limit or timeout) */}
+      {/* Game-over popup */}
       <GameOverPopup
         popup={game.gameOverPopup}
         onRestart={game.restartFailedCase}
         onDismiss={game.dismissGameOverPopup}
       />
 
-      {/*
-        แจ้ง error ที่เกิดจากการเรียก backend (เช่น completeGame
-        ล้มเหลวเพราะ Case ยังไม่ผ่านครบ) — เดิม game.error ไม่เคยถูก
-        render ที่ไหนเลย ทำให้กดปุ่มแล้ว "เงียบ" ไม่มีอะไรขึ้นเวลา
-        fetch ไม่สำเร็จ
-      */}
+      {/* Backend Error */}
       {game.error && game.stage !== "intro" && (
         <div
           className="fixed top-4 left-1/2 -translate-x-1/2 z-[10001] max-w-lg w-[90%] rounded-xl border-4 border-black px-4 py-3 text-center shadow-lg"
-          style={{ backgroundColor: "#F5E2E2", color: "#A32638" }}
+          style={{
+            backgroundColor: "#F5E2E2",
+            color: "#A32638",
+          }}
         >
-          <p className="text-sm sarabun-bold">{game.error}</p>
+          <p className="text-sm sarabun-bold">
+            {game.error}
+          </p>
         </div>
       )}
 
-      {/* Intro — เต็มหน้าจอ ไม่จำกัดความกว้าง */}
+      {/* =====================================================
+          INTRO
+          เต็มหน้าจอ
+      ===================================================== */}
+
       {game.stage === "intro" && (
-        <div className="w-full">
-          <IntroScenes onComplete={() => game.setStage("title")} />
+        <div className="fixed inset-0 w-screen h-screen z-10 overflow-hidden">
+          <IntroScenes
+            onComplete={() => game.setStage("title")}
+          />
         </div>
       )}
 
-      {/* เกม — จำกัดความกว้างและอยู่กึ่งกลาง */}
+      {/* =====================================================
+          GAME
+          เต็มหน้าจอ ไม่มีกรอบ
+      ===================================================== */}
+
       {game.stage !== "intro" && (
-        <div className="w-full max-w-6xl h-[650px] mx-auto mt-10 relative z-10">
-          <NavBar onRestart={game.restart} stage={game.stage} />
+        <div className="relative z-10 w-full min-h-screen">
+          <NavBar
+            onRestart={game.restart}
+            stage={game.stage}
+          />
+
           {game.stage === "title" && (
-            <TitleScreen onStart={game.startFinalLevel} />
+            <TitleScreen
+              onStart={game.startFinalLevel}
+            />
           )}
 
           {game.stage === "select" && (
@@ -167,8 +187,12 @@ export default function FinalLevel() {
               currentCase={game.currentCase}
               caseIdx={game.caseIdx}
               results={game.results}
-              onEnterScene={() => game.setStage("scene")}
-              onBack={() => game.setStage("select")}
+              onEnterScene={() =>
+                game.setStage("scene")
+              }
+              onBack={() =>
+                game.setStage("select")
+              }
             />
           )}
 
@@ -177,9 +201,15 @@ export default function FinalLevel() {
               currentCase={game.currentCase}
               collectedList={game.collectedList}
               allCollected={game.allCollected}
-              onOpenEvidence={game.setActiveEvidence}
-              onBack={() => game.setStage("brief")}
-              onAnalyze={() => game.setStage("file")}
+              onOpenEvidence={
+                game.setActiveEvidence
+              }
+              onBack={() =>
+                game.setStage("brief")
+              }
+              onAnalyze={() =>
+                game.setStage("file")
+              }
             />
           )}
 
@@ -188,11 +218,15 @@ export default function FinalLevel() {
             evidence={game.activeEvidence}
             isCollected={
               game.activeEvidence
-                ? game.collectedList.includes(game.activeEvidence.id)
+                ? game.collectedList.includes(
+                  game.activeEvidence.id
+                )
                 : false
             }
             onCollect={game.collectEvidence}
-            onClose={() => game.setActiveEvidence(null)}
+            onClose={() =>
+              game.setActiveEvidence(null)
+            }
           />
 
           {game.stage === "file" && (
@@ -201,19 +235,36 @@ export default function FinalLevel() {
               picks={game.analysisPickList}
               checked={game.isAnalysisChecked}
               evidenceResult={
-                game.evidenceResults[game.currentCase.id]
+                game.evidenceResults[
+                game.currentCase.id
+                ]
               }
               failReason={
-                game.evidenceFailReasons[game.currentCase.id]
+                game.evidenceFailReasons[
+                game.currentCase.id
+                ]
               }
-              retryCount={game.analysisRetryCount[game.currentCase.id] || 0}
-              onTogglePick={game.toggleAnalysisPick}
-              onSubmitAnalysis={game.submitAnalysis}
-              onContinue={() => game.setStage("question")}
-              onRetryAnalysis={game.retryAnalysis}
-              onTimerExpired={game.timerExpired}
+              retryCount={
+                game.analysisRetryCount[
+                game.currentCase.id
+                ] || 0
+              }
+              onTogglePick={
+                game.toggleAnalysisPick
+              }
+              onSubmitAnalysis={
+                game.submitAnalysis
+              }
+              onContinue={() =>
+                game.setStage("question")
+              }
+              onRetryAnalysis={
+                game.retryAnalysis
+              }
+              onTimerExpired={
+                game.timerExpired
+              }
             />
-
           )}
 
           {game.stage === "question" && (
@@ -228,17 +279,32 @@ export default function FinalLevel() {
           {game.stage === "verdict" && (
             <VerdictPage
               currentCase={game.currentCase}
-              isCorrect={game.results[game.currentCase.id]}
-              evidenceResult={game.evidenceResults[game.currentCase.id]}
-              isLastCase={game.caseIdx === CASES.length - 1}
+              isCorrect={
+                game.results[
+                game.currentCase.id
+                ]
+              }
+              evidenceResult={
+                game.evidenceResults[
+                game.currentCase.id
+                ]
+              }
+              isLastCase={
+                game.caseIdx ===
+                CASES.length - 1
+              }
               onNext={game.goNextCase}
-              onRestart={game.restartFailedCase}
+              onRestart={
+                game.restartFailedCase
+              }
             />
           )}
 
           {game.stage === "end" && (
             <EndSummary
-              finalLevelResult={game.finalLevelResult}
+              finalLevelResult={
+                game.finalLevelResult
+              }
               cases={game.cases}
               onRestart={game.restart}
             />

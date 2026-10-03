@@ -206,8 +206,8 @@ export default function EndSummary({ finalLevelResult, cases, onRestart }) {
 
     if (!finalLevelResult || !resultText) {
         return (
-            <div className="cid-paper h-full p-4 border-4 border-black text-center flex flex-col items-center justify-center">
-                <p className="text-xl sarabun-bold" style={{ color: "#2B2118" }}>
+            <div className="min-h-screen w-full flex items-center justify-center bg-black">
+                <p className="text-xl sarabun-bold text-white">
                     {messageError
                         ? "ไม่สามารถโหลดข้อมูลผลลัพธ์ได้"
                         : "กำลังโหลดผลลัพธ์..."}
@@ -248,13 +248,24 @@ export default function EndSummary({ finalLevelResult, cases, onRestart }) {
                         transform: scale(1) rotate(0deg);
                     }
                 }
+
+                .cid-star {
+                    filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.45)) drop-shadow(0px 2px 2px rgba(184,134,59,0.5));
+                    transition: filter 0.25s ease, transform 0.25s ease;
+                    cursor: pointer;
+                }
+
+                .cid-star:hover {
+                    filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.45)) drop-shadow(0px 2px 2px rgba(184,134,59,0.5)) drop-shadow(0 0 16px rgba(255,215,0,0.95)) drop-shadow(0 0 30px rgba(255,235,150,0.8));
+                    transform: scale(1.18);
+                }
                 `}
             </style>
             {/* Fireworks overlay */}
             <FireworksCanvas />
 
             <div
-                className="cid-paper h-full p-4 border-4 border-black text-center cid-pop flex flex-col"
+                className="cid-paper h-screen w-full p-4 md:p-6 text-center cid-pop flex flex-col overflow-hidden"
             >
                 <h2
                     className="cid-display text-2xl font-bold shrink-0 mb-2"
@@ -266,15 +277,15 @@ export default function EndSummary({ finalLevelResult, cases, onRestart }) {
                 {/* ── IP ที่ได้ ── */}
                 <div className="flex justify-center gap-4 shrink-0 mb-1">
                     <div className="bg-[#F3E9D2] px-4 py-2 flex flex-col items-center min-w[100px]">
-                        <p className="text-sm font-semibold" style={{ color: "#8A6D3B" }}>
-                            Integrity Points ที่ได้
+                        <p className="text-xl font-semibold" style={{ color: "#8A6D3B" }}>
+                            Integrity Points Reward
                         </p>
                         <p className="cid-display text-2xl font-black" style={{ color: "#2F6B4F" }}>
-                            +{earnedIP} IP
+                            {earnedIP} IP
                         </p>
                         {bonusIP > 0 && (
                             <p className="text-xs font-semibold" style={{ color: "#B8863B" }}>
-                                (คำตอบ {caseAnswerIP} + โบนัส Rank {bonusIP})
+                                (คะแนนคำตอบ {caseAnswerIP} + โบนัส Rank {bonusIP})
                             </p>
                         )}
                     </div>
@@ -283,7 +294,7 @@ export default function EndSummary({ finalLevelResult, cases, onRestart }) {
                 {/* ── Rank Stamp + Stars ── */}
                 <div className="flex flex-col items-center mb-2 gap-2 shrink-0">
                     <div
-                        className="inline-block px-6 py-2 rounded-lg border-4 cid-stamp-anim"
+                        className="inline-block px-6 py-2 rounded-lg border-2 cid-stamp-anim"
                         style={{
                             borderColor: stampStyle.border,
                             color: stampStyle.color,
@@ -301,11 +312,11 @@ export default function EndSummary({ finalLevelResult, cases, onRestart }) {
                                 key={i}
                                 src={Star}
                                 alt="star"
+                                className="cid-star"
                                 style={{
                                     width: 48,
                                     height: 48,
                                     animation: `cidPop 0.35s cubic-bezier(.34,1.56,.64,1) ${0.55 + i * 0.15}s both`,
-                                    filter: "drop-shadow(0px 4px 6px rgba(0,0,0,0.45)) drop-shadow(0px 2px 2px rgba(184,134,59,0.5))",
                                 }}
                             />
                         ))}
@@ -319,7 +330,7 @@ export default function EndSummary({ finalLevelResult, cases, onRestart }) {
                         <img
                             src={resultText.character_image}
                             alt="Character"
-                            className="absolute -top-54 right-2 w-64 h-64 object-contain z-10 drop-shadow-md pointer-events-none"
+                            className="absolute -top-60 right-2 w-72 h-72 object-contain z-10 drop-shadow-md pointer-events-none"
                             style={{
                                 animation: "scrapbookPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both"
                             }}
@@ -365,7 +376,7 @@ export default function EndSummary({ finalLevelResult, cases, onRestart }) {
                     <button
                         type="button"
                         onClick={() => navigate("/map")}
-                        className="result-button result-button-amber"
+                        className="result-button result-button-gray"
                     >
                         <span className="result-button-top">กลับหน้าหลัก</span>
                     </button>

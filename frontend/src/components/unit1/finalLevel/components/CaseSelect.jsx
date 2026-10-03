@@ -1,6 +1,6 @@
-import { CheckCircle2, Lock, RotateCcw, XCircle } from "lucide-react";
+import { CheckCircle2, Lock, XCircle } from "lucide-react";
 import ProgressTrack from "./ProgressTrack";
-import BgGame from "../../../../assets/unit1/finalLevel/bgGame1.png"
+import BgGame from "../../../../assets/unit1/finalLevel/bgGame1.png";
 
 export default function CaseSelect({
     cases,
@@ -11,23 +11,33 @@ export default function CaseSelect({
     onRestart,
 }) {
     return (
-        <div className="w-full h-full pt-2">
+        <div className="w-full min-h-screen relative overflow-hidden">
+            {/* Background */}
             <div
-                className="relative overflow-hidden w-full h-full max-w-6xl p-8 border-4 border-black"
+                className="absolute inset-0 bg-cover bg-center"
                 style={{
                     backgroundImage: `url(${BgGame})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
                 }}
-            >
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-black/70 z-0" />
+            />
 
-                {/* Content */}
-                <div className="relative z-10">
-                    <ProgressTrack caseIdx={caseIdx} results={results} />
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-black/70 z-0" />
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
+            {/* Main Content */}
+            <div className="relative z-10 w-full min-h-screen flex flex-col items-center justify-center px-8 pt-16 pb-12">
+
+                {/* Progress 1 - 2 - 3 - 4 - 5 */}
+                <div className="w-full max-w-7xl mb-8">
+                    <ProgressTrack
+                        caseIdx={caseIdx}
+                        results={results}
+                    />
+                </div>
+
+                {/* Case Selection */}
+                <div className="w-full max-w-7xl">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
                         {cases.map((caseItem, index) => {
                             const isLocked = index > unlockedCaseCount;
                             const solved = results[caseItem.id];
@@ -38,7 +48,19 @@ export default function CaseSelect({
                                     type="button"
                                     disabled={isLocked}
                                     onClick={() => onOpenCase(index)}
-                                    className="text-left rounded-lg p-4 border relative cid-paper h-28 mb-2"
+                                    className="
+                                        text-left
+                                        rounded-xl
+                                        p-5
+                                        border
+                                        relative
+                                        cid-paper
+                                        min-h-[130px]
+                                        transition-all
+                                        duration-200
+                                        hover:scale-[1.01]
+                                        hover:shadow-xl
+                                    "
                                     style={{
                                         borderColor:
                                             solved === true
@@ -46,46 +68,75 @@ export default function CaseSelect({
                                                 : solved === false
                                                     ? "#A32638"
                                                     : "#C9BB98",
+
                                         opacity: isLocked ? 0.55 : 1,
-                                        cursor: isLocked ? "not-allowed" : "pointer",
+
+                                        cursor: isLocked
+                                            ? "not-allowed"
+                                            : "pointer",
                                     }}
                                 >
-                                    {/* ในกล่อง */}
-                                    <div className="flex items-center justify-between">
+                                    {/* Case Header */}
+                                    <div className="flex items-center justify-between mb-2">
                                         <span
-
                                             className="text-lg font-semibold tracking-wide"
-                                            style={{ color: "#8A6D3B" }}
+                                            style={{
+                                                color: "#8A6D3B",
+                                            }}
                                         >
                                             {caseItem.code}
                                         </span>
 
-                                        {isLocked && <Lock size={14} color="#8A6D3B" />}
-                                        {solved === true && (
-                                            <CheckCircle2 size={16} color="#2F6B4F" />
-                                        )}
-                                        {solved === false && (
-                                            <XCircle size={16} color="#A32638" />
-                                        )}
+                                        <div>
+                                            {isLocked && (
+                                                <Lock
+                                                    size={18}
+                                                    color="#8A6D3B"
+                                                />
+                                            )}
+
+                                            {solved === true && (
+                                                <CheckCircle2
+                                                    size={20}
+                                                    color="#2F6B4F"
+                                                />
+                                            )}
+
+                                            {solved === false && (
+                                                <XCircle
+                                                    size={20}
+                                                    color="#A32638"
+                                                />
+                                            )}
+                                        </div>
                                     </div>
 
+                                    {/* Case Title */}
                                     <p
-                                        className="font-bold text-lg"
-                                        style={{ color: "#2B2118" }}
+                                        className="font-bold text-xl"
+                                        style={{
+                                            color: "#2B2118",
+                                        }}
                                     >
                                         {caseItem.title}
                                     </p>
 
-                                    <p className="text-sm" style={{ color: "#6B5B3D" }}>
+                                    {/* Location */}
+                                    <p
+                                        className="text-base mt-1"
+                                        style={{
+                                            color: "#6B5B3D",
+                                        }}
+                                    >
                                         {caseItem.location}
                                     </p>
                                 </button>
                             );
                         })}
+
                     </div>
                 </div>
             </div>
         </div>
     );
 }
-

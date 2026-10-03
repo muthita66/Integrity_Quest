@@ -89,8 +89,8 @@ export default function ResultModal({ finished, result, resetGame }) {
         },
     ];
 
-    // ----- IP: ต้อง success ก่อนถึงนับ (ดู finalLevelController.js) -----
-    // baseIP = เงื่อนไขละ 1 IP (สูงสุด 5), timeBonusIP = ทันเวลา +1 IP
+    // ----- IP (สเกลใหม่): ต้อง success ก่อนถึงนับ (ดู finalLevelController.js) -----
+    // baseIP = ผ่านภารกิจ 150 IP, timeBonusIP = ทันเวลา +50 IP (เต็ม 200)
     // ใช้ earnedIP (ผลรวมจริงจาก backend) เป็นตัวตัดสินการแสดงผล
     // ไม่ใช้ hpBonus/isFast เฉย ๆ เพราะทันเวลาอย่างเดียวไม่พอ ต้อง
     // success ด้วยถึงจะได้ IP จริง (ไม่งั้นภารกิจ FAILED แต่ทันเวลา
@@ -256,7 +256,7 @@ export default function ResultModal({ finished, result, resetGame }) {
                                         <p>Bonus (Integrity Points)</p>
                                         <span className="font-bold" style={{ color: INK }}>
                                             {result.success
-                                                ? `ผ่าน ${baseIP} จาก 5 เงื่อนไข +${baseIP} IP${timeBonusIP > 0 ? " และทันเวลา +1 IP" : ""}`
+                                                ? `ผ่านภารกิจ +${baseIP} IP${timeBonusIP > 0 ? ` และทันเวลา +${timeBonusIP} IP` : ""}`
                                                 : "ภารกิจไม่ผ่าน — ไม่ได้ IP"}
                                         </span>
                                         <span

@@ -75,6 +75,7 @@ export default function QuestionPanel({ question, onHintClick, children }) {
                                 leading-relaxed
                                 text-[#3D2B1F]
                                 mb-4
+                                whitespace-pre-line
                             "
                         >
                             {question}

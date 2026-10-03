@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login, register } from "../services/authService";
+import { login, register, getDepartments } from "../services/authService";
 import { getFaculties } from "../services/masterService";
 
 const initialLoginData = {
@@ -28,6 +28,7 @@ const initialRegisterData = {
     department: "",
     position: "",
     inviteCode: "",
+    studentGroups: [], // กลุ่มนักเรียนที่ดูแล: [{ faculty, major, year, note }]
 };
 
 export default function useAuth() {
@@ -43,6 +44,7 @@ export default function useAuth() {
     });
 
     const [faculties, setFaculties] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [filteredMajors, setFilteredMajors] = useState([]);
 
     const [loginData, setLoginData] = useState(initialLoginData);
@@ -50,6 +52,7 @@ export default function useAuth() {
 
     useEffect(() => {
         fetchFaculties();
+        fetchDepartments();
     }, []);
 
     const fetchFaculties = async () => {
@@ -61,18 +64,17 @@ export default function useAuth() {
         }
     };
 
-    // ภาควิชาทั้งหมด ดึงจาก faculties (ถ้า API ส่ง faculty.departments มาด้วย)
-    // ถ้า backend มี API ภาควิชาแยก ให้เปลี่ยนเป็น state + fetch แทน
-    const departments = useMemo(
-        () =>
-            faculties.flatMap((f) =>
-                (f.departments || []).map((d) => ({
-                    ...d,
-                    faculty_id: d.faculty_id ?? f.faculty_id,
-                }))
-            ),
-        [faculties]
-    );
+    // ภาควิชาทั้งหมด — ดึงจาก endpoint แยก GET /api/auth/departments
+    // (API /faculties ไม่ได้ส่ง departments ซ้อนมาด้วย ของเดิมที่ derive จาก
+    // faculties.flatMap(...) เลยว่างตลอด ทำให้ dropdown ภาควิชาไม่ขึ้น)
+    const fetchDepartments = async () => {
+        try {
+            const data = await getDepartments();
+            setDepartments(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.log(err);
+        }
+    };
 
     const showPopup = (type, message) => {
         setPopup({ show: true, type, message });
@@ -113,6 +115,11 @@ export default function useAuth() {
         }));
     };
 
+    // อัปเดตรายการกลุ่มนักเรียนที่อาจารย์ดูแล (เรียกจาก RegisterForm/StudentGroupsEditor)
+    const updateStudentGroups = (groups) => {
+        setRegisterData((prev) => ({ ...prev, studentGroups: groups }));
+    };
+
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
 
@@ -122,6 +129,16 @@ export default function useAuth() {
             localStorage.setItem("token", res.token);
             if (res.user) {
                 localStorage.setItem("user", JSON.stringify(res.user));
+            }
+
+            // รางวัลความขยัน: ถ้าเพิ่งได้รับตอน Login นี้ เก็บไว้ชั่วคราว
+            // แล้วให้หน้า /map (MapPage) อ่านตอนเปิดหน้ามาแสดง popup
+            // (เก็บใน sessionStorage เพราะหลัง navigate หน้านี้จะ unmount ไปแล้ว)
+            if (res.streakReward?.justEarned) {
+                sessionStorage.setItem(
+                    "streakReward",
+                    JSON.stringify(res.streakReward)
+                );
             }
 
             // ใช้ role จาก backend เป็นหลัก (กันคนเลือกแท็บผิด)
@@ -148,6 +165,13 @@ export default function useAuth() {
             return;
         }
 
+        // อาจารย์ต้องเลือกอย่างน้อย 1 กลุ่มนักเรียนที่ดูแล (ไม่ให้เห็นนิสิต
+        // ทั้งหมดโดยไม่ได้ตั้งใจ)
+        if (role === "teacher" && (registerData.studentGroups || []).length === 0) {
+            showPopup("error", "กรุณาเพิ่มอย่างน้อย 1 กลุ่มนักเรียนที่จะดูแล");
+            return;
+        }
+
         const {
             confirmPassword,
             age,
@@ -156,13 +180,32 @@ export default function useAuth() {
             department,
             position,
             inviteCode,
+            studentGroups,
             ...common
         } = registerData;
 
         // ส่งเฉพาะช่องที่ตรงกับ role
+        // studentGroups: ส่งเฉพาะกลุ่มที่มีการเลือกอะไรจริง (ตัด key ภายในออก
+        // เพราะใช้แค่ฝั่ง React ไม่เกี่ยวกับ backend)
+        const cleanedGroups = (studentGroups || []).map(
+            ({ faculty, major: groupMajor, year: groupYear, note }) => ({
+                faculty: faculty || null,
+                major: groupMajor || null,
+                year: groupYear || null,
+                note: note?.trim() || null,
+            })
+        );
+
         const payload =
             role === "teacher"
-                ? { ...common, role, department, position, inviteCode }
+                ? {
+                    ...common,
+                    role,
+                    department,
+                    position,
+                    inviteCode,
+                    studentGroups: cleanedGroups,
+                }
                 : { ...common, role, age, major, year };
 
         try {
@@ -203,5 +246,6 @@ export default function useAuth() {
         handleRegisterChange,
         handleLoginSubmit,
         handleRegisterSubmit,
+        updateStudentGroups,
     };
 }

@@ -9,16 +9,15 @@ const FINAL_LEVEL_ID = 10;
 const MAX_SCORE = 15;
 const POINTS_PER_CRITERION = 3;
 
-// ================= IP Reward =================
+// ================= IP Reward (สเกลใหม่) =================
 // ต้อง success ก่อนถึงจะได้ IP เลย (ภารกิจไม่ผ่าน = ไม่ได้ IP เลย
 // ไม่ว่าจะทำเงื่อนไขย่อยได้กี่ข้อหรือทันเวลาแค่ไหนก็ตาม)
-// เมื่อ success แล้วถึงนับ:
-//   - เงื่อนไขละ 1 IP จาก 5 เงื่อนไขเดียวกับที่ใช้คิดคะแนน (ดูตัวแปร
-//     criteriaMet ใน completeTreasurerGame) สูงสุด 5 IP
-//   - ทันเวลา (elapsed <= limit_time) อีก +1 IP
-// รวมสูงสุด 6 IP ต่อการเล่น 1 ครั้ง
-const CRITERIA_IP = 1;
-const TIME_BONUS_IP = 1;
+//   - ผ่านภารกิจ (success)               = 150 IP
+//   - ทันเวลา (elapsed <= limit_time)     = +50 IP
+// รวมสูงสุด 200 IP ต่อการเล่น 1 ครั้ง (ไม่แยกให้ตามจำนวนเงื่อนไข
+// ย่อยที่ผ่านอีกต่อไป — ผ่าน/ไม่ผ่านให้เต็ม/ไม่ได้เลย เหมือน Level 1-2)
+const BASE_PASS_IP = 150;
+const TIME_BONUS_IP = 50;
 
 // =====================================================
 // Helpers
@@ -222,16 +221,7 @@ function buildResultPayload(treasurerRow, totalIntegrityPoints, ipBreakdown) {
 // game_play_history ที่ persist จริงเป็นหลักเสมอ กัน baseIp+timeBonusIp
 // ที่คำนวณย้อนหลังเพี้ยนไปจากตัวเลขจริงถ้า logic เปลี่ยนในอนาคต
 function buildIpBreakdownFromStored(treasurerRow, minReserve, earnedIpFromHistory) {
-    const criteriaMet = [
-        true, // requiredComplete — เกมจบได้ต้องซื้อของจำเป็นครบเสมอ
-        !treasurerRow.missing_receipt,
-        treasurerRow.final_balance >= 0,
-        treasurerRow.final_balance >= minReserve,
-        treasurerRow.unnecessary_count === 0,
-    ];
-    const criteriaMetCount = criteriaMet.filter(Boolean).length;
-
-    const baseIp = treasurerRow.success ? criteriaMetCount * CRITERIA_IP : 0;
+    const baseIp = treasurerRow.success ? BASE_PASS_IP : 0;
     const timeBonusIp =
         treasurerRow.success && treasurerRow.hp_bonus ? TIME_BONUS_IP : 0;
 
@@ -1100,10 +1090,9 @@ exports.completeTreasurerGame = async (req, res) => {
             });
         }
 
-        // ---- IP: ต้อง success ก่อนถึงนับ ----
-        // baseIp = เงื่อนไขละ 1 IP (สูงสุด 5) + timeBonusIp = ทันเวลา +1 IP
-        // รวมสูงสุด 6 IP (ไม่มี grade bonus แยกต่างหากแล้ว)
-        const baseIp = success ? criteriaMetCount * CRITERIA_IP : 0;
+        // ---- IP (สเกลใหม่): ต้อง success ก่อนถึงนับ ----
+        // ผ่านภารกิจ = 150 IP + ทันเวลา = +50 IP (เต็ม 200)
+        const baseIp = success ? BASE_PASS_IP : 0;
         const timeBonusIp = success && isFast ? TIME_BONUS_IP : 0;
         const gradeBonusIp = 0;
         const earnedIp = baseIp + timeBonusIp;

@@ -132,7 +132,7 @@ const PASSED_STATUSES = ["PASS", "PERFECT"];
 // none   : บทนี้ยังไม่มี Level ใน DB           → เทา กดไม่ได้
 // locked : ยังไม่ปลดล็อก                      → เทา กดไม่ได้
 // ready  : ปลดล็อกแล้ว ยังไม่ผ่าน             → เรืองแสง กดได้
-// passed : ผ่านแล้ว (PASS/PERFECT)            → ติ๊กถูก กดเล่นซ้ำได้
+// passed : ผ่านแล้ว (PASS/PERFECT)            → มีสี กดเล่นซ้ำได้
 // ============================================================
 
 const getStoneState = ({ unitProgress, level, index, loading }) => {
@@ -220,24 +220,6 @@ function FloatingStonePath({ progressUnits = [], loading = false }) {
                     0%, 100% { transform: translateY(0); }
                     50%      { transform: translateY(-5px); }
                 }
-
-                .stone-check {
-                    position: absolute;
-                    top: -4px;
-                    right: -4px;
-                    width: 24px;
-                    height: 24px;
-                    border-radius: 50%;
-                    background: #22c55e;
-                    border: 2px solid #ffffff;
-                    color: #ffffff;
-                    font-size: 14px;
-                    font-weight: 900;
-                    line-height: 20px;
-                    text-align: center;
-                    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.35);
-                    pointer-events: none;
-                }
             `}</style>
 
             {STONE_GROUPS.map((group) => {
@@ -275,7 +257,7 @@ function FloatingStonePath({ progressUnits = [], loading = false }) {
                         : state === "locked"
                             ? `🔒 Level ${index + 1}: ${level.title}`
                             : state === "passed"
-                                ? `✓ Level ${index + 1}: ${level.title} (ผ่านแล้ว · กดเพื่อเล่นอีกครั้ง)`
+                                ? `Level ${index + 1}: ${level.title} (ผ่านแล้ว · กดเพื่อเล่นอีกครั้ง)`
                                 : `Level ${index + 1}: ${level.title} (พร้อมเล่น!)`;
 
                     return (
@@ -305,12 +287,6 @@ function FloatingStonePath({ progressUnits = [], loading = false }) {
                                     filter: STONE_FILTER[state],
                                 }}
                             />
-
-                            {state === "passed" && (
-                                <span className="stone-check">
-                                    ✓
-                                </span>
-                            )}
                         </div>
                     );
                 });

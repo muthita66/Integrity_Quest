@@ -7,6 +7,8 @@ const {
     getDashboard,
     getStudentProgress,
     getLevelPlayDetail,
+    addGroup,
+    deleteGroup,
 } = require("../controllers/teacherController");
 
 const authenticateToken = require("../../middleware/authMiddleware");
@@ -14,8 +16,14 @@ const authenticateToken = require("../../middleware/authMiddleware");
 // ทุก route ของอาจารย์: ต้อง login + ต้องเป็นอาจารย์
 router.use(authenticateToken, requireTeacher);
 
-// GET /api/teacher/dashboard?scope=faculty|all
+// GET /api/teacher/dashboard?scope=all|group:<group_id>
 router.get("/dashboard", getDashboard);
+
+// POST /api/teacher/groups (เพิ่มกลุ่มนักเรียนที่ดูแล — ปุ่ม "+ เพิ่มกลุ่ม")
+router.post("/groups", addGroup);
+
+// DELETE /api/teacher/groups/:id (ลบกลุ่มนักเรียนที่ดูแล — ปุ่มสามจุด → "ลบกลุ่มนี้")
+router.delete("/groups/:id", deleteGroup);
 
 // GET /api/teacher/students/:id/progress (รายละเอียดรายบท/รายด่าน)
 router.get("/students/:id/progress", getStudentProgress);

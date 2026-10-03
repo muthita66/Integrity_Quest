@@ -6,14 +6,12 @@ import ConfettiExplosion from "react-confetti-explosion";
 import bgGame from "../../../../assets/unit1/level1/Result/bgGameLevel1.png";
 import IP from "../../../../assets/unit1/level1/Result/IP.png";
 
-import Button from "../../../../assets/unit1/button/button.png";
-import ButtonPass from "../../../../assets/unit1/button/buttonPass.png";
-import ButtonFailed from "../../../../assets/unit1/button/buttonFailed.png";
-
 import bonusSound from "../../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import goodSound from "../../../../assets/sounds/BackgroundGame/Good.mp3";
 import gameOverSound from "../../../../assets/sounds/BackgroundGame/GameOver.mp3";
 import useGameMuted from "../../../../hooks/useGameMuted";
+
+import "../../../../styles/unit1/Level1/button.css";
 
 const API_BASE_URL = "http://localhost:5000/api";
 
@@ -185,16 +183,10 @@ export default function MirrorResultPage() {
     // Loading
     if (loading) {
         return (
-            <div
-                className="min-h-screen flex items-center justify-center bg-cover bg-center"
-                style={{
-                    backgroundImage: `url(${bgGame})`,
-                    fontFamily: "'Sarabun', sans-serif",
-                }}
-            >
-                <div className="text-white text-2xl font-bold">
+            <div className="min-h-screen flex items-center justify-center bg-black">
+                <p className="text-2xl sarabun-bold text-white">
                     กำลังโหลดผลการเล่น...
-                </div>
+                </p>
             </div>
         );
     }
@@ -253,7 +245,7 @@ export default function MirrorResultPage() {
         : isPerfect
             ? "rgba(238, 233, 124, 0.6)"
             : "rgba(120,180,255,0.5)";
-    const sealColor = shouldRetry ? "#7A2E2E" : "#3F5A34";
+    const sealColor = shouldRetry ? "#991B1B" : "#166534";
 
     const handleReplay = () => {
         navigate("/unit1/Quizlevel1");
@@ -365,7 +357,7 @@ export default function MirrorResultPage() {
                 </div>
             )}
 
-            <div className="relative z-20 flex items-end justify-center w-full max-w-6xl px-4">
+            <div className="relative z-20 flex items-center justify-center w-full max-w-6xl px-4">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.7 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -378,7 +370,7 @@ export default function MirrorResultPage() {
                             damping: 12,
                         },
                     }}
-                    className="relative w-[900px] min-h-[500px] max-w-[95vw] flex-shrink-0"
+                    className="relative w-[900px] min-h-[360px] max-w-[95vw] flex-shrink-0"
                 >
                     {/* เงากระดาษ */}
                     <div
@@ -405,10 +397,10 @@ export default function MirrorResultPage() {
                         className="absolute inset-0"
                         style={{
                             background:
-                                "linear-gradient(160deg, #F7EDD5 0%, #EDDA9E 40%, #DFCA8A 70%, #D3B96A 100%)",
+                                "linear-gradient(160deg, #FFFEFB 0%, #FDF9EF 35%, #F8F1DE 65%, #F1E7CC 100%)",
                             filter: "url(#tornEdge)",
                             boxShadow:
-                                "inset 0 0 60px rgba(120,90,45,0.4), inset 0 0 140px rgba(90,60,25,0.3), inset 2px 2px 8px rgba(255,255,200,0.5)",
+                                "inset 0 0 60px rgba(180,160,120,0.18), inset 0 0 140px rgba(160,140,100,0.15), inset 2px 2px 10px rgba(255,255,255,0.8)",
                         }}
                     />
                     <div
@@ -460,51 +452,79 @@ export default function MirrorResultPage() {
                             filter: "url(#tornEdge) url(#paperGrain)",
                         }}
                     />
-                    <div className="absolute -top-15 left-1/2 -translate-x-1/2 z-30 w-50 h-50 flex items-center justify-center">
-                        {/* แสงเรืองรองด้านหลัง IP */}
-                        <div
-                            className="
-            absolute
-            w-40
-            h-40
-            rounded-full
-            bg-yellow-300/70
-            blur-2xl
-            animate-pulse
-        "
-                        />
 
-                        {/* แสงชั้นนอก */}
-                        <div
-                            className="
-            absolute
-            w-52
-            h-52
-            rounded-full
-            bg-white/40
-            blur-3xl
-        "
-                        />
-
-                        {/* รูป IP */}
-                        {mirrorImg && (
-                            <img
-                                src={mirrorImg}
-                                alt="Integrity Points"
+                    {/* กล่อง IP: centered พอดีบนขอบบนของกระดาษ ครึ่งบนโผล่พ้นกระดาษ ครึ่งล่างอยู่ในกระดาษ */}
+                    <div
+                        className="absolute left-1/2 z-30 w-36 h-36 flex items-center justify-center"
+                        style={{ top: 0, transform: "translate(-50%, -50%)" }}
+                    >
+                        <motion.div
+                            className="relative w-full h-full flex items-center justify-center"
+                            animate={{ y: [-6, 6, -6] }}
+                            transition={{
+                                duration: 3,
+                                repeat: Infinity,
+                                repeatType: "mirror",
+                                ease: "easeInOut",
+                            }}
+                        >
+                            {/* แสงฟุ้งชั้นนอกสุด */}
+                            <div
                                 className="
-                relative
-                z-10
-                w-72
-                h-72
-                object-contain
-                drop-shadow-[0_0_12px_rgba(255,215,0,0.9)]
-                drop-shadow-[0_0_25px_rgba(255,255,255,0.8)]
-            "
+                                    absolute
+                                    w-44
+                                    h-44
+                                    rounded-full
+                                    bg-yellow-200/40
+                                    blur-3xl
+                                "
                             />
-                        )}
+
+                            {/* แสงเรืองรองด้านหลัง IP */}
+                            <div
+                                className="
+                                    absolute
+                                    w-28
+                                    h-28
+                                    rounded-full
+                                    bg-yellow-300/70
+                                    blur-2xl
+                                    animate-pulse
+                                "
+                            />
+
+                            {/* แสงชั้นในสุด ฟุ้งนุ่ม */}
+                            <div
+                                className="
+                                    absolute
+                                    w-16
+                                    h-16
+                                    rounded-full
+                                    bg-white/60
+                                    blur-xl
+                                "
+                            />
+
+                            {/* รูป IP */}
+                            {mirrorImg && (
+                                <img
+                                    src={mirrorImg}
+                                    alt="Integrity Points"
+                                    className="
+                                        relative
+                                        z-10
+                                        w-48
+                                        h-48
+                                        object-contain
+                                        drop-shadow-[0_0_16px_rgba(255,215,0,1)]
+                                        drop-shadow-[0_0_32px_rgba(255,255,255,0.9)]
+                                    "
+                                />
+                            )}
+                        </motion.div>
                     </div>
 
-                    <div className="relative z-10 flex flex-col items-center px-12 pt-35 pb-10">
+                    <div className="relative z-10 flex flex-col items-center px-12 pt-[76px] pb-5">
 
                         {/* Heading จาก DB */}
                         <p className="text-xs tracking-[0.35em] mb-1">
@@ -534,12 +554,24 @@ export default function MirrorResultPage() {
                         {/* Description จาก DB */}
                         {resultMessage.description && (
                             <p
-                                className="text-base font-semibold mb-3 text-center leading-relaxed"
+                                className="text-base font-semibold mb-1 text-center leading-relaxed"
                                 style={{
                                     color: "#4a3826",
                                 }}
                             >
                                 {resultMessage.description}
+                            </p>
+                        )}
+
+                        {/* Message จาก DB - ต่อจาก Description คนละบรรทัด */}
+                        {resultMessage.message && (
+                            <p
+                                className="text-md mb-3 text-center leading-relaxed"
+                                style={{
+                                    color: "#4a3826",
+                                }}
+                            >
+                                {resultMessage.message}
                             </p>
                         )}
 
@@ -549,20 +581,11 @@ export default function MirrorResultPage() {
                                 color: "#4a3826",
                             }}
                         >
-                            {isPerfect ? (
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold text-green-800">
-                                        You Earned Integrity Points!
-                                    </div>
-
-                                    <div className="text-4xl font-black text-green-800 mt-1">
-                                        {earnedIP}
-                                    </div>
-                                </div>
-                            ) : (
+                            {shouldRetry ? (
+                                // FAIL (ผิดเกิน 3 ข้อ) — ไม่ได้ IP เลย ตามกติกาใหม่
                                 <div className="text-center">
                                     <div className="text-lg font-bold">
-                                        คะแนน +{correctCount}
+                                        ตอบถูก {correctCount} ข้อ
                                     </div>
 
                                     <div
@@ -573,6 +596,22 @@ export default function MirrorResultPage() {
                                     >
                                         ครั้งนี้ไม่ได้รับ Integrity Points
                                     </div>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-green-800">
+                                        You Earned Integrity Points!
+                                    </div>
+
+                                    <div className="text-4xl font-black text-green-800 mt-1">
+                                        {earnedIP}
+                                    </div>
+
+                                    {isPerfect && perfectBonusIP > 0 && (
+                                        <div className="text-sm font-bold text-green-700 mt-1">
+                                            (ถูกครบตั้งแต่ครั้งแรก +{perfectBonusIP} โบนัส)
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -590,29 +629,18 @@ export default function MirrorResultPage() {
                             </p>
                         )}
 
-                        {resultMessage.message && (
-                            <p
-                                className="text-md mt-1 mb-5 text-center leading-relaxed"
-                                style={{
-                                    color: "#4a3826",
-                                }}
-                            >
-                                {resultMessage.message}
-                            </p>
-                        )}
-
                         <div
-                            className="mb-7 px-6 py-1.5 select-none"
+                            className="mb-7 px-6 py-2 select-none"
                             style={{
                                 color: sealColor,
-                                border: `3px solid ${sealColor}`,
+                                border: `2px solid ${sealColor}`,
                                 transform: "rotate(-4deg)",
                                 fontWeight: 900,
                                 letterSpacing: "0.15em",
-                                opacity: 0.85,
+                                opacity: 1,
                                 borderRadius: "4px",
-                                textShadow: `0 0 8px ${sealColor}66`,
-                                boxShadow: `0 0 14px ${sealColor}44`,
+                                textShadow: `0 0 10px ${sealColor}bb`,
+                                boxShadow: `0 0 18px ${sealColor}88, inset 0 0 10px ${sealColor}55`,
                             }}
                         >
                             {resultMessage.verdict_label}
@@ -620,61 +648,43 @@ export default function MirrorResultPage() {
 
                         <div className="flex flex-row gap-3 mt-3 justify-center items-center w-full">
                             {/* กลับหน้าหลัก */}
-                            <div className="plaque-button-wrapper">
-                                <button
-                                    onClick={handleBackMap}
-                                    className="plaque-button"
-                                >
-                                    <img
-                                        src={Button}
-                                        alt=""
-                                        className="plaque-image"
-                                    />
-
-                                    <span className="plaque-text">
-                                        กลับหน้าหลัก
-                                    </span>
-                                </button>
-                            </div>
+                            <button
+                                onClick={handleBackMap}
+                                className="button-finish-game gray"
+                            >
+                                <span className="button-finish-game-top">
+                                    กลับหน้าหลัก
+                                </span>
+                                <span className="button-finish-game-bottom"></span>
+                                <span className="button-finish-game-base"></span>
+                            </button>
 
                             {!isPerfect && (
-                                <div className="plaque-button-wrapper">
-                                    <button
-                                        onClick={handleReplay}
-                                        className="plaque-button"
-                                    >
-                                        <img
-                                            src={ButtonFailed}
-                                            alt=""
-                                            className="plaque-image"
-                                        />
-
-                                        <span className="plaque-text-red">
-                                            เล่นอีกครั้ง
-                                        </span>
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={handleReplay}
+                                    className="button-finish-game red"
+                                >
+                                    <span className="button-finish-game-top">
+                                        เล่นอีกครั้ง
+                                    </span>
+                                    <span className="button-finish-game-bottom"></span>
+                                    <span className="button-finish-game-base"></span>
+                                </button>
                             )}
 
                             {!shouldRetry && (
-                                <div className="plaque-button-wrapper">
-                                    <button
-                                        onClick={() =>
-                                            navigate("/unit1/level2/transition")
-                                        }
-                                        className="plaque-button"
-                                    >
-                                        <img
-                                            src={ButtonPass}
-                                            alt=""
-                                            className="plaque-image"
-                                        />
-
-                                        <span className="plaque-text-green">
-                                            ภารกิจถัดไป
-                                        </span>
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={() =>
+                                        navigate("/unit1/level2/transition")
+                                    }
+                                    className="button-finish-game green"
+                                >
+                                    <span className="button-finish-game-top">
+                                        ภารกิจถัดไป
+                                    </span>
+                                    <span className="button-finish-game-bottom"></span>
+                                    <span className="button-finish-game-base"></span>
+                                </button>
                             )}
                         </div>
                     </div>
@@ -713,25 +723,15 @@ export default function MirrorResultPage() {
                     }}
                     className="absolute bottom-0 right-0 z-30"
                     style={{
-                        top: "-3%",
-                        right: "-10%",
+                        top: "-8%",
+                        right: "-5%",
                     }}
                 >
-                    {/* เงาตัวละคร */}
-                    <div
-                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-36 h-6 rounded-full"
-                        style={{
-                            background: "rgba(0,0,0,0.35)",
-                            filter: "blur(10px)",
-                            zIndex: -1,
-                        }}
-                    />
-
                     {characterImg && (
                         <img
                             src={characterImg}
                             alt="Result character"
-                            className="relative w-[340px] md:w-[430px] lg:w-[500px] object-contain"
+                            className="relative w-[260px] md:w-[340px] lg:w-[400px] object-contain"
                             style={{
                                 filter: `drop-shadow(0 8px 24px ${charGlowColor}) drop-shadow(0 0 40px ${charGlowColor})`,
                             }}

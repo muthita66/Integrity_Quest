@@ -134,11 +134,8 @@ export default function ResultPage({
 
     if (!result || !resultText) {
         return (
-            <div
-                className="min-h-screen flex items-center justify-center bg-cover bg-center sarabun-bold"
-                style={{ backgroundImage: `url(${BackgroundImg})` }}
-            >
-                <p className="text-xl font-bold">
+            <div className="min-h-screen flex items-center justify-center bg-black sarabun-bold">
+                <p className="text-xl text-white">
                     {messageError
                         ? "ไม่สามารถโหลดข้อมูลผลลัพธ์ได้"
                         : "กำลังโหลดผลลัพธ์..."}

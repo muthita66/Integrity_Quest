@@ -25,7 +25,7 @@ export default function DocumentCard({
             onClick={() => handleClickDoc(doc)}
             disabled={isFound}
             className={`
-                absolute z-20 w-56 h-64
+                absolute z-20 w-72 h-80
                 transition-all duration-300
                 ${isFound
                     ? "opacity-30 scale-75"

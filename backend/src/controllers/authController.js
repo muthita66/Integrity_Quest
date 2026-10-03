@@ -1,5 +1,4 @@
 const prisma = require("../lib/prisma");
-const { closeOpenSessions } = require("./activityController");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -112,6 +111,7 @@ exports.register = async (req, res) => {
             department,
             position,
             inviteCode,
+            studentGroups, // [{ faculty, major, year, note }] กลุ่มนักเรียนที่ดูแล
         } = req.body;
 
         if (role !== ROLE.STUDENT && role !== ROLE.TEACHER) {
@@ -170,6 +170,25 @@ exports.register = async (req, res) => {
                 });
             }
 
+            // ============================================================
+            // กลุ่มนักเรียนที่อาจารย์คนนี้จะดูแล — บังคับต้องมีอย่างน้อย 1 กลุ่ม
+            // (ไม่ใช่ "ไม่เลือก = เห็นนิสิตทั้งหมด") แต่ละกลุ่มเลือกคณะ/สาขา/
+            // ชั้นปีค่าเดียวต่อช่อง (เว้นว่าง = ทุกค่าของช่องนั้น) 1 อาจารย์มี
+            // ได้หลายกลุ่ม ต้องเช็คตรงนี้ "ก่อน" สร้าง user เพื่อไม่ให้ค้าง
+            // บัญชีกำพร้าไว้ในฐานข้อมูลถ้า validation ไม่ผ่าน
+            // ============================================================
+            const validGroups = Array.isArray(studentGroups)
+                ? studentGroups.filter(
+                    (g) => g && (g.faculty || g.major || g.year || g.note)
+                )
+                : [];
+
+            if (validGroups.length === 0) {
+                return res.status(400).json({
+                    message: "กรุณาเพิ่มอย่างน้อย 1 กลุ่มนักเรียนที่จะดูแล",
+                });
+            }
+
             const teacherRoleId = await getTeacherRoleId();
 
             if (teacherRoleId === null) {
@@ -182,6 +201,7 @@ exports.register = async (req, res) => {
             const hashedPassword = await bcrypt.hash(password, 10);
 
             // สร้าง user + teacher พร้อมกัน (ถ้าพังจะไม่เหลือ user ค้าง)
+            // include teachers กลับมา เพื่อเอา teacher_id ไปผูกกลุ่มนักเรียนต่อ
             const user = await prisma.users.create({
                 data: {
                     username,
@@ -201,7 +221,22 @@ exports.register = async (req, res) => {
                         },
                     },
                 },
+                include: { teachers: true },
             });
+
+            const teacherId = user.teachers?.[0]?.teacher_id;
+
+            if (teacherId) {
+                await prisma.teacher_student_groups.createMany({
+                    data: validGroups.map((g) => ({
+                        teacher_id: teacherId,
+                        faculty_id: g.faculty ? Number(g.faculty) : null,
+                        major_id: g.major ? Number(g.major) : null,
+                        year: g.year ? Number(g.year) : null,
+                        note: g.note || null,
+                    })),
+                });
+            }
 
             return res.status(201).json({
                 message: "Register success",
@@ -275,12 +310,29 @@ const todayInBangkok = () =>
 const toDateKey = (date) =>
     date ? new Date(date).toISOString().slice(0, 10) : null;
 
+// ============================================================
+// รางวัลความขยัน: Login ต่อเนื่องครบทุก 7 วัน ได้ +500 IP
+// ------------------------------------------------------------
+// เงื่อนไข "รับไปแล้วหรือยัง" เทียบจาก "วันที่" (last_streak_reward_date)
+// ไม่เทียบจากค่า streak ตรงๆ เพราะถ้า streak ขาดแล้วไต่กลับมาครบ 7
+// อีกครั้ง ค่า streak (เช่น 7) จะซ้ำกับรอบก่อนหน้า ถ้าเทียบค่าตรงๆ
+// จะเข้าใจผิดว่า "เคยได้รับไปแล้ว" ทั้งที่เป็นรอบใหม่ที่ควรได้รับอีก
+// ============================================================
+const STREAK_REWARD_EVERY = 7;
+const STREAK_REWARD_IP = 500;
+
 const updateLoginStreak = async (userId) => {
     const today = todayInBangkok();
 
     const stats = await prisma.user_stats.findUnique({
         where: { user_id: userId },
-        select: { current_streak: true, last_login_date: true },
+        select: {
+            current_streak: true,
+            last_login_date: true,
+            streak_bonus_ip: true,
+            last_streak_reward_date: true,
+            streak_star_count: true,
+        },
     });
 
     const lastDay = toDateKey(stats?.last_login_date);
@@ -299,12 +351,29 @@ const updateLoginStreak = async (userId) => {
         }
     }
 
+    const rewardLastDay = toDateKey(stats?.last_streak_reward_date);
+    const isMilestone = streak > 0 && streak % STREAK_REWARD_EVERY === 0;
+    const alreadyRewardedToday = rewardLastDay === today;
+    const justEarnedReward = isMilestone && !alreadyRewardedToday;
+
+    // จำนวนดาวสะสม: +1 ดวงทุกครั้งที่ครบ 7 วัน (ไม่ลดหรือหายแม้ streak จะขาด
+    // ภายหลัง) ส่วน IP ยังได้ครั้งละ 500 เท่าเดิมทุกครั้ง ไม่ได้ทบเพิ่มตามจำนวนดาว
+    const newStarCount = (stats?.streak_star_count || 0) + (justEarnedReward ? 1 : 0);
+
+    const updateData = {
+        current_streak: streak,
+        last_login_date: new Date(today),
+    };
+
+    if (justEarnedReward) {
+        updateData.streak_bonus_ip = (stats?.streak_bonus_ip || 0) + STREAK_REWARD_IP;
+        updateData.last_streak_reward_date = new Date(today);
+        updateData.streak_star_count = newStarCount;
+    }
+
     await prisma.user_stats.upsert({
         where: { user_id: userId },
-        update: {
-            current_streak: streak,
-            last_login_date: new Date(today),
-        },
+        update: updateData,
         create: {
             user_id: userId,
             total_points: 0,
@@ -312,10 +381,24 @@ const updateLoginStreak = async (userId) => {
             highest_score: 0,
             last_login_date: new Date(today),
             integrity_points: 0,
+            streak_bonus_ip: justEarnedReward ? STREAK_REWARD_IP : 0,
+            last_streak_reward_date: justEarnedReward ? new Date(today) : null,
+            streak_star_count: justEarnedReward ? 1 : 0,
         },
     });
 
-    return streak;
+    // justEarned          = เพิ่งได้รางวัลตอน Login ครั้งนี้ (ครั้งแรกของวันที่ครบ 7)
+    // alreadyClaimedToday = วันนี้ได้รับไปแล้ว (Login ซ้ำรอบ 2+ ในวันเดียวกัน)
+    // stars               = จำนวนดาวสะสมทั้งหมด (นับรวมดวงที่เพิ่งได้ในครั้งนี้ด้วย)
+    const streakReward = {
+        justEarned: justEarnedReward,
+        alreadyClaimedToday: !justEarnedReward && isMilestone && alreadyRewardedToday,
+        streak,
+        ip: STREAK_REWARD_IP,
+        stars: newStarCount,
+    };
+
+    return { streak, streakReward };
 };
 
 // ============================================================
@@ -393,8 +476,10 @@ exports.login = async (req, res) => {
         });
 
         // อัปเดต Daily Streak (ถ้าพังไม่ให้ Login พัง)
+        let streakReward = null;
         try {
-            await updateLoginStreak(user.id);
+            const streakResult = await updateLoginStreak(user.id);
+            streakReward = streakResult.streakReward;
         } catch (streakError) {
             console.error("Update streak error:", streakError);
         }
@@ -417,6 +502,7 @@ exports.login = async (req, res) => {
             message: "Login success",
             token,
             user: toPublicUser(user, userRole),
+            streakReward,
         });
     } catch (error) {
         console.log("Login error:", error);
@@ -502,13 +588,6 @@ exports.logout = async (req, res) => {
                 created_at: now,
             },
         });
-
-        // ปิดรอบการใช้งาน (user_sessions) ที่ยังเปิดอยู่
-        try {
-            await closeOpenSessions(userId, now);
-        } catch (sessionError) {
-            console.error("Close session error:", sessionError);
-        }
 
         res.status(200).json({
             success: true,
