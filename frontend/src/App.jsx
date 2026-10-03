@@ -113,29 +113,15 @@ import Unit5Level2Game from "./components/Unit5/Level2/GameLevel2";
 import Unit5Result from "./components/Unit5/Level2/ResultPopup";
 
 import Unit5Level3Game from "./components/Unit5/Level3/GameLevel3";
+import Unit5Level3Intro from "./components/Unit5/Level3/Level3Intro";
 
 // ============================================================
 // Unit 6
 // ============================================================
 
-import Unit6Intro from "./components/Unit6/Intro1";
-import Unit6Level1Game from "./components/Unit6/Game1";
-import Unit6Level2Game from "./components/Unit6/Game2";
-import Unit6FinalGame from "./components/Unit6/Game3";
-
-// ============================================================
-// Unit 6 Intro Route
-// ============================================================
-
-function Unit6IntroRoute() {
-  const navigate = useNavigate();
-
-  return (
-    <Unit6Intro
-      onStart={() => navigate("/unit6/game1")}
-    />
-  );
-}
+import Unit6Level1Game from "./components/Unit6/Level1/Game1";
+import Unit6Level2Game from "./components/Unit6/Level2/Game2";
+import Unit6FinalGame from "./components/Unit6/Level3/Game3";
 
 // ============================================================
 // Activity Tracker
@@ -497,14 +483,19 @@ function App() {
 
       <Route
         path="/unit5/game3"
-        element={<Unit5Level3Game />}
+        element={<Unit5Level3Intro />}
+      />
+
+      <Route
+        path="/unit5/game3/intro"
+        element={<Unit5Level3Intro />}
       />
 
       <Route
         path="/unit5/level3/game"
         element={
           <Unit5Level3Game
-            nextRoute="/unit6/intro"
+            nextRoute="/map"
           />
         }
       />
@@ -515,7 +506,7 @@ function App() {
 
       <Route
         path="/unit6/intro"
-        element={<Unit6IntroRoute />}
+        element={<Navigate to="/unit6/game1" replace />}
       />
 
       <Route

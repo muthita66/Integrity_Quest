@@ -60,7 +60,7 @@ export default function Tutorial() {
             }}
         >
             {/* Overlay */}
-            <div className="absolute inset-0 bg-[#182238]/65 backdrop-blur-[3px]" />
+            <div className="absolute inset-0 bg-[#3a2115]/72 backdrop-blur-[3px]" />
 
             {/* Floating Particles */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -91,7 +91,7 @@ export default function Tutorial() {
                 z-10
                 max-w-5xl
                 w-full
-                bg-[#182238]/95
+                bg-[#2b1a12]/95
                 backdrop-blur-xl
                 border
                 border-amber-200/45
@@ -104,7 +104,7 @@ export default function Tutorial() {
                 <div
                     className="
                     relative
-                    bg-gradient-to-r from-[#405b86] via-[#31486e] to-[#243552]
+                    bg-gradient-to-r from-[#674126] via-[#4b2e1d] to-[#2b1a12]
                     backdrop-blur-md
                     border-b
                     border-white/10
@@ -167,13 +167,14 @@ export default function Tutorial() {
                                 className="
                                 relative
                                 overflow-hidden
-                                bg-gradient-to-br from-[#fff9df] to-[#ffdca1]
+                                bg-white/[0.14]
+                                backdrop-blur-md
                                 border
                                 border-2
-                                border-[#f2b84b]/80
+                                border-white/50
                                 rounded-[24px]
                                 p-6
-                                shadow-[6px_7px_0_rgba(15,23,42,.28)]
+                                shadow-[6px_7px_0_rgba(15,23,42,.22),inset_0_1px_0_rgba(255,255,255,.25)]
                                 transition-transform
                                 hover:rotate-1
                                 "
@@ -187,7 +188,7 @@ export default function Tutorial() {
                                     absolute
                                     top-5
                                     right-4
-                                    text-[#8b651e]/25
+                                    text-white/25
                                     text-5xl
                                     "
                                 >
@@ -213,11 +214,11 @@ export default function Tutorial() {
                                     {index + 1}
                                 </div>
 
-                                <h3 className="text-xl font-black text-[#26344f] mb-2">
+                                <h3 className="text-xl font-black text-white mb-2 drop-shadow-[2px_2px_0_rgba(15,23,42,.3)]">
                                     {step.title}
                                 </h3>
 
-                                <p className="text-[#6d573d] leading-relaxed">
+                                <p className="text-blue-50/90 leading-relaxed">
                                     {step.desc}
                                 </p>
 
@@ -245,11 +246,11 @@ export default function Tutorial() {
                         className="
                         mt-6
                         rounded-2xl
-                        bg-gradient-to-r from-[#395477] to-[#263b5e]
+                        bg-white/[0.12]
                         backdrop-blur-md
                         border
-                        border-amber-200/45
-                        shadow-[6px_7px_0_rgba(15,23,42,.25)]
+                        border-white/40
+                        shadow-[6px_7px_0_rgba(15,23,42,.22),inset_0_1px_0_rgba(255,255,255,.2)]
                         p-6
                         "
                     >

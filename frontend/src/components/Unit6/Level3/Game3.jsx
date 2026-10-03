@@ -3,6 +3,7 @@ import IntroScreen from "./Intro3";
 import QuizScreen from "./Quiz3";
 import LoadingScreen from "./Loading3";
 import ResultScreen from "./Result3";
+import "./GoldenMirror.css";
 
 const questions = [
     { tag: "ข้อ 1 · เพื่อน", text: "เพื่อนสนิทมาสารภาพว่าทำเรื่องผิดพลาดร้ายแรง และขอร้องไม่ให้คุณบอกใคร คุณจะพูดอะไรกับเขา?" },

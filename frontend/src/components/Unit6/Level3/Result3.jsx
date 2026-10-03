@@ -1,5 +1,6 @@
 import TraitBar from "./TraitBar";
 import { useNavigate } from "react-router-dom";
+import { Trophy, RotateCcw, Map } from "lucide-react";
 
 const TRAITS = [
     { key: "logic", label: "Logic · ตรรกะ" },
@@ -17,7 +18,7 @@ export default function ResultScreen({
     const navigate = useNavigate();
     if (error || !result) {
         return (
-            <div className="sm-screen">
+            <div className="sm-screen sm-result-screen">
                 <div className="sm-result-head">
                     <p className="sm-eyebrow">ผลการสะท้อน</p>
                 </div>
@@ -30,13 +31,14 @@ export default function ResultScreen({
                     <button className="sm-btn" onClick={restart}>
                         ลองใหม่อีกครั้ง
                     </button>
+                    <button className="sm-btn sm-map-btn" onClick={() => navigate("/map")}><Map size={18} /> กลับแผนที่</button>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="sm-screen">
+        <div className="sm-screen sm-result-screen">
             <div className="sm-result-head">
                 <p className="sm-eyebrow">ผลการสะท้อน</p>
             </div>
@@ -46,6 +48,7 @@ export default function ResultScreen({
                     <div className="sm-medallion">
                         <div className="sm-ring" />
                         <div className="sm-ring2" />
+                        <Trophy className="sm-award-icon" size={48} strokeWidth={1.5} />
                     </div>
                     <p className="sm-badge-name">{badge.key}</p>
                     <p className="sm-badge-th">{badge.th}</p>
@@ -69,14 +72,14 @@ export default function ResultScreen({
 
             <div className="sm-again-wrap">
                 <button className="sm-btn" onClick={restart}>
-                    ลองใหม่อีกครั้ง
+                    <RotateCcw size={18} /> เล่นใหม่
                 </button>
 
                 <button
-                    className="sm-btn"
+                    className="sm-btn sm-map-btn"
                     onClick={() => navigate("/map")}
                 >
-                    กลับหน้าหลัก
+                    <Map size={18} /> กลับแผนที่
                 </button>
             </div>
         </div>

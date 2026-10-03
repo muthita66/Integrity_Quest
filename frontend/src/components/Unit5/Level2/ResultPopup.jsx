@@ -103,7 +103,7 @@ export default function TaxBuilderResult() {
                     justifyContent: "center",
                     alignItems: "center",
                     color: "#e7ebf3",
-                    background: "#081320",
+                    background: "#21130c",
                     fontSize: 18,
                 }}
             >
@@ -442,7 +442,7 @@ export default function TaxBuilderResult() {
 
                         </button>
 
-                        <button className="btn green" onClick={() => navigate("/unit5/game3")}>
+                        <button className="btn green" onClick={() => navigate("/unit5/game3/intro")}>
 
                             <FaPlay />
 
@@ -471,7 +471,7 @@ font-family:Inter,sans-serif;
 }
 
 body{
-background:#081320;
+background:#21130c;
 }
 
 .tax-result-page{
@@ -482,7 +482,21 @@ justify-content:center;
 align-items:center;
 overflow:hidden;
 background:
-radial-gradient(circle at top,#18355b 0%,#081320 60%);
+radial-gradient(circle at 50% -20%,#70431f 0%,transparent 42%),
+linear-gradient(135deg,#1b0e08 0%,#2c180d 48%,#160b07 100%);
+position:relative;
+}
+
+.tax-result-page::before{
+content:"";
+position:absolute;
+inset:0;
+pointer-events:none;
+opacity:.22;
+background-image:
+linear-gradient(rgba(255,210,90,.1) 1px,transparent 1px),
+linear-gradient(90deg,rgba(255,210,90,.1) 1px,transparent 1px);
+background-size:32px 32px;
 }
 
 .gold-frame{
@@ -492,12 +506,15 @@ padding:16px 24px 18px;
 display:flex;
 flex-direction:column;
 overflow:hidden;
-background:#0b0c10;
+background:linear-gradient(145deg,#2f1b10 0%,#21120b 55%,#3a2113 100%);
 border:3px solid #c99833;
 border-radius:24px;
 box-shadow:
 0 0 0 2px rgba(255,204,90,.25) inset,
-0 20px 60px rgba(0,0,0,.5);
+0 20px 60px rgba(0,0,0,.5),
+0 0 40px rgba(255,196,55,.08);
+position:relative;
+z-index:1;
 }
 
 .result-header{
@@ -533,7 +550,7 @@ letter-spacing:1px;
 .subtitle{
 margin-top:2px;
 font-size:13px;
-color:#9fb2c9;
+color:#d7bf98;
 letter-spacing:.5px;
 }
 
@@ -551,12 +568,13 @@ align-items:stretch;
 .right-panel{
 display:flex;
 flex-direction:column;
-background:#12141c;
-border:1px solid #24283a;
+background:rgba(38,21,13,.9);
+border:1px solid #684522;
 border-radius:18px;
 padding:16px;
 min-height:0;
 overflow:hidden;
+box-shadow:0 10px 24px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,244,210,.06);
 }
 
 .center-panel{
@@ -598,17 +616,26 @@ align-items:center;
 justify-content:space-evenly;
 gap:6px;
 padding:14px 8px;
-background:#181c27;
+background:#3a2518;
 border-radius:14px;
-border:1px solid #262c3d;
+border:1px solid #624326;
 transition:.25s;
 min-height:0;
+box-shadow:inset 0 1px 0 rgba(255,244,210,.06);
 }
 
 .budget-card:hover{
-transform:translateY(-2px);
-border-color:#3a4258;
+transform:translateY(-4px) rotate(-.5deg);
+border-color:#b27a2b;
+box-shadow:0 10px 20px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,244,210,.08);
 }
+
+.budget-card:nth-child(1){box-shadow:inset 0 3px 0 #3b82f6,0 6px 16px rgba(0,0,0,.16)}
+.budget-card:nth-child(2){box-shadow:inset 0 3px 0 #ef4444,0 6px 16px rgba(0,0,0,.16)}
+.budget-card:nth-child(3){box-shadow:inset 0 3px 0 #22c55e,0 6px 16px rgba(0,0,0,.16)}
+.budget-card:nth-child(4){box-shadow:inset 0 3px 0 #f97316,0 6px 16px rgba(0,0,0,.16)}
+.budget-card:nth-child(5){box-shadow:inset 0 3px 0 #22c55e,0 6px 16px rgba(0,0,0,.16)}
+.budget-card:nth-child(6){box-shadow:inset 0 3px 0 #06b6d4,0 6px 16px rgba(0,0,0,.16)}
 
 .budget-icon{
 width:44px;
@@ -625,7 +652,7 @@ box-shadow:0 4px 10px rgba(0,0,0,.4);
 .budget-title{
 font-size:13px;
 font-weight:700;
-color:#e7ebf3;
+color:#f6e7c9;
 text-align:center;
 }
 
@@ -650,7 +677,7 @@ margin-top:2px;
 
 .progress-bg{
 height:6px;
-background:#262c3d;
+background:#5a4028;
 border-radius:999px;
 overflow:hidden;
 }
@@ -676,8 +703,8 @@ justify-content:space-around;
 align-items:center;
 padding:16px;
 border-radius:14px;
-background:#181c27;
-border:1px solid #262c3d;
+background:#3a2518;
+border:1px solid #624326;
 }
 
 .budget-item{
@@ -692,7 +719,7 @@ display:flex;
 align-items:center;
 gap:5px;
 font-size:12px;
-color:#9fb2c9;
+color:#d7bf98;
 }
 
 .budget-item strong{
@@ -703,7 +730,7 @@ color:#ffd54a;
 .divider{
 width:1px;
 height:38px;
-background:#262c3d;
+background:#5a4028;
 }
 
 .score-header{
@@ -724,7 +751,7 @@ text-align:center;
 }
 
 .score-group span{
-color:#9fb2c9;
+color:#d7bf98;
 font-size:13px;
 font-weight:600;
 }
@@ -769,7 +796,8 @@ color:#7a4a00;
 background:radial-gradient(circle at 35% 30%,#fff3b0,#ffcb33 55%,#c98910);
 box-shadow:
 0 0 0 5px rgba(255,203,51,.15),
-0 10px 24px rgba(255,180,0,.35);
+0 10px 24px rgba(255,180,0,.35),
+0 0 36px rgba(255,204,60,.22);
 }
 
 .grade-banner{
@@ -794,7 +822,7 @@ color:#ffd13b;
 
 .grade-description{
 margin-top:20px;
-color:#c7d0de;
+color:#ead9bd;
 font-size:15px;
 line-height:1.6;
 max-width:300px;
@@ -810,8 +838,8 @@ align-items:center;
 gap:14px;
 padding:16px;
 border-radius:14px;
-background:#181c27;
-border:1px solid #262c3d;
+background:#3a2518;
+border:1px solid #624326;
 flex-shrink:0;
 }
 
@@ -835,8 +863,8 @@ font-weight:700;
 .happy-card{
 padding:18px;
 border-radius:16px;
-background:#181c27;
-border:1px solid #262c3d;
+background:#3a2518;
+border:1px solid #624326;
 margin-bottom:18px;
 text-align:center;
 flex-shrink:0;
@@ -905,7 +933,7 @@ flex-shrink:0;
 .stat-progress{
 height:8px;
 border-radius:999px;
-background:#262c3d;
+background:#5a4028;
 overflow:hidden;
 }
 
@@ -918,8 +946,8 @@ border-radius:999px;
 margin-top:18px;
 padding:16px;
 border-radius:16px;
-background:#0f213f;
-border:1px solid #294c80;
+background:#4a2b17;
+border:1px solid #99682b;
 flex-shrink:0;
 }
 
@@ -936,7 +964,7 @@ margin-bottom:8px;
 .suggest-card p{
 font-size:13px;
 line-height:1.6;
-color:#dbe6f5;
+color:#f0dfc2;
 }
 
 .bottom-buttons{
@@ -963,7 +991,9 @@ transition:.25s;
 }
 
 .btn:hover{
-transform:translateY(-2px);
+transform:translateY(-3px) scale(1.01);
+filter:brightness(1.08);
+box-shadow:0 8px 20px rgba(0,0,0,.25);
 }
 
 .btn svg{
@@ -983,11 +1013,11 @@ font-weight:500;
 }
 
 .blue{
-background:linear-gradient(#2d8cff,#1450c6);
+background:linear-gradient(#e7b83f,#a96b18);
 }
 
 .green{
-background:linear-gradient(#30c84c,#15962b);
+background:linear-gradient(#d89b35,#8f5015);
 }
 
 @media(max-width:1100px){

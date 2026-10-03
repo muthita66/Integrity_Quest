@@ -3,22 +3,22 @@ export const START_ID = "student";
 export const GOAL_ID = "court";
 
 export const NODES = [
-    { id: "student", label: "นักเรียน", icon: "🧑‍🎓", x: 742, y: 130 },
+    { id: "student", label: "นักเรียน", icon: "🧑‍🎓", x: 768, y: 150 },
 
-    { id: "parent", label: "ผู้ปกครอง", icon: "👨‍👩‍👧", x: 278, y: 285 },
-    { id: "teacher", label: "คุณครู", icon: "👩‍🏫", x: 1206, y: 285 },
+    { id: "parent", label: "ผู้ปกครอง", icon: "👨‍👩‍👧", x: 533, y: 226 },
+    { id: "teacher", label: "คุณครู", icon: "👩‍🏫", x: 1003, y: 226 },
 
-    { id: "neighbor", label: "เพื่อนบ้าน", icon: "🏠", x: 140, y: 455 },
-    { id: "schooladmin", label: "ฝ่ายบริหารโรงเรียน", icon: "🏢", x: 1344, y: 455 },
+    { id: "neighbor", label: "เพื่อนบ้าน", icon: "🏠", x: 388, y: 426 },
+    { id: "schooladmin", label: "ฝ่ายบริหารโรงเรียน", icon: "🏢", x: 1148, y: 426 },
 
-    { id: "community", label: "ชุมชน", icon: "👥", x: 290, y: 640 },
-    { id: "schoolfriends", label: "เพื่อนในโรงเรียน", icon: "🧑‍🤝‍🧑", x: 1194, y: 640 },
+    { id: "community", label: "ชุมชน", icon: "👥", x: 388, y: 674 },
+    { id: "schoolfriends", label: "เพื่อนในโรงเรียน", icon: "🧑‍🤝‍🧑", x: 1148, y: 674 },
 
-    { id: "media", label: "สื่อ/ออนไลน์", icon: "📱", x: 505, y: 720 },
-    { id: "otherschools", label: "โรงเรียนอื่น ๆ", icon: "🏫", x: 1030, y: 720 },
+    { id: "media", label: "สื่อ/ออนไลน์", icon: "📱", x: 533, y: 874 },
+    { id: "otherschools", label: "โรงเรียนอื่น ๆ", icon: "🏫", x: 1003, y: 874 },
 
-    { id: "govt", label: "หน่วยงานรัฐ", icon: "🏛️", x: 762, y: 645 },
-    { id: "court", label: "ศาลยุติธรรม", icon: "⚖️", x: 762, y: 775 },
+    { id: "govt", label: "หน่วยงานรัฐ", icon: "🏛️", x: 768, y: 950 },
+    { id: "court", label: "ศาลยุติธรรม", icon: "⚖️", x: 768, y: 550 },
 ];
 
 export const NODE_BY_ID = Object.fromEntries(
@@ -97,7 +97,7 @@ export function curveFor(aId, bId) {
     const px = -dy / len;
     const py = dx / len;
 
-    const side = midX < 762 - 4 ? -1 : midX > 762 + 4 ? 1 : 0;
+    const side = midX < 768 - 4 ? -1 : midX > 768 + 4 ? 1 : 0;
     const bulge = side * Math.min(46, len * 0.18);
 
     const cx = midX + px * bulge;

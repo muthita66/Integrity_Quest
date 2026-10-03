@@ -9,7 +9,10 @@ export default function QuizScreen({
     nextDisabled,
 }) {
     return (
-        <div className="sm-screen">
+        <div className="sm-screen sm-wide-scene">
+            <div className="sm-gold-motes" aria-hidden="true">
+                {Array.from({ length: 24 }, (_, i) => <span key={i} style={{ left: `${5 + (i * 37) % 90}%`, top: `${8 + (i * 23) % 82}%`, animationDelay: `${-i * 0.7}s`, animationDuration: `${5 + i % 5}s`, width: i % 3 === 0 ? 5 : 3, height: i % 3 === 0 ? 5 : 3 }} />)}
+            </div>
             <div className="sm-mirror">
                 <svg
                     className="sm-crack"

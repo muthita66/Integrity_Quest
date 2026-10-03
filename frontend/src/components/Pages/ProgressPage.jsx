@@ -54,7 +54,7 @@ const UNIT_ORDER_ROUTES = {
         "/unit5/game3",
     ],
     6: [
-        "/unit6/intro",
+        "/unit6/game1",
         "/unit6/game2",
         "/unit6/game3",
     ],

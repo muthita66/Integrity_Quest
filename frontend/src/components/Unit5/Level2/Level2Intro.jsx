@@ -11,7 +11,7 @@ export default function Level2Intro() {
     const mayorImg = "/src/assets/unit5/Mayor.png";
 
     const policeBG = "/src/assets/unit5/office.png";
-    const cityBG = "/src/assets/unit5/cityhall.png";
+    const cityBG = "/src/assets/unit5/hall.png";
 
     // ===== บทสนทนา =====
     const policeDialogue = [
@@ -246,17 +246,14 @@ export default function Level2Intro() {
                 left-60
                 right-60
 
-                h-[230px]
-                rounded-t-4xl
-                rounded-l-4xl
-                rounded-r-4xl
-
-                bg-white/45
-
-                backdrop-blur-md
-
-                border-t
-                border-white/20
+                min-h-[230px]
+                rounded-[30px]
+                bg-[#2b170e]/72
+                backdrop-blur-xl
+                border-2
+                border-amber-200/55
+                shadow-[0_12px_0_rgba(48,22,9,.3),0_18px_45px_rgba(0,0,0,.32),inset_0_1px_0_rgba(255,244,200,.25)]
+                overflow-visible
 
                 z-30
                 "
@@ -268,12 +265,14 @@ export default function Level2Intro() {
                 <div
                     className={`
         absolute
-        -top-8
+        -top-12
+        z-50
 
         ${scene === "police" ? "left-20" : "right-20"}
 
-        bg-[#7a1c0e]
-        px-10
+        bg-gradient-to-r from-[#8f2d13] to-[#641d0e]
+        border-2 border-amber-200/70
+        px-8
         py-3
 
         ${scene === "police"
@@ -281,39 +280,44 @@ export default function Level2Intro() {
                             : "rounded-t-xl rounded-l-xl rounded-br-xl"
                         }
 
-        text-white
+        text-[#fff4d6]
         font-black
-        text-2xl
+        text-xl
+        tracking-wide
 
-        shadow-lg
+        shadow-[4px_5px_0_rgba(52,22,8,.35),0_8px_18px_rgba(0,0,0,.25)]
     `}
                 >
                     {current.speaker}
+                </div>
+
+                <div className="absolute left-8 right-8 top-5 flex items-center justify-between text-[10px] font-black tracking-[0.28em] text-amber-100/65">
+                    <span>OFFICIAL BRIEFING</span>
+                    <span>CASE 02 · INTEGRITY TOWN</span>
                 </div>
 
                 {/* Dialogue */}
 
                 <div
                     className="
-                    px-18
-                    pt-10
+                    px-12
+                    pt-16
                     pr-20
 
-                    text-[#2F1500]
-                    text-[28px]
+                    text-[#fff6df]
+                    text-[26px]
                     font-bold
-                    line-height: 1.5;
-                    letter-spacing: 1.0px;
-
                     leading-relaxed
-
-                    font-medium
+                    tracking-wide
+                    drop-shadow-[2px_2px_0_rgba(0,0,0,.25)]
 
                     whitespace-pre-wrap
                     "
                 >
                     {displayText}
                 </div>
+
+                <div className="absolute bottom-4 left-12 right-12 h-px bg-gradient-to-r from-transparent via-amber-200/55 to-transparent" />
 
                 {/* Hint */}
 

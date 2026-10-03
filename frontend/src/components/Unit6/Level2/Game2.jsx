@@ -1,5 +1,8 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import Level2Intro from "./Level2Intro";
+import "./Game2.css";
+import MissionIcon from "./MissionIcon";
 import {
   NODES,
   NODE_BY_ID,
@@ -48,10 +51,11 @@ async function fetchLevelId() {
 }
 
 const VIEW_W = 1536;
-const VIEW_H = 880;
+const VIEW_H = 1100;
 const NODE_R = 58;
 
 export default function GoodNetworkGame() {
+  const [showIntro, setShowIntro] = useState(true);
   const [reached, setReached] = useState(() => new Set([START_ID]));
   const [lives, setLives] = useState(MAX_LIVES);
   const [gameOver, setGameOver] = useState(false);
@@ -60,7 +64,7 @@ export default function GoodNetworkGame() {
   // answered = { choiceId, correctChoiceId, isCorrect, explain } หลัง backend ตรวจแล้ว
   const [answered, setAnswered] = useState(null);
   const [answering, setAnswering] = useState(false);
-  const [msg, setMsg] = useState(
+  const [, setMsg] = useState(
     "เลือกเส้นทางที่คุณสนใจ แล้วคลิกที่จุดถัดไปเพื่อเข้าสู่คำถาม"
   );
   const navigate = useNavigate();
@@ -138,8 +142,8 @@ export default function GoodNetworkGame() {
   }, [navigate]);
 
   useEffect(() => {
-    startPlay();
-  }, [startPlay]);
+    if (!showIntro) startPlay();
+  }, [showIntro, startPlay]);
 
   const resetGame = useCallback(() => {
     startPlay();
@@ -302,6 +306,12 @@ export default function GoodNetworkGame() {
   });
 
   const activeMission = activeId && missions[activeId] ? { id: activeId, ...missions[activeId] } : null;
+
+  if (showIntro) {
+    return (
+      <Level2Intro onStart={() => setShowIntro(false)} maxLives={MAX_LIVES} />
+    );
+  }
 
   if (loading) {
     return (
@@ -526,9 +536,6 @@ export default function GoodNetworkGame() {
           </div>
         </div>
 
-        <div className="gng-header">
-          <p className="gng-theme">ทุกการเลือกของคุณ...ส่งต่อความเปลี่ยนแปลง</p>
-        </div>
 
         <div className="gng-stage-wrap">
           <div className="gng-stage">
@@ -554,12 +561,12 @@ export default function GoodNetworkGame() {
                   <stop offset="100%" stopColor="#a8631c" />
                 </radialGradient>
                 <radialGradient id="nodeAvail" cx="35%" cy="30%" r="75%">
-                  <stop offset="0%" stopColor="#2b3f78" />
-                  <stop offset="100%" stopColor="#101a34" />
+                  <stop offset="0%" stopColor="#7b73c8" />
+                  <stop offset="100%" stopColor="#344d85" />
                 </radialGradient>
                 <radialGradient id="nodeLocked" cx="35%" cy="30%" r="75%">
-                  <stop offset="0%" stopColor="#1c2846" />
-                  <stop offset="100%" stopColor="#0d1428" />
+                  <stop offset="0%" stopColor="#577ca3" />
+                  <stop offset="100%" stopColor="#2b456c" />
                 </radialGradient>
                 <radialGradient id="goalGlow" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" stopColor="#ffe9a8" stopOpacity="0.55" />
@@ -578,27 +585,32 @@ export default function GoodNetworkGame() {
                 ))}
               </g>
 
+              <circle cx="768" cy="550" r="400" fill="none" stroke="#bdc4ed" strokeWidth="2" strokeDasharray="4 12" opacity="0.3" />
               {/* soft glow behind the court, the final destination */}
               <circle cx={NODE_BY_ID.court.x} cy={NODE_BY_ID.court.y} r="150" fill="url(#goalGlow)" />
 
-              {/* connector threads */}
+              {/* Footsteps between mission pins. */}
               <g>
                 {EDGES.map(([a, b]) => {
                   const key = edgeKey(a, b);
                   const curve = EDGE_CURVES.get(key);
                   const done = reached.has(a) && reached.has(b);
                   const isNext = availableIds.has(b) && reached.has(a);
+                  const start = NODE_BY_ID[a];
+                  const end = NODE_BY_ID[b];
+                  const length = Math.hypot(end.x - start.x, end.y - start.y);
+                  const count = Math.max(1, Math.floor((length - 140) / 35));
                   return (
-                    <path
-                      key={key}
-                      d={curve.d}
-                      fill="none"
-                      stroke={done ? "#ffd98a" : isNext ? "#5a6ea8" : "#233257"}
-                      strokeWidth={done ? 3.2 : 2}
-                      strokeLinecap="round"
-                      opacity={done ? 0.95 : 0.6}
-                      filter={done ? "url(#gngGlowGold)" : undefined}
-                    />
+                    <g key={key} fill={done ? "#ffe2a0" : isNext ? "#ffd17c" : "#b2c6da"} opacity={done || isNext ? 0.95 : 0.3}>
+                      {Array.from({ length: count }, (_, index) => {
+                        const t = (index + 1) / (count + 1);
+                        const x = (1 - t) ** 2 * start.x + 2 * (1 - t) * t * curve.mid.x + t * t * end.x;
+                        const y = (1 - t) ** 2 * start.y + 2 * (1 - t) * t * curve.mid.y + t * t * end.y;
+                        if (Math.hypot(x - start.x, y - start.y) < 85 || Math.hypot(x - end.x, y - end.y) < 85) return null;
+                        const angle = Math.atan2(end.y - start.y, end.x - start.x) * 180 / Math.PI + 90;
+                        return <g key={index} transform={`translate(${x} ${y}) rotate(${angle}) translate(${index % 2 ? 7 : -7} 0)`}><ellipse cy="-4" rx="4" ry="7" /><circle cy="6" r="3" /></g>;
+                      })}
+                    </g>
                   );
                 })}
               </g>
@@ -611,77 +623,70 @@ export default function GoodNetworkGame() {
                   const isLocked = !isDone && !isAvail;
                   const isGoal = n.id === GOAL_ID;
 
-                  let bodyFill = "url(#nodeLocked)";
-                  let stroke = "#2c3a63";
+                  let bodyFill = "#f4f1ff";
+                  let stroke = "#c6bce6";
                   let strokeWidth = 2;
                   let glow;
                   if (isDone) {
-                    bodyFill = "url(#nodeDone)";
-                    stroke = "#ffd98a";
+                    bodyFill = "#d8f1e6";
+                    stroke = "#70bea0";
                     strokeWidth = 3;
-                    glow = "url(#gngGlowGold)";
+                    glow = undefined;
                   } else if (isAvail) {
-                    bodyFill = "url(#nodeAvail)";
+                    bodyFill = "#8061bc";
                     stroke = isGoal ? "#c9a8ff" : "#f5a93f";
                     strokeWidth = 3;
                     glow = isGoal ? "url(#gngGlowViolet)" : "url(#gngGlowGold)";
                   }
 
-                  const mission = missions[n.id];
+
 
                   return (
                     <g
                       key={n.id}
-                      className={"gng-node" + (isAvail ? " clickable" : "")}
-                      opacity={isLocked ? 0.55 : 1}
+                      className={"gng-node mission-tile" + (isAvail ? " clickable" : "") + (isDone ? " completed" : "") + (isGoal ? " goal-tile" : "")}
+                      opacity={isLocked ? 0.95 : 1}
                       onClick={() => openNode(n.id)}
+                      role={isAvail ? "button" : undefined}
+                      tabIndex={isAvail ? 0 : undefined}
+                      aria-label={`${n.label}${isAvail ? " ช่วยเหลือ" : isDone ? " สำเร็จ" : " ยังไม่เปิด"}`}
+                      onKeyDown={(e) => { if (isAvail && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openNode(n.id); } }}
                     >
                       <g className={isAvail ? "gng-avail-anim" : undefined}>
-                        <circle
-                          cx={n.x}
-                          cy={n.y}
-                          r={NODE_R}
+                        <rect x={n.x - 108} y={n.y - 59} width="216" height="128" rx="24" fill="#0b1939" opacity="0.2" transform="translate(0 7)" />
+                        <rect
+                          x={n.x - 108} y={n.y - 59} width="216" height="128" rx="24"
                           fill={bodyFill}
                           stroke={stroke}
                           strokeWidth={strokeWidth}
                           filter={glow}
                         />
+                        <circle cx={n.x} cy={n.y - 12} r="32" fill={isAvail ? "#ffffff15" : "#acc1dd30"} />
                       </g>
-                      <text x={n.x} y={n.y} className="gng-node-icon">
-                        {n.icon}
-                      </text>
+                      <MissionIcon id={n.id} x={n.x - 24} y={n.y - 36} width={48} height={48} className="gng-mission-icon" />
 
                       {isDone && (
                         <circle cx={n.x + NODE_R * 0.68} cy={n.y - NODE_R * 0.68} r="13" fill="#2fae5c" stroke="#0d1428" strokeWidth="2" />
                       )}
                       {isDone && (
                         <text x={n.x + NODE_R * 0.68} y={n.y - NODE_R * 0.68 + 4} textAnchor="middle" fontSize="14" fill="#fff">
-                          ✓
+                          ⚑
                         </text>
                       )}
 
                       <text
                         x={n.x}
-                        y={n.y + NODE_R + 24}
+                        y={n.y + 48}
                         className={"gng-node-label" + (n.label.length > 8 ? " small" : "")}
                       >
                         {n.label}
                       </text>
 
-                      {mission && (
-                        <>
-                          <circle cx={n.x - (n.label.length > 8 ? 90 : 62)} cy={n.y + NODE_R + 20} r="7" fill="var(--violet)" />
-                          <text
-                            x={n.x - (n.label.length > 8 ? 78 : 50)}
-                            y={n.y + NODE_R + 24}
-                            fontSize="11"
-                            fill="#fff"
-                            fontWeight="800"
-                          >
-                            Q
-                          </text>
-                        </>
+                      {isAvail && (
+                        <g className="gng-help-badge"><rect x={n.x - 48} y={n.y - 87} width="96" height="22" rx="11" fill="#ffe1a0" /><text x={n.x} y={n.y - 71} textAnchor="middle" fill="#49321c" fontSize="14" fontWeight="700">ช่วยเหลือ</text></g>
                       )}
+                      {isGoal && !isAvail && !isDone && <text x={n.x} y={n.y - 77} textAnchor="middle" fill="#ffe2a0" fontSize="18" fontWeight="700">★ เป้าหมายสุดท้าย</text>}
+
                     </g>
                   );
                 })}
@@ -731,13 +736,17 @@ export default function GoodNetworkGame() {
             </div>
 
             <div className={"gng-overlay mission" + (activeMission ? " show" : "")}>
-              <div className="gng-overlay-card">
-                <h3>🧭 {activeMission ? NODE_BY_ID[activeMission.id].label : ""}</h3>
+              <div className="gng-overlay-card gng-question-card" role="dialog" aria-modal="true" aria-labelledby="gng-question-title">
+                <div className="gng-question-heading">
+                  <span className="gng-question-emblem" aria-hidden="true">{activeMission && <MissionIcon id={activeMission.id} size={30} />}</span>
+                  <div><span className="gng-question-eyebrow">ภารกิจส่งต่อความดี</span><h3 id="gng-question-title">{activeMission ? NODE_BY_ID[activeMission.id].label : ""}</h3></div>
+                  <span className="gng-question-chip">เลือก 1 คำตอบ</span>
+                </div>
                 {activeMission && (
                   <>
-                    <p style={{ margin: "0 0 14px" }}>{activeMission.q}</p>
+                    <p className="gng-question-text">{activeMission.q}</p>
                     <div className="gng-mission-options">
-                      {activeMission.options.map((opt) => {
+                      {activeMission.options.map((opt, index) => {
                         let cls = "gng-mission-opt";
                         if (answered !== null) {
                           if (opt.choice_id === answered.correctChoiceId) cls += " correct";
@@ -750,14 +759,16 @@ export default function GoodNetworkGame() {
                             disabled={answered !== null || answering}
                             onClick={() => answerMission(opt)}
                           >
-                            {opt.text}
+                            <span className="gng-answer-number">{index + 1}</span>
+                            <span className="gng-answer-text">{opt.text}</span>
+                            <span className="gng-answer-arrow" aria-hidden="true">{answered !== null && opt.choice_id === answered.correctChoiceId ? "✓" : answered !== null && opt.choice_id === answered.choiceId ? "×" : "›"}</span>
                           </button>
                         );
                       })}
                     </div>
-                    {answered !== null && (
+                    {answered !== null && !answered.isCorrect && (
                       <p className="gng-mission-explain">
-                        {answered.isCorrect ? "✅ ถูกต้อง! " : "⚠️ ยังไม่ถูก — "}
+                        {"⚠️ ยังไม่ถูก — "}
                         {answered.explain}
                       </p>
                     )}
@@ -768,7 +779,6 @@ export default function GoodNetworkGame() {
           </div>
         </div>
 
-        <div className={"gng-msg" + (outcome === "win" ? " good" : outcome === "lose" ? " bad" : "")}>{msg}</div>
 
         <div className="gng-legend">
           <span>
