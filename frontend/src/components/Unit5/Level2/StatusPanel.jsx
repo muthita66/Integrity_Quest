@@ -81,17 +81,17 @@ export default function StatusPanel({
     let rankText = "คุณต้องปรับปรุงแผนการใช้งบประมาณ";
     let stars = 1;
 
-    if (score >= 91) {
+    if (score >= 90) {
         rank = "S";
         rankText = "คุณสามารถบริหารได้สุดยอดมาก!";
         stars = 5;
     }
-    else if (score >= 81) {
+    else if (score >= 80) {
         rank = "A";
         rankText = "คุณบริหารเมืองได้ยอดเยี่ยม";
         stars = 4;
     }
-    else if (score >= 71) {
+    else if (score >= 70) {
         rank = "B";
         rankText = "คุณใช้งบในการบบริหารได้ดี";
         stars = 3;
@@ -111,17 +111,18 @@ export default function StatusPanel({
         title,
         value,
         color,
+        barColor,
     }) => (
 
         <motion.div
             layout
             className="
-        bg-[#f5ecdf]
+        bg-[#fff8e7]/95
         border-2
-        border-[#ccb79d]
-        rounded-xl
+        border-[#e0a33d]
+        rounded-[22px]
         p-4
-        shadow
+        shadow-[5px_6px_0_rgba(70,38,15,.18)]
       "
         >
 
@@ -154,7 +155,7 @@ export default function StatusPanel({
                     transition={{
                         duration: .25
                     }}
-                    className={`h-full ${color.replace("text", "bg")}`}
+                    className={`h-full ${barColor}`}
                 />
 
             </div>
@@ -167,10 +168,11 @@ export default function StatusPanel({
 
         <div
             className="
-        w-[320px]
+        w-full
+        max-w-[320px]
         flex
         flex-col
-        gap-4
+        gap-3
       "
         >
 
@@ -178,7 +180,7 @@ export default function StatusPanel({
                 className="
           text-2xl
           font-black
-          text-white
+                inline-block rounded-full border border-amber-200/60 bg-[#2b170e]/75 px-5 py-2 text-amber-100
           text-center
         "
             >
@@ -190,6 +192,7 @@ export default function StatusPanel({
                 title="ความสุข"
                 value={happiness}
                 color="text-yellow-500"
+                barColor="bg-yellow-500"
             />
 
             <Item
@@ -197,6 +200,7 @@ export default function StatusPanel({
                 title="สุขภาพ"
                 value={health}
                 color="text-red-500"
+                barColor="bg-red-500"
             />
 
             <Item
@@ -204,6 +208,7 @@ export default function StatusPanel({
                 title="การศึกษา"
                 value={education}
                 color="text-blue-600"
+                barColor="bg-blue-600"
             />
 
             <Item
@@ -211,6 +216,7 @@ export default function StatusPanel({
                 title="คมนาคม"
                 value={transport}
                 color="text-green-600"
+                barColor="bg-green-600"
             />
             <motion.button
                 whileHover={
@@ -228,14 +234,14 @@ export default function StatusPanel({
                 className={`
         w-full
         py-5
-        rounded-xl
+        rounded-[20px]
         bg-gradient-to-r
         from-amber-500
         to-yellow-400
         text-[#2b1b12]
         text-2xl
         font-black
-        shadow-xl
+        shadow-[6px_7px_0_rgba(70,38,15,.28),0_12px_20px_rgba(50,25,8,.2)]
 
         ${remainingBudget > 0
                         ? "opacity-50 cursor-not-allowed"

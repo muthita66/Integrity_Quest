@@ -14,16 +14,18 @@ export default function BudgetPanel({
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       className="
-        w-[280px]
-        bg-[#f5ecdf]
+        w-full
+        max-w-[280px]
+        bg-[#fff8e7]/95
         border-2
-        border-[#ccb79d]
-        rounded-2xl
-        shadow-lg
+        border-[#e0a33d]
+        rounded-[28px]
+        shadow-[7px_8px_0_rgba(70,38,15,.2),0_12px_26px_rgba(50,25,8,.2)]
+        backdrop-blur-sm
         p-6
         flex
         flex-col
-        gap-6
+        gap-4
       "
     >
       {/* Header */}
@@ -45,7 +47,7 @@ export default function BudgetPanel({
       </div>
 
       {/* งบคงเหลือ */}
-      <div className="bg-[#fffaf5] rounded-xl p-5 border">
+      <div className="bg-white/70 rounded-2xl p-5 border-2 border-[#d8b77c] shadow-inner">
         <div className="text-sm text-gray-600">
           งบประมาณคงเหลือ
         </div>
@@ -109,11 +111,12 @@ export default function BudgetPanel({
 
       <div
         className="
-          bg-yellow-100
-          rounded-xl
+          bg-[#fff0a8]
+          rounded-2xl
           p-4
-          border
+          border-2
           border-yellow-300
+          shadow-[3px_4px_0_rgba(154,103,25,.16)]
           text-sm
           leading-6
           text-[#5c4327]

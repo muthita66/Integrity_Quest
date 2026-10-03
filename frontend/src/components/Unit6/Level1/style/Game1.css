@@ -27,7 +27,7 @@
     gap: clamp(6px, 1.2vh, 14px);
     background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .05) 0 2px, transparent 2px 64px),
         linear-gradient(180deg, rgba(10, 18, 34, .55) 0%, rgba(6, 11, 22, .75) 55%, rgba(3, 6, 12, .92) 100%),
-        url("../../../assets/unit6/school-bg.png") center / cover no-repeat fixed;
+        url("../../../../assets/unit6/school-bg.png") center / cover no-repeat fixed;
     color: white;
 }
 
@@ -242,7 +242,7 @@
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06), 0 10px 30px rgba(0, 0, 0, .5);
     padding: clamp(10px, 2vh, 20px);
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-rows: repeat(2, 1fr);
     gap: clamp(8px, 1.6vh, 16px);
 }
@@ -748,6 +748,41 @@
 @media(max-width:640px) {
     .crisis-stage .school-map {
         grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(4, 1fr);
+        grid-template-rows: repeat(3, 1fr);
     }
+}
+
+/* Balanced locker bays with brighter enamel and clear alert states. */
+.crisis-stage .school-map {
+    background: linear-gradient(135deg, #304c71ed, #192c4bed);
+    border-color: #8daed34d;
+    box-shadow: inset 0 1px 0 #d8e9ff30, 0 14px 35px #02081766;
+    gap: clamp(12px, 2vh, 20px);
+    padding: clamp(14px, 2.4vh, 24px);
+}
+.crisis-stage .map-tile {
+    border-radius: 13px;
+    border-color: #9db9d7;
+    background: repeating-linear-gradient(180deg, #263e5b26 0 2px, transparent 2px 7px) top 14px center / 65% 20px no-repeat,
+        linear-gradient(145deg, #d3e5f3, #a8c5df 55%, #7d9ebf);
+    box-shadow: inset 0 1px 0 #ffffffb3, inset 0 -5px 10px #31557924, 0 6px 12px #08162d55;
+    gap: 12px;
+}
+.crisis-stage .map-tile:nth-child(2), .crisis-stage .map-tile:nth-child(5) {
+    background: repeating-linear-gradient(180deg, #263e5b26 0 2px, transparent 2px 7px) top 14px center / 65% 20px no-repeat,
+        linear-gradient(145deg, #d8e3f5, #b5c3e0 55%, #8e9ebf);
+}
+.crisis-stage .map-tile::after { inset: 8px; border-radius: 9px; border-color: #28496730; }
+.crisis-stage .map-tile svg { color: #254567; filter: drop-shadow(0 2px 0 #ffffff55); }
+.crisis-stage .map-tile span { font-size: clamp(12px, 1.8vh, 16px); color: #203a58; }
+.crisis-stage .map-tile.active {
+    background: repeating-linear-gradient(180deg, #7e1b3926 0 2px, transparent 2px 7px) top 14px center / 65% 20px no-repeat,
+        linear-gradient(145deg, #ff967f, #e95a67 55%, #b73157);
+    border-color: #ffc7a2;
+}
+.crisis-stage .map-tile.active span { color: #fffaf0; }
+.crisis-stage .map-tile.active:hover { transform: translateY(-3px); filter: brightness(1.08); }
+.crisis-stage .map-tile.active:focus-visible { outline: 3px solid #ffe59b; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+    .crisis-stage .map-tile.active { animation: none; }
 }

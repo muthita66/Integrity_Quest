@@ -412,6 +412,7 @@ const calcFirewallResult = (stats) => {
 
 const WORD_CLUE_LEVEL_ID = 14;
 const WORD_MAX_LENGTH = 100;
+const WORD_CLUE_IP = 280;
 
 const thaiSegmenter =
     typeof Intl !== "undefined" && Intl.Segmenter
@@ -578,7 +579,7 @@ const calcWordResult = (stats) => {
         status: isPerfect ? "PERFECT" : isPass ? "PASS" : "FAIL",
         isPass,
         isPerfect,
-        earnedIP: stats.answerIP,
+        earnedIP: isPass ? WORD_CLUE_IP : 0,
     };
 };
 
@@ -607,11 +608,10 @@ const BUDGET_CATEGORIES = ["school", "hospital", "road", "fire", "park", "water"
 const BUDGET_REQUIRE_FULL = true;
 
 const BUDGET_RANKS = [
-    { min: 90, rank: "S", ip: 50 },
-    { min: 75, rank: "A", ip: 40 },
-    { min: 60, rank: "B", ip: 30 },
-    { min: 45, rank: "C", ip: 20 },
-    { min: 0, rank: "D", ip: 10 },
+    { min: 90, rank: "S", ip: 250 },
+    { min: 80, rank: "A", ip: 200 },
+    { min: 70, rank: "B", ip: 150 },
+    { min: 0, rank: "C", ip: 100 },
 ];
 
 const isBudgetLevel = (levelId) =>
@@ -736,11 +736,9 @@ const INSPECTOR_LEVEL_ID = 16;
 const INSPECTOR_SECONDS = 120;
 
 const INSPECTOR_RANKS = [
-    { rank: "S", ip: 50, test: (s, i) => s >= 90 && i >= 85 },
-    { rank: "A", ip: 40, test: (s) => s >= 75 },
-    { rank: "B", ip: 30, test: (s) => s >= 55 },
-    { rank: "C", ip: 20, test: (s) => s >= 35 },
-    { rank: "D", ip: 10, test: () => true },
+    { rank: "S", ip: 200, test: (s) => s >= 7 },
+    { rank: "A", ip: 170, test: (s) => s >= 5 },
+    { rank: "B", ip: 120, test: () => true },
 ];
 
 const isInspectorLevel = (levelId) =>
@@ -898,7 +896,7 @@ const getInspectorStats = async (playId, levelId) => {
 };
 
 const calcInspectorResult = (stats) => {
-    const tier = INSPECTOR_RANKS.find((r) => r.test(stats.score, stats.integrity));
+    const tier = INSPECTOR_RANKS.find((r) => r.test(stats.correct));
 
     return {
         rank: tier.rank,
@@ -933,7 +931,7 @@ const calcInspectorResult = (stats) => {
 
 const CRISIS_LEVEL_ORDER = 1; // Unit 6 ด่านที่ 1
 const CRISIS_UNIT_ID = 6;
-const CRISIS_SECONDS = 40;
+const CRISIS_SECONDS = 30;
 const CRISIS_SPECIAL_INTERVAL = 12;
 
 const CRISIS_SPECIALS = {

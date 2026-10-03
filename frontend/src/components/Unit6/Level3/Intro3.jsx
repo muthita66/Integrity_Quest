@@ -1,7 +1,11 @@
+import mirrorImage from "../../../assets/unit6/golden-mirror.png";
+
 export default function IntroScreen({ startGame }) {
     return (
-        <div className="sm-screen">
-            <p className="sm-eyebrow">🌑 Final</p>
+        <div className="sm-screen sm-golden-intro">
+            <div className="sm-mirror-preview"><img src={mirrorImage} alt="กระจกกรอบทองประดับคริสตัล" /><div className="sm-mirror-inscription"><span>ภาพสะท้อนที่มีค่า</span><strong>คือตัวคุณเอง</strong></div></div>
+            <div className="sm-intro-copy">
+            <p className="sm-eyebrow">บทที่ 6 · ภารกิจสุดท้าย</p>
             <h1 className="sm-title">เงาในกระจก</h1>
 
             <p className="sm-sub">
@@ -31,6 +35,7 @@ export default function IntroScreen({ startGame }) {
                 <button className="sm-btn" onClick={startGame}>
                     เริ่มมองเข้าไปในกระจก
                 </button>
+            </div>
             </div>
         </div>
     );

@@ -36,7 +36,7 @@ const UNIT5_ROUTES = [
 // (บทที่ยังไม่มีด่านจะกดเข้า intro ของบทได้ตามเดิม)
 // Unit 6 : ด่านที่ 1, 2, 3 (ตาม order_no)
 const UNIT6_ROUTES = [
-    "/unit6/intro",
+    "/unit6/game1",
     "/unit6/game2",
     "/unit6/game3",
 ];
@@ -377,7 +377,7 @@ export default function UnitContentPage() {
         if (unitId === 6) {
             return (
                 UNIT6_ROUTES[index] ||
-                "/unit6/intro"
+                "/unit6/game1"
             );
         }
 
@@ -398,6 +398,13 @@ export default function UnitContentPage() {
                 "ไม่สามารถตรวจสอบ Progress ได้\nกรุณาลองใหม่อีกครั้ง"
             );
 
+            return;
+        }
+
+        // หน้าเลือกบทที่ 6 ให้เริ่มที่อินโทรเกม 1 เสมอ
+        // ไม่ให้ Progress เดิมพาไปเปิดเกม 2 โดยตรง
+        if (currentUnitId === 6) {
+            navigate("/unit6/game1");
             return;
         }
 
@@ -462,7 +469,7 @@ export default function UnitContentPage() {
         }
 
         if (currentUnitId === 6) {
-            navigate("/unit6/intro");
+            navigate("/unit6/game1");
             return;
         }
 

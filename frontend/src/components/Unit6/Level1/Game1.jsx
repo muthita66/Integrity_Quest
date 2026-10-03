@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "./style/Game1.css";
+import { selectNextEvent } from "./eventSelection";
 import {
     FaClipboardList,
     FaUtensils,
@@ -85,7 +86,7 @@ const SPECIAL_EVENTS = [
     { id: "virtueDay", type: "integrityFlat", title: "🎉 วันคุณธรรม", description: "ทุกคนร่วมมือกันทำความดี Integrity เพิ่มขึ้น" },
 ];
 
-const GAME_SECONDS = 40;
+const GAME_SECONDS = 30;
 const SPECIAL_EVENT_INTERVAL = 12;
 const SPECIAL_EVENT_CHANCE = 0.7;
 
@@ -119,6 +120,8 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
 
     const playIdRef = useRef(null);
     const spawnNoRef = useRef(0);
+    const seenEventsRef = useRef(new Set());
+    const lastEventIdRef = useRef(null);
     const pendingRef = useRef(new Set()); // request ที่ยังไม่ตอบกลับ
     const seqRef = useRef(0);             // กันผลเก่าทับผลใหม่
     const appliedSeqRef = useRef(0);
@@ -253,12 +256,11 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
         const target = getTargetConcurrency(elapsed);
         if (list.length < target) {
             const occupied = new Set(list.map((e) => e.locationId));
-            const available = LOCATIONS.filter((l) => !occupied.has(l.id) && eventPool[l.id]?.length);
+            const next = selectNextEvent(LOCATIONS, eventPool, occupied, seenEventsRef.current, lastEventIdRef.current);
 
-            if (available.length > 0) {
-                const loc = available[Math.floor(Math.random() * available.length)];
-                const pool = eventPool[loc.id];
-                const template = pool[Math.floor(Math.random() * pool.length)];
+            if (next) {
+                const { location: loc, event: template } = next;
+                lastEventIdRef.current = template.event_id;
                 spawnNoRef.current += 1;
                 const spawnNo = spawnNoRef.current;
                 const uid = `${loc.id}-${template.event_code}-${spawnNo}`;
@@ -322,6 +324,8 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
 
             playIdRef.current = data.data.play_id;
             spawnNoRef.current = 0;
+            seenEventsRef.current = new Set();
+            lastEventIdRef.current = null;
             seqRef.current = 0;
             appliedSeqRef.current = 0;
             pendingRef.current = new Set();
@@ -356,7 +360,25 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
         setFinishError("");
 
         try {
-            await Promise.allSettled([...pendingRef.current]);
+            // เหตุการณ์ที่ยังค้างบนกระดานเมื่อหมดเวลา = หลุดมือ
+            // ต้องบันทึกก่อนเรียก complete ไม่เช่นนั้นจะไม่ถูกรวมใน missed
+            const unresolved = [...activeRef.current];
+            activeRef.current = [];
+            setActiveEvents([]);
+
+            const finalTimeoutRequests = unresolved.map((ev) =>
+                postGame("respond", {
+                    spawnNo: ev.spawnNo,
+                    eventId: ev.event.event_id,
+                    choiceId: null,
+                    responseSeconds: ev.event.time_limit,
+                })
+            );
+
+            await Promise.allSettled([
+                ...pendingRef.current,
+                ...finalTimeoutRequests,
+            ]);
 
             const response = await fetch(`${API_URL}/api/game-play/complete`, {
                 method: "POST",
@@ -381,7 +403,7 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
             console.error("Complete crisis game error:", error);
             setFinishError(error.message || "บันทึกผลไม่สำเร็จ");
         }
-    }, [navigate]);
+    }, [navigate, postGame]);
 
     useEffect(() => {
         if (phase === "finishing") finish();
@@ -440,7 +462,7 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
                         <div className="intro-badge">🦸</div>
                         <h1><FaGraduationCap className="title-icon" /> Crisis Response</h1>
                         <p>
-                            โรงเรียนกำลังเกิดเหตุการณ์หลายจุด คุณมีเวลาเพียง 2 นาที
+                            โรงเรียนกำลังเกิดเหตุการณ์หลายจุด คุณมีเวลาเพียง 30 วินาที
                             ในการช่วยเหลือให้มากที่สุด
                         </p>
                         <div className="intro-goals">
@@ -600,7 +622,7 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
                                     <span>เริ่มใหม่อีกครั้ง</span>
                                 </div>
                             </button>
-                            <button className="btn green" onClick={() => navigate('/unit6/game2')}>
+                            <button className="btn green" onClick={() => navigate(nextRoute)}>
                                 <FaPlay />
                                 <div>
                                     <strong>ด่านต่อไป</strong>

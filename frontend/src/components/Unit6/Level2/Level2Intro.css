@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Sarabun:wght@400;500;600&display=swap');
+
+.network-intro {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  color: #f3f5ff;
+  font-family: 'Sarabun', sans-serif;
+  background: linear-gradient(180deg, #13224135, #101a365e), url('../../../assets/unit6/network-intro-background.png') center / cover no-repeat;
+  background-color: #101a36;
+}
+.network-intro * { box-sizing: border-box; }
+.network-intro-shell { width: 100%; max-width: 1080px; }
+.network-intro-top {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px; padding: 12px 20px; border: 1px solid #c6d5ff38;
+  border-radius: 16px; background: linear-gradient(110deg, #203456ed, #302c51ed);
+  backdrop-filter: blur(12px); box-shadow: 0 8px 24px #07112725;
+  font-family: 'Kanit', sans-serif; font-size: 13px; letter-spacing: 1px; color: #dae4fc;
+}
+.network-intro-top > span { display: flex; align-items: center; gap: 10px; }
+.network-intro-top svg { color: #ffd280; }
+.network-intro-top i { width: 4px; height: 4px; border-radius: 50%; background: #ffd280; }
+.network-intro-card {
+  display: grid; grid-template-columns: 1fr 1fr; align-items: center;
+  gap: 30px; padding: 32px; border: 1px solid #c3d1ff45; border-radius: 26px;
+  background: radial-gradient(ellipse at 95% 10%, #8973d935, transparent 60%), linear-gradient(120deg, #1b3153f5, #252a4bf5);
+  box-shadow: 0 24px 65px #08152f45, inset 0 1px 0 #ffffff15;
+  backdrop-filter: blur(14px); overflow: hidden; position: relative;
+}
+.network-intro-card:before { content: ''; position: absolute; top: 0; left: 32px; right: 32px; height: 2px; background: linear-gradient(90deg, #ffd089, #b29aff, #72d8df); opacity: .8; }
+.network-intro-copy { padding: 4px 8px; position: relative; z-index: 1; }
+.network-intro-badge { display: inline-flex; align-items: center; gap: 8px; color: #ffdc9b; background: #ffcb7120; border: 1px solid #ffcf7145; border-radius: 30px; padding: 7px 13px; font-size: 12px; }
+.network-intro h1 { font-family: 'Kanit', sans-serif; font-size: clamp(38px, 3.6vw, 50px); line-height: 1.2; font-weight: 600; letter-spacing: -.8px; margin: 17px 0 12px; }
+.network-intro h1 span { display: block; color: #ffd285; text-shadow: 0 3px 24px #ffb63f25; }
+.network-intro-lead { font-family: 'Kanit', sans-serif; font-size: 20px; line-height: 1.5; margin: 0 0 12px; color: #e1e9ff; }
+.network-intro-description { max-width: 410px; font-size: 14px; line-height: 1.8; color: #bacbe4; margin: 0; }
+.network-intro-stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; font-size: 12px; }
+.network-intro-stats span { display: flex; align-items: center; gap: 7px; padding: 8px 10px; border-radius: 10px; background: #0d1b363f; border: 1px solid #ffffff12; color: #dae5fa; }
+.network-intro-stats span:first-child svg { color: #ff93b2; fill: #ff93b230; }
+.network-intro-stats span:last-child svg { color: #ffd285; }
+.network-intro-start { display: flex; align-items: center; justify-content: space-between; gap: 30px; width: 100%; max-width: 330px; border: 1px solid #ffe3aa; border-radius: 14px; padding: 14px 22px; background: linear-gradient(110deg, #ffe0a0, #ffc363 55%, #f5aa51); color: #402711; font-family: 'Kanit', sans-serif; font-size: 18px; font-weight: 500; box-shadow: 0 8px 24px #ffc16328, inset 0 1px 0 #fff8; cursor: pointer; transition: transform .2s, box-shadow .2s; }
+.network-intro-start:hover { transform: translateY(-3px); box-shadow: 0 12px 32px #ffc16345; }
+.network-intro-start:focus-visible { outline: 3px solid #fff; outline-offset: 5px; }
+.network-intro-caption { display: block; font-size: 11px; color: #a6b9d7; margin-top: 10px; }
+.network-intro-visual { position: relative; width: 100%; aspect-ratio: 440 / 400; border-radius: 22px; border: 1px solid #b1c7ff28; background: radial-gradient(circle at 50% 45%, #897bea32, transparent 68%), linear-gradient(145deg, #28466c90, #26244790); box-shadow: inset 0 1px 0 #ffffff0c; }
+.network-intro-orbit { position: absolute; left: 50%; top: 50%; border: 1px solid #bdd4ff16; border-radius: 50%; transform: translate(-50%, -50%); }
+.orbit-one { width: 65%; aspect-ratio: 1; }
+.orbit-two { width: 93%; aspect-ratio: 1; }
+.network-intro-lines { position: absolute; width: 100%; height: 100%; inset: 0; fill: none; stroke: #ffda8e9c; stroke-width: 2; stroke-dasharray: 5 7; filter: drop-shadow(0 0 4px #ffbf6450); }
+.network-intro-node { position: absolute; transform: translate(-50%, -50%); width: 92px; height: 92px; border-radius: 22px; border: 1px solid #c6d9ff55; background: linear-gradient(145deg, #4b6f9d, #294466); box-shadow: 0 10px 24px #0b153b40, inset 0 1px 0 #ffffff20; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; font-size: 12px; font-weight: 600; }
+.network-intro-node svg { width: 29px; height: 29px; color: #d6e8ff; }
+.network-intro-node small { font-size: 10px; color: #ffe2aa; font-weight: 400; }
+.node-student { left: 50%; top: 19.5%; width: 104px; height: 104px; border-color: #ffd18b9c; background: linear-gradient(145deg, #846239, #4a3e45); box-shadow: 0 0 32px #ffc36b20, 0 10px 24px #0b153b40; }
+.node-student svg { color: #ffdb98; }
+.node-community { left: 20.45%; top: 47%; background: linear-gradient(145deg, #3b779c, #2b486d); }
+.node-school { left: 79.55%; top: 47%; background: linear-gradient(145deg, #7863ad, #4b407b); border-color: #c6afff66; }
+.node-school svg { color: #e1d1ff; }
+.node-court { left: 50%; top: 75%; border-color: #9bf5d980; background: linear-gradient(145deg, #3b8b87, #24505d); box-shadow: 0 0 24px #83e7cc15, 0 10px 24px #0b153b40; }
+.node-court svg { color: #b1ffe7; }
+.network-intro-visual-label { position: absolute; bottom: 4%; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 11px; color: #c0cee8; }
+.network-intro-guide { margin-top: 16px; background: linear-gradient(110deg, #1c3153f2, #292b4bf2); border: 1px solid #c6d5ff38; border-radius: 22px; padding: 18px 20px; backdrop-filter: blur(12px); box-shadow: 0 12px 35px #0a173430; }
+.network-intro-guide-heading { display: flex; justify-content: space-between; align-items: center; font-family: 'Kanit', sans-serif; font-size: 14px; color: #e2eafe; margin-bottom: 12px; }
+.network-intro-guide-heading span:last-child { font-family: 'Sarabun', sans-serif; font-size: 11px; color: #b5c6e2; }
+.network-intro-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.network-intro-steps article { display: flex; align-items: center; gap: 13px; padding: 16px; border: 1px solid #9acfff35; border-radius: 14px; background: linear-gradient(120deg, #355c8555, #26405e55); }
+.network-intro-steps article:nth-child(2) { border-color: #c3a5ff35; background: linear-gradient(120deg, #66548c55, #42376155); }
+.network-intro-steps article:nth-child(3) { border-color: #87e2d435; background: linear-gradient(120deg, #34767355, #264b5955); }
+.network-intro-step-icon { position: relative; flex-shrink: 0; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; background: #91c6ff18; color: #a8d6ff; }
+.network-intro-steps article:nth-child(2) .network-intro-step-icon { background: #cfafff18; color: #d9c2ff; }
+.network-intro-steps article:nth-child(3) .network-intro-step-icon { background: #9bedd718; color: #a2f1d8; }
+.network-intro-step-icon b { position: absolute; right: -4px; top: -6px; font-size: 9px; font-weight: 600; color: #d9e6ff; background: #2d4263; padding: 2px 4px; border-radius: 5px; }
+.network-intro-steps h2 { font-family: 'Kanit', sans-serif; font-size: 15px; font-weight: 500; margin: 0 0 4px; }
+.network-intro-steps p { font-size: 11px; line-height: 1.7; color: #bfcee5; margin: 0; }
+@media (max-width: 760px) {
+  .network-intro { padding: 20px 16px; }
+  .network-intro-card { grid-template-columns: 1fr; gap: 24px; padding: 26px 22px; }
+  .network-intro-copy { padding: 0; }
+  .network-intro h1 span { display: inline; margin-left: 5px; }
+  .network-intro-visual { max-width: 380px; justify-self: center; }
+  .network-intro-steps { grid-template-columns: 1fr; }
+  .network-intro-steps article { padding: 14px; }
+  .network-intro-top { font-size: 10px; letter-spacing: .6px; padding: 11px 14px; }
+  .network-intro-guide { padding: 16px; }
+  .network-intro-guide-heading { font-size: 12px; gap: 10px; }
+  .network-intro-start { max-width: none; }
+  .network-intro-caption { text-align: center; }
+  .network-intro-description { max-width: none; }
+}
+@media (max-width: 380px) {
+  .network-intro-node { width: 76px; height: 76px; border-radius: 18px; font-size: 11px; }
+  .node-student { width: 86px; height: 86px; }
+  .network-intro h1 { font-size: 34px; }
+}

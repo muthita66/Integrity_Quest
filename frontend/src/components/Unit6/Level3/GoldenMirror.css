@@ -1,0 +1,185 @@
+.sm-root.sm-root { background: radial-gradient(ellipse at 30% 45%, #68461725, transparent 55%), #030303; --ink-dim: #c0b39c; --violet: #deb775; --hairline-strong: #d8b67855; padding: 24px; }
+.sm-root .sm-stage { max-width: 980px; }
+.sm-root .sm-golden-intro { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 46px; }
+.sm-root .sm-mirror-preview { position: relative; width: 100%; max-width: 430px; justify-self: center; }
+.sm-root .sm-mirror-preview img { display: block; width: 100%; height: auto; }
+.sm-root .sm-mirror-inscription { position: absolute; inset: 37% 20% auto; text-align: center; color: #fff0cf; text-shadow: 0 2px 15px #000; }
+.sm-root .sm-mirror-inscription span { display: block; font-size: 16px; letter-spacing: 1px; }
+.sm-root .sm-mirror-inscription strong { display: block; font-size: 28px; margin-top: 10px; font-family: 'Kanit', sans-serif; font-weight: 500; }
+.sm-root .sm-intro-copy { padding: 26px 0; }
+.sm-root .sm-intro-copy .sm-eyebrow { text-align: left; letter-spacing: 1.5px; color: #e2bd7b; }
+.sm-root .sm-intro-copy .sm-title { text-align: left; color: #ffe3ad; font-size: 44px; margin: 15px 0; }
+.sm-root .sm-intro-copy .sm-sub { text-align: left; margin: 0 0 24px; line-height: 1.9; }
+.sm-root .sm-rules-list { padding: 0; }
+.sm-root .sm-rules-list li { border-color: #d0a75f25; padding: 14px 0; }
+.sm-root .sm-rules-list b { color: #e0ba76; }
+.sm-root .sm-begin-wrap { text-align: left; margin-top: 26px; }
+.sm-root .sm-btn { background: linear-gradient(110deg, #ffe3a7, #ce943d); color: #38240e; border: 1px solid #ffe5b0; border-radius: 13px; box-shadow: 0 6px 25px #cb932e25; padding: 14px 24px; }
+.sm-root .sm-btn:disabled { opacity: .45; }
+.sm-root .sm-mirror {
+  width: min(100%, 540px); aspect-ratio: 2 / 3; margin: 0 auto; padding: 150px 80px 170px;
+  background: url('../../../assets/unit6/golden-mirror.png') center / 100% 100% no-repeat;
+  border: 0; border-radius: 0; box-shadow: none; min-height: 0; overflow: visible;
+}
+.sm-root .sm-mirror .sm-crack { display: none; }
+.sm-root .sm-q-tag { color: #f4cc85; }
+.sm-root .sm-q-text { color: #fff2d9; text-shadow: 0 2px 8px #000; line-height: 1.8; }
+.sm-root .sm-textarea { background: #100d08b8; color: #fff3df; border: 1px solid #d5ac6766; border-radius: 12px; min-height: 120px; }
+.sm-root .sm-textarea:focus { outline: 2px solid #e6bb75; outline-offset: 2px; }
+.sm-root .sm-frame-rules, .sm-root .sm-row { max-width: 540px; margin-left: auto; margin-right: auto; }
+@media(max-width:720px) {
+  .sm-root .sm-golden-intro { grid-template-columns: 1fr; gap: 0; }
+  .sm-root .sm-mirror-preview { max-width: 280px; }
+  .sm-root .sm-intro-copy { padding: 10px 0 24px; }
+  .sm-root .sm-intro-copy .sm-title { font-size: 34px; }
+  .sm-root .sm-mirror-inscription strong { font-size: 21px; }
+  .sm-root .sm-mirror-inscription span { font-size: 12px; }
+  .sm-root .sm-mirror { padding: 110px 54px 125px; }
+}
+
+
+/* Wide crystal mirror with gentle floating gold light. */
+.sm-root .sm-wide-scene { position: relative; isolation: isolate; }
+.sm-root .sm-wide-scene .sm-mirror {
+  width: 100%; max-width: 980px; aspect-ratio: 1672 / 941;
+  background-image: url('../../../assets/unit6/golden-mirror-wide.png');
+  padding: 145px 190px 155px;
+  justify-content: center;
+}
+.sm-root .sm-wide-scene .sm-q-tag { font-size: 12px; letter-spacing: 2px; text-align: center; margin: 0 0 12px; }
+.sm-root .sm-wide-scene .sm-q-text { font-size: 20px; line-height: 1.7; text-align: center; margin: 0 0 18px; }
+.sm-root .sm-wide-scene .sm-textarea { width: 100%; min-height: 105px; height: 105px; padding: 14px 18px; font-size: 15px; line-height: 1.7; resize: vertical; max-height: 150px; background: #100b07b0; border-color: #e3bf7d66; box-shadow: inset 0 2px 15px #0003; }
+.sm-root .sm-wide-scene .sm-textarea::placeholder { color: #d1b98b; }
+.sm-root .sm-wide-scene .sm-frame-rules { margin-top: 8px; margin-bottom: 18px; }
+.sm-root .sm-wide-scene .sm-row { max-width: 650px; }
+.sm-root .sm-gold-motes { position: absolute; inset: -15px -35px; z-index: -1; pointer-events: none; overflow: hidden; }
+.sm-root .sm-gold-motes span { position: absolute; border-radius: 50%; background: #ffe4a4; box-shadow: 0 0 8px 2px #edb64770; animation: sm-gold-float 7s ease-in-out infinite; }
+@keyframes sm-gold-float { 0%,100% { opacity: .15; transform: translateY(12px) scale(.7); } 50% { opacity: .9; transform: translateY(-18px) scale(1.1); } }
+@media(max-width:900px) {
+  .sm-root .sm-wide-scene .sm-mirror { padding: 15% 19% 17%; }
+  .sm-root .sm-wide-scene .sm-q-text { font-size: 16px; margin-bottom: 10px; }
+  .sm-root .sm-wide-scene .sm-textarea { height: 85px; min-height: 85px; font-size: 13px; }
+}
+@media(max-width:600px) {
+  .sm-root .sm-wide-scene .sm-mirror { aspect-ratio: auto; min-height: 430px; padding: 85px 55px 95px; }
+  .sm-root .sm-wide-scene .sm-q-text { font-size: 15px; }
+  .sm-root .sm-wide-scene .sm-q-tag { letter-spacing: 1px; }
+  .sm-root .sm-gold-motes { inset: 0 -10px; }
+}
+@media(prefers-reduced-motion:reduce) { .sm-root .sm-gold-motes span { animation: none; opacity: .5; } }
+
+/* Larger mirror, with the writing area kept inside the glass. */
+.sm-root .sm-stage:has(.sm-wide-scene) { max-width: 1200px; }
+.sm-root .sm-wide-scene .sm-mirror {
+  max-width: 1200px;
+  padding: 190px 245px 205px;
+}
+.sm-root .sm-wide-scene .sm-q-text { font-size: 22px; margin-bottom: 20px; }
+.sm-root .sm-wide-scene .sm-textarea { min-height: 120px; height: 120px; max-height: 140px; }
+.sm-root .sm-wide-scene .sm-row { max-width: 710px; }
+@media(max-width:1100px) {
+  .sm-root .sm-wide-scene .sm-mirror { padding: 17% 21% 19%; }
+  .sm-root .sm-wide-scene .sm-q-text { font-size: 18px; margin-bottom: 14px; }
+  .sm-root .sm-wide-scene .sm-textarea { min-height: 95px; height: 95px; }
+}
+@media(max-width:600px) {
+  .sm-root .sm-wide-scene .sm-mirror { min-height: 460px; padding: 100px 60px 110px; }
+  .sm-root .sm-wide-scene .sm-q-text { font-size: 15px; }
+  .sm-root .sm-wide-scene .sm-textarea { min-height: 85px; height: 85px; }
+}
+
+/* Refined glass writing surface and quieter typography. */
+.sm-root .sm-wide-scene .sm-mirror {
+  position: relative;
+  padding: 0;
+  display: block;
+  aspect-ratio: 1672 / 941;
+  min-height: 0;
+}
+.sm-root .sm-wide-scene .sm-q-tag {
+  position: absolute;
+  top: 31%; left: 25%; width: 50%;
+  margin: 0; font-size: 11px; line-height: 1.4; letter-spacing: 2px;
+  color: #ffe5ae; text-shadow: 0 2px 8px #000;
+}
+.sm-root .sm-wide-scene .sm-q-text {
+  position: absolute;
+  top: 36%; left: 24%; width: 52%;
+  margin: 0; font-size: clamp(15px, 1.5vw, 20px); line-height: 1.7;
+  font-weight: 400; color: #fff9eb; text-shadow: 0 2px 6px #20160b;
+}
+.sm-root .sm-wide-scene .sm-textarea {
+  position: absolute;
+  top: 52%; left: 25%; width: 50%;
+  height: 16%; min-height: 0; max-height: none; resize: none;
+  padding: 16px 20px; border-radius: 18px;
+  background: linear-gradient(135deg, #fff4da24, #34251842);
+  border: 1px solid #ffe3ac66;
+  box-shadow: inset 0 1px 0 #fff9e72b, 0 5px 18px #20120c20;
+  backdrop-filter: blur(8px);
+  color: #fff9ee; font-size: 15px; line-height: 1.8;
+}
+.sm-root .sm-wide-scene .sm-textarea::placeholder { color: #f5e2bf; font-size: 13px; }
+.sm-root .sm-wide-scene .sm-textarea:focus { outline: none; border-color: #ffe1a0; box-shadow: 0 0 0 3px #ffe1a012, inset 0 1px 0 #fff9e74b; }
+.sm-root .sm-wide-scene .sm-frame-rules { margin: 0 auto 14px; gap: 10px; }
+.sm-root .sm-wide-scene .sm-row { max-width: 600px; align-items: center; }
+.sm-root .sm-wide-scene .sm-hint { color: #b6a588; font-size: 12px; }
+.sm-root .sm-wide-scene .sm-btn { min-width: 120px; border-radius: 30px; padding: 12px 25px; }
+@media(max-width:720px) {
+  .sm-root .sm-wide-scene .sm-mirror { aspect-ratio: auto; height: 500px; background-size: 100% 100%; }
+  .sm-root .sm-wide-scene .sm-q-tag { top: 29%; }
+  .sm-root .sm-wide-scene .sm-q-text { top: 34%; left: 19%; width: 62%; font-size: 14px; }
+  .sm-root .sm-wide-scene .sm-textarea { top: 53%; left: 21%; width: 58%; height: 16%; padding: 10px 12px; font-size: 13px; }
+}
+
+/* Screens are direct flex children; give the mirror a definite width. */
+.sm-root .sm-wide-scene {
+  width: min(100%, 1200px);
+  flex: 0 1 1200px;
+  min-width: 0;
+  margin: 0 auto;
+}
+.sm-root .sm-golden-intro { width: min(100%, 980px); min-width: 0; }
+.sm-root .sm-wide-scene .sm-mirror {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1672 / 941;
+  margin: 0 auto;
+}
+@media(max-width:720px) {
+  .sm-root .sm-wide-scene .sm-mirror { height: 500px; aspect-ratio: auto; }
+}
+
+.sm-root .sm-result-screen {
+  width: min(100%, 920px); min-width: 0; margin: 0 auto;
+  padding: 30px 38px; border-radius: 28px;
+  background: radial-gradient(ellipse at 50% 0, #b7883920, transparent 50%), linear-gradient(145deg, #1b1924, #111019);
+  border: 1px solid #e0b76b55; box-shadow: 0 22px 65px #0006, inset 0 1px 0 #ffe4b512;
+}
+.sm-root .sm-result-screen .sm-eyebrow { color: #e9c78b; margin-bottom: 16px; letter-spacing: 3px; }
+.sm-root .sm-result-screen .sm-medallion { position: relative; display: grid; place-items: center; width: 110px; height: 110px; margin: 0 auto 12px; border-radius: 50%; background: radial-gradient(circle, #ffeac020, #91612615); box-shadow: 0 0 35px #e5b35920; }
+.sm-root .sm-award-icon { position: relative; z-index: 1; color: #ffe0a0; filter: drop-shadow(0 3px 8px #d4a24344); }
+.sm-root .sm-result-screen .sm-ring, .sm-root .sm-result-screen .sm-ring2 { position: absolute; inset: 0; width: auto; height: auto; border-radius: 50%; border: 1px solid #d8af68; }
+.sm-root .sm-result-screen .sm-ring2 { inset: 9px; border-color: #d8af6855; }
+.sm-root .sm-result-screen .sm-badge-name { font-family: 'Kanit', sans-serif; font-size: 24px; color: #ffdc92; margin: 8px 0 3px; letter-spacing: 3px; }
+.sm-root .sm-result-screen .sm-badge-th { margin-bottom: 18px; color: #c5b696; }
+.sm-root .sm-result-screen .sm-overall { max-width: 680px; margin: 0 auto 22px; text-align: center; line-height: 1.85; color: #e8e1f1; font-size: 15px; }
+.sm-root .sm-result-screen .sm-traits { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin-bottom: 20px; }
+.sm-root .sm-result-screen .trait { padding: 18px; border: 1px solid #c4addc25; border-radius: 16px; background: linear-gradient(130deg, #35304680, #26233780); }
+.sm-root .sm-result-screen .trait-top { gap: 12px; }
+.sm-root .sm-result-screen .trait-name { font-size: 13px; color: #e2d7f0; }
+.sm-root .sm-result-screen .trait-score { color: #ffe0a0; font-size: 13px; }
+.sm-root .sm-result-screen .trait-bar { height: 7px; border-radius: 10px; margin: 12px 0 10px; background: #0f0d19; overflow: hidden; }
+.sm-root .sm-result-screen .trait-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #a48ad0, #efcb88); }
+.sm-root .sm-result-screen .trait-note { color: #bdb0ce; font-size: 12px; line-height: 1.75; margin: 0; }
+.sm-root .sm-result-screen .sm-shadow-msg { padding: 14px 18px; border: 1px solid #d7b57330; border-left: 3px solid #d7b573; border-radius: 12px; background: #d7b57309; color: #ddcfb2; font-size: 13px; margin-bottom: 22px; }
+.sm-root .sm-result-screen .sm-again-wrap { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
+.sm-root .sm-result-screen .sm-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-width: 170px; margin: 0; }
+.sm-root .sm-result-screen .sm-map-btn { background: #30273d; border-color: #c4a4e060; color: #eddefb; box-shadow: none; }
+.sm-root .sm-result-screen .sm-btn:hover { filter: brightness(1.12); }
+.sm-root .sm-result-screen .sm-btn:focus-visible { outline: 2px solid #fff0cc; outline-offset: 4px; }
+@media(max-width:640px) {
+  .sm-root .sm-result-screen { padding: 24px 18px; }
+  .sm-root .sm-result-screen .sm-traits { grid-template-columns: 1fr; }
+  .sm-root .sm-result-screen .sm-btn { flex: 1; }
+}

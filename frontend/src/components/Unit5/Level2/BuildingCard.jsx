@@ -18,14 +18,16 @@ export default function BuildingCard({
 
     return (
         <motion.div
-            whileHover={{ scale: 1.02 }}
+        whileHover={{ scale: 1.03, y: -5 }}
             className="
-        bg-[#f5ecdf]
+        min-w-0
+        bg-[#fff8e7]/95
         border-2
-        border-[#ccb79d]
-        rounded-2xl
-        shadow-lg
-        p-5
+        border-[#e0a33d]
+        rounded-[26px]
+        shadow-[7px_8px_0_rgba(70,38,15,.2),0_12px_26px_rgba(50,25,8,.2)]
+        backdrop-blur-sm
+        p-4
         flex
         flex-col
         justify-between
@@ -34,7 +36,7 @@ export default function BuildingCard({
             {/* Header */}
 
             <div className="flex items-center gap-4">
-                <div className="text-4xl text-[#5a3b22]">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f4c45a]/35 text-3xl text-[#6b401d] shadow-inner">
                     {building.icon}
                 </div>
 
@@ -51,17 +53,17 @@ export default function BuildingCard({
 
             {/* ดาว */}
 
-            <div className="flex gap-1 mt-4">
+            <div className="flex gap-1 mt-2">
                 {Array.from({ length: 5 }).map((_, i) =>
                     i < stars ? (
                         <BsFillStarFill
                             key={i}
-                            className="text-yellow-400 text-xl"
+                            className="text-yellow-400 text-lg"
                         />
                     ) : (
                         <BsStar
                             key={i}
-                            className="text-gray-300 text-xl"
+                            className="text-gray-300 text-lg"
                         />
                     )
                 )}
@@ -69,7 +71,7 @@ export default function BuildingCard({
 
             {/* งบ */}
 
-            <div className="mt-5 flex items-center justify-between">
+            <div className="mt-3 flex items-center justify-between">
 
                 <motion.button
                     whileTap={{ scale: .9 }}
@@ -79,7 +81,7 @@ export default function BuildingCard({
             w-11
             h-11
             rounded-full
-            bg-red-500
+                    bg-gradient-to-br from-rose-400 to-red-600
             text-white
             text-2xl
             font-black
@@ -101,7 +103,7 @@ export default function BuildingCard({
             w-11
             h-11
             rounded-full
-            bg-green-600
+                    bg-gradient-to-br from-emerald-400 to-green-600
             text-white
             text-2xl
             font-black
@@ -115,7 +117,7 @@ export default function BuildingCard({
 
             {/* Progress */}
 
-            <div className="mt-5">
+            <div className="mt-3">
 
                 <div className="h-3 rounded-full bg-[#d8c8b5] overflow-hidden">
 
