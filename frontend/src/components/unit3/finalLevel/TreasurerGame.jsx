@@ -93,20 +93,10 @@ export default function TreasurerGame() {
 
     if (game.loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-slate-900">
-                <div className="rounded-2xl bg-white px-8 py-6 text-center shadow-xl">
-                    <div className="mb-3 text-4xl">
-                        🏕️
-                    </div>
-
-                    <p className="text-xl font-black">
-                        กำลังเตรียมภารกิจเหรัญญิก...
-                    </p>
-
-                    <p className="mt-2 text-gray-500">
-                        กำลังโหลดข้อมูลเกม
-                    </p>
-                </div>
+            <div className="flex min-h-screen items-center justify-center bg-black">
+                <p className="text-xl sarabun-bold text-white">
+                    กำลังโหลดข้อมูลเกม...
+                </p>
             </div>
         );
     }
@@ -183,10 +173,10 @@ export default function TreasurerGame() {
                     backgroundRepeat: "no-repeat",
                 }}
             >
-                <div className="relative z-10 p-4 md:p-8">
+                <div className="relative z-10 p-3 md:p-6">
 
                     {/* Timer + Pause */}
-                    <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
+                    <div className="absolute top-3 left-3 right-3 z-20 flex items-center justify-between">
 
                         {/* Timer */}
                         <div
@@ -243,7 +233,7 @@ export default function TreasurerGame() {
                     <h1
                         className="
                             mt-0
-                            mb-3
+                            mb-2
                             text-center
                             text-3xl
                             font-black
@@ -256,10 +246,10 @@ export default function TreasurerGame() {
                     </h1>
 
                     {/* Game Layout */}
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 
                         {/* Left Side */}
-                        <div className="space-y-4 lg:col-span-2">
+                        <div className="space-y-3 lg:col-span-2">
 
                             <BudgetHeader
                                 balance={game.balance}
@@ -327,7 +317,7 @@ export default function TreasurerGame() {
                         </div>
 
                         {/* Right Side */}
-                        <div className="space-y-6">
+                        <div className="flex flex-col gap-3">
 
                             <CartPanel
                                 cart={game.cart}
@@ -364,7 +354,7 @@ export default function TreasurerGame() {
                                     rounded-xl
                                     border-4
                                     border-black
-                                    py-2.5
+                                    py-2
                                     text-lg
                                     font-black
                                     shadow-xl

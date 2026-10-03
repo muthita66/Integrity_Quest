@@ -64,12 +64,13 @@ model departments {
 }
 
 model faculties {
-  faculty_id     Int            @id @default(autoincrement())
-  faculty_name   String         @db.VarChar(100)
-  group_id       Int
-  departments    departments[]
-  faculty_groups faculty_groups @relation(fields: [group_id], references: [group_id], onDelete: NoAction, onUpdate: NoAction, map: "faculty_pk_groups")
-  majors         majors[]
+  faculty_id             Int                      @id @default(autoincrement())
+  faculty_name           String                   @db.VarChar(100)
+  group_id               Int
+  departments            departments[]
+  faculty_groups         faculty_groups           @relation(fields: [group_id], references: [group_id], onDelete: NoAction, onUpdate: NoAction, map: "faculty_pk_groups")
+  majors                 majors[]
+  teacher_student_groups teacher_student_groups[]
 }
 
 model faculty_groups {
@@ -536,11 +537,12 @@ model logs_user_actions {
 }
 
 model majors {
-  major_id   Int        @id @default(autoincrement())
-  major_name String?    @db.VarChar(255)
-  faculty_id Int?
-  faculties  faculties? @relation(fields: [faculty_id], references: [faculty_id], onDelete: NoAction, onUpdate: NoAction, map: "major_fk_faculty")
-  students   students[]
+  major_id               Int                      @id @default(autoincrement())
+  major_name             String?                  @db.VarChar(255)
+  faculty_id             Int?
+  faculties              faculties?               @relation(fields: [faculty_id], references: [faculty_id], onDelete: NoAction, onUpdate: NoAction, map: "major_fk_faculty")
+  students               students[]
+  teacher_student_groups teacher_student_groups[]
 }
 
 model mission_rewards {
@@ -664,15 +666,16 @@ model students {
 }
 
 model teachers {
-  teacher_id Int       @id @default(autoincrement())
-  user_id    Int
-  first_name String    @db.VarChar(255)
-  last_name  String    @db.VarChar(255)
-  gender     String    @db.VarChar(50)
-  birth_date DateTime? @db.Date
-  dept_id    Int
-  position   String    @db.VarChar(255)
-  users      users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teacher_fk_userID")
+  teacher_id             Int                      @id @default(autoincrement())
+  user_id                Int
+  first_name             String                   @db.VarChar(255)
+  last_name              String                   @db.VarChar(255)
+  gender                 String                   @db.VarChar(50)
+  birth_date             DateTime?                @db.Date
+  dept_id                Int
+  position               String                   @db.VarChar(255)
+  teacher_student_groups teacher_student_groups[]
+  users                  users                    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teacher_fk_userID")
 }
 
 model unit_contents {
@@ -753,13 +756,16 @@ model user_quiz_answers {
 }
 
 model user_stats {
-  user_id          Int      @id
-  total_points     Int
-  current_streak   Int
-  highest_score    Int
-  last_login_date  DateTime @db.Date
-  integrity_points Int      @default(0)
-  users            users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "stats_fk_userID")
+  user_id                 Int       @id
+  total_points            Int
+  current_streak          Int
+  highest_score           Int
+  last_login_date         DateTime  @db.Date
+  integrity_points        Int       @default(0)
+  streak_bonus_ip         Int       @default(0)
+  last_streak_reward_date DateTime? @db.Date
+  streak_star_count       Int       @default(0)
+  users                   users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "stats_fk_userID")
 }
 
 model users {
@@ -1055,6 +1061,21 @@ model level_words {
   level                  level                    @relation(fields: [level_id], references: [level_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([level_id, word_order], map: "uq_level_word_order")
+}
+
+model teacher_student_groups {
+  group_id   Int        @id @default(autoincrement())
+  teacher_id Int
+  faculty_id Int?
+  major_id   Int?
+  year       Int?
+  note       String?
+  created_at DateTime   @default(now()) @db.Timestamp(6)
+  faculties  faculties? @relation(fields: [faculty_id], references: [faculty_id], onDelete: NoAction, onUpdate: NoAction)
+  majors     majors?    @relation(fields: [major_id], references: [major_id], onDelete: NoAction, onUpdate: NoAction)
+  teachers   teachers   @relation(fields: [teacher_id], references: [teacher_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([teacher_id], map: "idx_teacher_student_groups_teacher")
 }
 
 enum quiz_type_enum {

@@ -33,25 +33,10 @@ export default function CalculationGame() {
     const [hasMistakeOnCurrent, setHasMistakeOnCurrent] = useState(false);
     const [showHintModal, setShowHintModal] = useState(false);
     const [playId, setPlayId] = useState(null);
-    /*
-     * ผลจริงจาก Backend (completeGame ของ level_id=6) — เดิมหน้า
-     * Result รับ passed/firstTryCorrect ที่ Frontend คำนวณเอง (hp >= 15,
-     * ไม่เคยถูกตรวจสอบกับ DB เลย) ตอนนี้เก็บ response ดิบจาก backend
-     * ไว้ใช้ส่งต่อให้หน้า Result แทน (hp/passed/firstTryCorrect ที่เคย
-     * คำนวณเองฝั่งนี้ตัดออกไปด้วย เพราะไม่มีใครใช้แล้ว)
-     */
     const [result, setResult] = useState(null);
-
     const timerRef = useRef(null);
     const hasStartedRef = useRef(false);
-
     const currentQ = questions[currentStep];
-
-    // ==========================================
-    // เพลงพื้นหลัง เบา ๆ เล่นวนระหว่างเล่น
-    // พอจบเกม (หน้า Result) หรือหมดเวลา (TimeoutModal) เพลงจะหยุด
-    // แล้วเริ่มใหม่ตั้งแต่ต้นเมื่อกดเล่นอีกครั้ง
-    // ==========================================
     const [muted] = useGameMuted();
     const isMusicStopped = isFinished || feedback === "timeout";
 
@@ -415,8 +400,8 @@ export default function CalculationGame() {
 
     if (isLoading) {
         return (
-            <div className="flex min-h-screen items-center justify-center">
-                <p className="text-xl font-bold">
+            <div className="flex min-h-screen items-center justify-center bg-black">
+                <p className="text-xl sarabun-bold text-white">
                     กำลังโหลดข้อมูลเกม...
                 </p>
             </div>
@@ -447,7 +432,7 @@ export default function CalculationGame() {
     }
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4 font-sara">
+        <div className="relative flex h-screen w-full items-center justify-center overflow-hidden font-sara">
             {/* Background */}
             <img
                 src={bgGame}
@@ -459,7 +444,7 @@ export default function CalculationGame() {
             <div className="pointer-events-none absolute inset-0 z-0 bg-white/30" />
 
             {/* Game Board */}
-            <div className="relative w-full max-w-6xl aspect-video overflow-hidden border-4 border-black shadow-2xl z-10">
+            <div className="relative w-full h-full overflow-hidden z-10 flex flex-col">
                 <div
                     className="absolute inset-0 bg-cover bg-center"
                     style={{ backgroundImage: `url(${bgGame})` }}
@@ -534,7 +519,7 @@ export default function CalculationGame() {
                     <ProductComparison items={currentQ.items} />
 
                     {/* กล่องโจทย์ + คำตอบ */}
-                    <div className="w-full max-w-3xl h-[200px] mx-auto flex flex-col gap-4 mt-2">
+                    <div className="w-full max-w-[800px] h-[200px] mx-auto flex flex-col gap-4 mt-2">
                         <QuestionPanel
                             question={currentQ.question}
                             onHintClick={() => setShowHintModal(true)}

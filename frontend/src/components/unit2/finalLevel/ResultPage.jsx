@@ -129,7 +129,7 @@ export default function ResultPage({
 
                             {/* Medal — ซ้ายบน ใต้ MISSION DEBRIEF */}
                             {isPassed && medal && (
-                                <div className="flex items-center gap-3 mt-2 mb-2">
+                                <div className="flex items-center gap-3 mt-0 mb-1">
                                     <img
                                         src={
                                             medal === 'gold'
@@ -201,15 +201,12 @@ export default function ResultPage({
                             {isPassed && (
                                 <div className="mt-2 flex flex-col gap-0.5">
                                     <span className="font-stamp text-sm md:text-base font-bold text-[#2F6B4F]">
-                                        +{earnedIP} IP
+                                        Integrity Points +{earnedIP} IP
                                         {medalBonusIP > 0 && (
                                             <span className="ml-1 text-[10px] md:text-[11px] font-normal text-[#8C806A]">
-                                                (พื้นฐาน {baseIP} + โบนัสเหรียญ {medalBonusIP})
+                                                (Integrity Points {baseIP} + Bonus First Round {medalBonusIP})
                                             </span>
                                         )}
-                                    </span>
-                                    <span className="font-thai text-[11px] text-[#8C806A]">
-                                        IP สะสมทั้งหมด {totalIntegrityPoints}
                                     </span>
                                 </div>
                             )}
@@ -316,10 +313,15 @@ export default function ResultPage({
                         <div className="perforation shrink-0" />
                     </div>
 
-                    {/* Actions — ระยะห่างด้านบนมากกว่าเดิมให้ปุ่มขยับลงมา
-                        DECISION LOG เป็น flex-1 อยู่แล้ว จะหดพื้นที่ตัวเอง
-                        ให้พอดีโดยอัตโนมัติ การ์ดจึงยังพอดีจอเดียวเหมือนเดิม */}
-                    <div className="flex flex-wrap gap-4 justify-center mt-10 shrink-0 pb-6 min-h-[80px]" style={{ position: 'relative', zIndex: 1, overflow: 'visible' }}>
+                    {/* Actions — เอา padding/ min-height ที่ดันปุ่มขึ้นสูงออก
+                        ให้ปุ่มขยับลงไปติดขอบล่างกระดาษ ไม่ยืด/โตไปกับกระดาษ
+                        (ยังคง position/zIndex/overflow ไว้ ไม่งั้นเงา 3D
+                        ของปุ่ม (bottom/base layer ที่ใช้ z-index ติดลบ)
+                        จะโดนบังจนมองไม่เห็น) */}
+                    <div
+                        className="flex flex-wrap gap-4 justify-center mt-4 shrink-0"
+                        style={{ position: 'relative', zIndex: 1, overflow: 'visible' }}
+                    >
                         <button
                             onClick={() => navigate('/map')}
                             className="button-finish-game gray">

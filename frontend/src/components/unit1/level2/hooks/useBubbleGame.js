@@ -206,8 +206,6 @@ export default function useBubbleGame(
     const playIdRef = useRef(null);
 
     // กันเรียก startGame ซ้ำซ้อน (React StrictMode เรียก effect 2 รอบ
-    // ตอน dev, หรือกดปุ่ม Retry ถี่ ๆ) ซึ่งเคยทำให้ Backend สร้าง
-    // game_play_history ซ้ำเป็น 2 แถวจาก request ที่ยิงพร้อมกัน
     const isStartingRef = useRef(false);
 
     const {

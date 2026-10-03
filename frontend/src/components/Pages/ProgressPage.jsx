@@ -15,15 +15,6 @@ import {
 import bg_login from "../../assets/bg_login.png";
 import { getOverview } from "../services/profileService";
 
-// ============================================================
-// หน้า "ความคืบหน้าของฉัน"
-// ------------------------------------------------------------
-// - รวมทุกบท (6 บท) : % ที่เล่นไป, ด่านไหนได้กี่คะแนน
-// - Filter : ทั้งหมด / เล่นจบแล้ว / กำลังเล่น / ยังไม่ได้เล่น
-// - กดที่ด่าน หรือปุ่มท้ายการ์ด → ไปหน้าเล่นด่านนั้นได้เลย
-// ============================================================
-
-// ต้องตรงกับ LEVEL_ROUTES ใน MapPage/GameMap/FloatingStonePath.jsx
 const LEVEL_ROUTES = {
     // Unit 1
     1: "/unit1/Level1IntroPage",
@@ -65,10 +56,6 @@ const getLevelRoute = (level, unitId, index) =>
     UNIT_ORDER_ROUTES[unitId]?.[index] ||
     `/unit/unit${unitId}`;
 
-// ------------------------------------------------------------
-// Filter
-// ------------------------------------------------------------
-
 const FILTERS = [
     { key: "all", label: "ทั้งหมด" },
     { key: "completed", label: "เล่นจบแล้ว" },
@@ -83,10 +70,6 @@ const matchFilter = (unit, filter) => {
     }
     return unit.status === filter;
 };
-
-// ------------------------------------------------------------
-// ป้ายสถานะของบท
-// ------------------------------------------------------------
 
 const UNIT_BADGE = {
     completed: { label: "เล่นจบแล้ว", className: "bg-emerald-100 text-emerald-700" },
@@ -104,9 +87,6 @@ const BAR_COLOR = {
     coming_soon: "bg-gray-300",
 };
 
-// ------------------------------------------------------------
-// ไอคอนสถานะของด่าน
-// ------------------------------------------------------------
 
 const LevelIcon = ({ state }) => {
     if (state === "passed") {
@@ -131,10 +111,6 @@ const LevelIcon = ({ state }) => {
         </span>
     );
 };
-
-// ============================================================
-// Filter แบบ Dropdown (กด 1 ปุ่ม → เมนูสไลด์ลงมา)
-// ============================================================
 
 function FilterDropdown({ value, onChange, counts }) {
     const [open, setOpen] = useState(false);
@@ -168,8 +144,8 @@ function FilterDropdown({ value, onChange, counts }) {
                 type="button"
                 onClick={() => setOpen((o) => !o)}
                 className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition ${open
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
-                    : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
+                    ? "border-blue-400 bg-transparent text-blue-700"
+                    : "border-gray-300 bg-transparent text-gray-700 hover:border-gray-400"
                     }`}
             >
                 <FiFilter />
@@ -184,7 +160,7 @@ function FilterDropdown({ value, onChange, counts }) {
 
             {/* เมนูที่สไลด์ลงมา */}
             <div
-                className={`absolute left-0 z-20 mt-2 w-56 origin-top overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg transition-all duration-200 ${open
+                className={`absolute right-0 z-20 mt-2 w-56 origin-top overflow-hidden rounded-xl border border-gray-200 bg-white/80 backdrop-blur shadow-lg transition-all duration-200 ${open
                     ? "pointer-events-auto translate-y-0 opacity-100"
                     : "pointer-events-none -translate-y-2 opacity-0"
                     }`}
@@ -201,8 +177,8 @@ function FilterDropdown({ value, onChange, counts }) {
                                 setOpen(false);
                             }}
                             className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition ${active
-                                ? "bg-blue-50 font-semibold text-blue-700"
-                                : "text-gray-700 hover:bg-gray-50"
+                                ? "bg-blue-50/80 font-semibold text-blue-700"
+                                : "text-gray-700 hover:bg-gray-50/80"
                                 }`}
                         >
                             <span className="flex items-center gap-2">
@@ -221,10 +197,6 @@ function FilterDropdown({ value, onChange, counts }) {
         </div>
     );
 }
-
-// ============================================================
-// การ์ดของแต่ละบท
-// ============================================================
 
 function UnitCard({ unit, preTestDone, onGo }) {
     const badge = UNIT_BADGE[unit.status];
@@ -455,7 +427,7 @@ export default function ProgressPage() {
             style={{ backgroundImage: `url(${bg_login})` }}
         >
             <div className="flex min-h-full items-center justify-center p-6 lg:p-8">
-                <div className="w-full max-w-7xl rounded-2xl bg-white/95 p-6 shadow-xl backdrop-blur lg:p-8">
+                <div className="w-full max-w-7xl rounded-2xl bg-white/60 p-6 shadow-2xl backdrop-blur-lg border border-white/20 lg:p-8">
                     {/* ================= HEADER ================= */}
                     <button
                         type="button"
@@ -468,40 +440,14 @@ export default function ProgressPage() {
 
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-blue-600">
+                            <h1 className="text-3xl font-bold text-black">
                                 ความคืบหน้าของฉัน
                             </h1>
                             <p className="mt-1 text-sm text-gray-500">
                                 ดูผลการเล่นทุกบท และกดเพื่อไปเล่นต่อได้เลย
                             </p>
                         </div>
-
-                        {overview && (
-                            <div className="flex gap-3">
-                                <div className="rounded-xl bg-blue-50 px-4 py-2 text-center">
-                                    <p className="text-xl font-bold text-blue-600">
-                                        {overview.overall_percent}%
-                                    </p>
-                                    <p className="text-xs text-gray-500">ภาพรวม</p>
-                                </div>
-                                <div className="rounded-xl bg-emerald-50 px-4 py-2 text-center">
-                                    <p className="text-xl font-bold text-emerald-600">
-                                        {completedUnits}/{units.length}
-                                    </p>
-                                    <p className="text-xs text-gray-500">บทที่จบแล้ว</p>
-                                </div>
-                                <div className="rounded-xl bg-amber-50 px-4 py-2 text-center">
-                                    <p className="text-xl font-bold text-amber-600">
-                                        {passedLevels}/{totalLevels}
-                                    </p>
-                                    <p className="text-xs text-gray-500">ด่านที่ผ่าน</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* ================= FILTER ================= */}
-                    <div className="mt-5">
+                        {/* ================= FILTER ================= */}
                         <FilterDropdown
                             value={filter}
                             onChange={setFilter}

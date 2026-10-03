@@ -4,17 +4,13 @@ import { motion } from "framer-motion";
 import ConfettiExplosion from "react-confetti-explosion";
 
 import bgGame from "../../../../assets/unit1/level2/bgBubble.png";
-import ButtonPass from "../../../../assets/unit1/button/buttonPass.png";
-import ButtonRetry from "../../../../assets/unit1/button/buttonFailed.png";
-import Button from "../../../../assets/unit1/button/button.png";
 
 import bonusSound from "../../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import goodSound from "../../../../assets/sounds/BackgroundGame/Good.mp3";
 import useGameMuted from "../../../../hooks/useGameMuted";
 
-// character_image / mirror_image ที่เก็บใน DB เป็น path เต็มของไฟล์
-// ในโฟลเดอร์ public (เช่น "/image/unit1/Result/LevelTwo/ResultPass.png")
-// จึงใช้เป็น src ของ <img> ได้ตรง ๆ ไม่ต้อง import ผ่าน JS
+import "../../../../styles/unit1/Level1/button.css";
+
 const LEVEL_ID = 2;
 
 // ละอองแสงลอย — ตำแหน่งคงที่
@@ -35,12 +31,6 @@ const getToken = () => {
 
 export default function BubbleResultPage() {
     const navigate = useNavigate();
-
-    // ----------------------------------------------------------
-    // ผลลัพธ์ของรอบนี้ (ค่าที่เปลี่ยนทุกครั้งที่เล่น)
-    // เก็บมาจาก completeGame() ตอนจบเกม — ดูจุดที่ setItem ใน
-    // useBossGame.js (key: "level2Result")
-    // ----------------------------------------------------------
     const [playResult, setPlayResult] = useState(() => {
         try {
             const raw = localStorage.getItem("level2Result");
@@ -51,16 +41,9 @@ export default function BubbleResultPage() {
         }
     });
 
-    // status จาก backend เป็น "PERFECT" หรือ "PASS" เสมอ
-    // (Level 2 จบเกมได้แค่ 2 สถานะนี้ ไม่มี FAIL ค้าง)
     const status = playResult?.status || "PASS";
     const isPerfect = status === "PERFECT";
     const shouldRetry = false; // หน้านี้มาถึงได้ก็ต่อเมื่อจบเกมสำเร็จแล้วเท่านั้น
-
-    // ----------------------------------------------------------
-    // ข้อความ Static จาก DB (level_result_messages) — ไม่ hardcode
-    // เนื้อหาซ้ำในไฟล์นี้ ถ้ายังไม่มาก็โชว์ loading จนกว่าจะมาถึง
-    // ----------------------------------------------------------
     const [resultText, setResultText] = useState(null);
     const [messageError, setMessageError] = useState(false);
 
@@ -130,7 +113,7 @@ export default function BubbleResultPage() {
         navigate("/map");
     };
 
-    const sealColor = shouldRetry ? "#7A2E2E" : "#3F5A34";
+    const sealColor = shouldRetry ? "#991B1B" : "#166534";
 
     const [showExplosion, setShowExplosion] = useState(true);
     useEffect(() => {
@@ -138,20 +121,11 @@ export default function BubbleResultPage() {
         return () => clearTimeout(timer);
     }, []);
 
-    // ----------------------------------------------------------
-    // IP ที่ได้รอบนี้
-    // ----------------------------------------------------------
     const bubbleIP = playResult?.bubble_ip ?? 0;
     const bonusIP = playResult?.bonus_ip ?? 0;
     const earnedIP = playResult?.earned_ip ?? bubbleIP + bonusIP;
     const totalIP = playResult?.total_integrity_points ?? null;
 
-    // ----------------------------------------------------------
-    // เสียงผลลัพธ์ เล่นครั้งเดียวตอนเปิดหน้า ไม่วน
-    // - ผ่านรอบแรก ได้โบนัส +3  → Bonus
-    // - ผ่านธรรมดา ไม่มีโบนัส   → Good
-    // (กรณีผิดจะเล่น GameOver ใน BossFailModal แทน)
-    // ----------------------------------------------------------
     const [muted] = useGameMuted();
     const soundPlayedRef = useRef(false);
     const gotBonus = isPerfect && bonusIP > 0;
@@ -168,23 +142,14 @@ export default function BubbleResultPage() {
         audio.play().catch(() => { });
     }, [resultText, gotBonus, muted]);
 
-    // ----------------------------------------------------------
-    // ระหว่างรอ fetch ข้อความจาก DB — ไม่มี fallback text/image
-    // hardcode ในไฟล์นี้แล้ว ต้องรอข้อมูลจริงจาก DB เท่านั้น
-    // ----------------------------------------------------------
     if (!resultText) {
         return (
-            <div
-                className="h-screen w-screen flex items-center justify-center bg-cover bg-center"
-                style={{ backgroundImage: `url(${bgGame})` }}
-            >
-                <div className="bg-white/90 border-4 border-black rounded-2xl px-10 py-6 text-center shadow-[6px_6px_0px_black]">
-                    <p className="text-2xl sarabun-bold">
-                        {messageError
-                            ? "ไม่สามารถโหลดข้อมูลผลลัพธ์ได้"
-                            : "กำลังโหลดผลลัพธ์..."}
-                    </p>
-                </div>
+            <div className="h-screen w-screen flex items-center justify-center bg-black">
+                <p className="text-2xl sarabun-bold text-white">
+                    {messageError
+                        ? "ไม่สามารถโหลดข้อมูลผลลัพธ์ได้"
+                        : "กำลังโหลดผลลัพธ์..."}
+                </p>
             </div>
         );
     }
@@ -248,17 +213,15 @@ export default function BubbleResultPage() {
                 </div>
             )}
 
-            <div className="relative z-20 flex items-end justify-center w-full max-w-6xl px-4">
+            <div className="relative z-20 flex items-center justify-center w-full max-w-6xl px-4">
                 <motion.div
                     initial={{
                         opacity: 0,
                         scale: 0.7,
-                        rotate: -6,
                     }}
                     animate={{
                         opacity: 1,
                         scale: 1,
-                        rotate: -1.5,
                     }}
                     transition={{
                         opacity: { duration: 0.7 },
@@ -268,15 +231,10 @@ export default function BubbleResultPage() {
                             stiffness: 120,
                             damping: 12,
                         },
-                        rotate: {
-                            duration: 0.7,
-                            type: "spring",
-                            stiffness: 90,
-                            damping: 14,
-                        },
                     }}
-                    className="relative w-[900px] min-h-[500px] max-w-[95vw] flex-shrink-0"
+                    className="relative w-[900px] min-h-[460px] max-w-[95vw] flex-shrink-0"
                 >
+                    {/* เงากระดาษ */}
                     <div
                         className="absolute inset-0 translate-y-4 translate-x-2"
                         style={{
@@ -286,6 +244,7 @@ export default function BubbleResultPage() {
                         }}
                     />
 
+                    {/* ไฮไลต์ขอบบน */}
                     <div
                         className="absolute inset-0 pointer-events-none z-30"
                         style={{
@@ -294,30 +253,139 @@ export default function BubbleResultPage() {
                         }}
                     />
 
+                    {/* เนื้อกระดาษ */}
                     <div
                         className="absolute inset-0"
                         style={{
                             background:
-                                "linear-gradient(160deg, #F1E4C4 0%, #E9D8AE 40%, #DFC896 70%, #D3B96A 100%)",
+                                "linear-gradient(160deg, #FFFEFB 0%, #FDF9EF 35%, #F8F1DE 65%, #F1E7CC 100%)",
                             filter: "url(#tornEdge)",
                             boxShadow:
-                                "inset 0 0 60px rgba(120,90,45,0.4), inset 0 0 140px rgba(90,60,25,0.3), inset 2px 2px 8px rgba(255,255,200,0.5)",
+                                "inset 0 0 60px rgba(180,160,120,0.18), inset 0 0 140px rgba(160,140,100,0.15), inset 2px 2px 10px rgba(255,255,255,0.8)",
                         }}
                     />
                     <div
-                        className="absolute inset-0 mix-blend-multiply opacity-40"
+                        className="absolute inset-0 pointer-events-none z-[5]"
+                        style={{
+                            opacity: 0.28,
+                            filter: "url(#tornEdge)",
+                            backgroundImage: `
+                                repeating-linear-gradient(
+                                    0deg,
+                                    rgba(105, 75, 35, 0.10) 0px,
+                                    rgba(105, 75, 35, 0.10) 1px,
+                                    transparent 1px,
+                                    transparent 5px
+                                ),
+                                repeating-linear-gradient(
+                                    90deg,
+                                    rgba(255, 245, 210, 0.16) 0px,
+                                    rgba(255, 245, 210, 0.16) 1px,
+                                    transparent 1px,
+                                    transparent 7px
+                                )
+                            `,
+                        }}
+                    />
+                    <div
+                        className="absolute inset-0 pointer-events-none z-[6]"
+                        style={{
+                            opacity: 0.12,
+                            filter: "url(#tornEdge)",
+                            backgroundImage: `
+                                repeating-linear-gradient(
+                                    115deg,
+                                    transparent 0px,
+                                    transparent 8px,
+                                    rgba(90, 60, 25, 0.18) 9px,
+                                    transparent 10px,
+                                    transparent 18px
+                                )
+                            `,
+                            mixBlendMode: "multiply",
+                        }}
+                    />
+
+                    {/* grain */}
+                    <div
+                        className="absolute inset-0 mix-blend-multiply opacity-40 pointer-events-none z-[7]"
                         style={{ filter: "url(#tornEdge) url(#paperGrain)" }}
                     />
 
-                    <div className="relative z-50 flex flex-col items-center px-12 pt-20 pb-10">
-                        <img
-                            src={resultText.mirror_image}
-                            alt=""
-                            className="w-50 h-50 object-contain absolute -top-20 left-1/2 -translate-x-1/2"
-                        />
+                    {/* กล่องตรา/เหรียญ: centered พอดีบนขอบบนของกระดาษ ครึ่งบนโผล่พ้นกระดาษ ครึ่งล่างอยู่ในกระดาษ */}
+                    <div
+                        className="absolute left-1/2 z-30 w-36 h-36 flex items-center justify-center"
+                        style={{ top: 0, transform: "translate(-50%, -50%)" }}
+                    >
+                        <motion.div
+                            className="relative w-full h-full flex items-center justify-center"
+                            animate={{ y: [-6, 6, -6] }}
+                            transition={{
+                                duration: 3,
+                                repeat: Infinity,
+                                repeatType: "mirror",
+                                ease: "easeInOut",
+                            }}
+                        >
+                            {/* แสงฟุ้งชั้นนอกสุด */}
+                            <div
+                                className="
+                                    absolute
+                                    w-44
+                                    h-44
+                                    rounded-full
+                                    bg-yellow-200/40
+                                    blur-3xl
+                                "
+                            />
 
+                            {/* แสงเรืองรองด้านหลังตรา */}
+                            <div
+                                className="
+                                    absolute
+                                    w-28
+                                    h-28
+                                    rounded-full
+                                    bg-yellow-300/70
+                                    blur-2xl
+                                    animate-pulse
+                                "
+                            />
+
+                            {/* แสงชั้นในสุด ฟุ้งนุ่ม */}
+                            <div
+                                className="
+                                absolute
+                                w-16
+                                h-16
+                                rounded-full
+                                bg-white/60
+                                blur-xl
+                            "
+                            />
+
+                            {/* รูปตรา/เหรียญ */}
+                            {resultText.mirror_image && (
+                                <img
+                                    src={resultText.mirror_image}
+                                    alt=""
+                                    className="
+                                    relative
+                                    z-10
+                                    w-48
+                                    h-48
+                                    object-contain
+                                    drop-shadow-[0_0_16px_rgba(255,215,0,1)]
+                                    drop-shadow-[0_0_32px_rgba(255,255,255,0.9)]
+                                "
+                                />
+                            )}
+                        </motion.div>
+                    </div>
+
+                    <div className="relative z-10 flex flex-col items-center px-12 pt-[76px] pb-5">
                         <h1
-                            className="text-3xl md:text-4xl font-black mt-12 mb-3 text-center"
+                            className="text-3xl md:text-4xl font-black mb-3 text-center"
                             style={{
                                 color: "#3B2A1E",
                                 textShadow: "0 1px 0 rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.12)",
@@ -329,25 +397,27 @@ export default function BubbleResultPage() {
                         <div className="w-40 h-[3px] mb-5 rounded-full" style={{ background: "#8a6a3c", opacity: 0.5 }} />
 
                         <p
-                            className="text-lg font-semibold mb-4 text-center leading-relaxed"
+                            className="text-lg font-semibold mb-1 text-center leading-relaxed"
                             style={{ color: "#4a3826" }}
                         >
-                            {resultText.description} <br />
-                            <span
-                                className="font-extrabold text-xl"
-                                style={{ color: isPerfect ? "#3F5A34" : "#8a6a3c" }}
-                            >
-                                {resultText.highlight_text}
-                            </span>
+                            {resultText.description}
                         </p>
 
-                        {/* ----------------------------------------------------
-                            ป้าย IP ที่ได้รอบนี้
-                        ---------------------------------------------------- */}
+                        <p
+                            className="font-extrabold text-xl mb-4 text-center"
+                            style={{ color: isPerfect ? "#166534" : "#8a6a3c" }}
+                        >
+                            {resultText.highlight_text}
+                        </p>
+
+                        <div className="text-xl font-bold text-green-800 mb-1 text-center">
+                            You Earned Integrity Points!
+                        </div>
+
                         <div className="mb-5 flex items-center gap-2">
-                            <span className="text-2xl font-black"
-                                style={{ color: "#3F5A34" }}>
-                                +{earnedIP} IP
+                            <span className="text-3xl font-black"
+                                style={{ color: "#166534" }}>
+                                {earnedIP} IP
                             </span>
 
                             {isPerfect && bonusIP > 0 && (
@@ -364,56 +434,44 @@ export default function BubbleResultPage() {
                         </div>
 
                         <div
-                            className="mb-7 px-6 py-1.5 select-none text-xl"
+                            className="mb-7 px-6 py-2 select-none text-xl"
                             style={{
                                 color: sealColor,
-                                border: `3px solid ${sealColor}`,
+                                border: `2px solid ${sealColor}`,
                                 transform: "rotate(-4deg)",
                                 fontWeight: 900,
                                 letterSpacing: "0.15em",
-                                opacity: 0.85,
+                                opacity: 1,
                                 borderRadius: "4px",
-                                textShadow: `0 0 8px ${sealColor}66`,
-                                boxShadow: `0 0 14px ${sealColor}44`,
+                                textShadow: `0 0 10px ${sealColor}bb`,
+                                boxShadow: `0 0 18px ${sealColor}88, inset 0 0 10px ${sealColor}55`,
                             }}
                         >
                             {verdictWord}
                         </div>
 
                         <div className="flex flex-row gap-3 mt-3 justify-center items-center w-full">
-                            <div className="plaque-button-wrapper">
-                                <button
-                                    onClick={handleBackMap}
-                                    className="plaque-button"
-                                >
-                                    <img
-                                        src={Button}
-                                        alt=""
-                                        className="plaque-image"
-                                    />
+                            <button
+                                onClick={handleBackMap}
+                                className="button-finish-game gray"
+                            >
+                                <span className="button-finish-game-top">
+                                    กลับหน้าหลัก
+                                </span>
+                                <span className="button-finish-game-bottom"></span>
+                                <span className="button-finish-game-base"></span>
+                            </button>
 
-                                    <span className="plaque-text">
-                                        กลับหน้าหลัก
-                                    </span>
-                                </button>
-                            </div>
-
-                            <div className="plaque-button-wrapper">
-                                <button
-                                    onClick={() => navigate("/unit1/final")}
-                                    className="plaque-button"
-                                >
-                                    <img
-                                        src={ButtonPass}
-                                        alt=""
-                                        className="plaque-image"
-                                    />
-
-                                    <span className="plaque-text-green">
-                                        ภารกิจถัดไป
-                                    </span>
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => navigate("/unit1/final")}
+                                className="button-finish-game green"
+                            >
+                                <span className="button-finish-game-top">
+                                    ภารกิจถัดไป
+                                </span>
+                                <span className="button-finish-game-bottom"></span>
+                                <span className="button-finish-game-base"></span>
+                            </button>
                         </div>
                     </div>
                 </motion.div>
@@ -428,8 +486,8 @@ export default function BubbleResultPage() {
                     }}
                     className="absolute bottom-0 right-0 z-30"
                     style={{
-                        top: "-3%",
-                        right: "-4%",
+                        top: "-15%",
+                        right: "-2  %",
                     }}
                 >
                     <div
@@ -443,7 +501,7 @@ export default function BubbleResultPage() {
                     <img
                         src={characterImg}
                         alt="Result character"
-                        className="relative w-[340px] md:w-[430px] lg:w-[500px] object-contain"
+                        className="relative w-[240px] md:w-[330px] lg:w-[380px] object-contain"
                         style={{
                             filter: `drop-shadow(0 8px 24px ${charGlowColor}) drop-shadow(0 0 40px ${charGlowColor})`,
                         }}

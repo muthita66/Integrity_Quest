@@ -74,8 +74,8 @@ export default function FinalMissionGame({ skipStartPage = false }) {
     // ================= Loading =================
     if (isLoading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-slate-900">
-                <p className="text-2xl font-bold text-white">
+            <div className="flex min-h-screen items-center justify-center bg-black">
+                <p className="text-2xl sarabun-bold text-white">
                     กำลังโหลดข้อมูลเกม...
                 </p>
             </div>

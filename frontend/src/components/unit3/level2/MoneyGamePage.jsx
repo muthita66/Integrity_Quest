@@ -76,20 +76,10 @@ export default function MoneyGamePage() {
     // ============================================================
     if (isLoading) {
         return (
-            <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
-                <img
-                    src={bgLevel2}
-                    alt=""
-                    className="absolute inset-0 z-0 h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 z-0 bg-white/70" />
-
-                <div className="relative z-10 flex flex-col items-center gap-4 rounded-lg bg-emerald-950/90 px-10 py-8 text-center sarabun-bold text-white shadow-2xl">
-                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/30 border-t-white" />
-                    <p className="text-lg">
-                        กำลังโหลดเกม...
-                    </p>
-                </div>
+            <div className="flex min-h-screen items-center justify-center bg-black">
+                <p className="text-lg sarabun-bold text-white">
+                    กำลังโหลดเกม...
+                </p>
             </div>
         );
     }
@@ -131,7 +121,7 @@ export default function MoneyGamePage() {
     }
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+        <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden">
             {/* Background */}
             <img
                 src={bgLevel2}
@@ -143,9 +133,8 @@ export default function MoneyGamePage() {
             <div className="absolute inset-0 z-0 bg-white/70" />
             <div
                 className="
-                    relative min-h-[620px] w-full max-w-6xl
+                    relative h-full w-full
                     overflow-hidden
-                    border-4 border-emerald-950
                     bg-emerald-800 shadow-2xl
                     sarabun-bold
                 "
@@ -158,7 +147,7 @@ export default function MoneyGamePage() {
                 />
 
                 {/* Content */}
-                <div className="relative z-10 px-6 pb-6 pt-32">
+                <div className="relative z-10 flex h-full flex-col px-6 pb-6 pt-32">
                     <GameHeader
                         totalAnswered={totalAnswered}
                         totalItems={totalItems}
@@ -167,7 +156,7 @@ export default function MoneyGamePage() {
                         onPause={handlePause}
                     />
 
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.15fr_1fr]">
+                    <div className="mt-6 mx-auto grid w-full max-w-6xl flex-1 min-h-0 grid-cols-1 gap-6 lg:grid-cols-[1fr_1.15fr_1fr]">
                         <MoneyJar
                             type="personal"
                             items={displayPersonalItems}

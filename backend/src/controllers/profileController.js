@@ -112,8 +112,10 @@ const buildProfile = async (userId) => {
             user_stats: {
                 select: {
                     integrity_points: true,
+                    streak_bonus_ip: true,
                     current_streak: true,
                     last_login_date: true,
+                    streak_star_count: true,
                 },
             },
         },
@@ -161,9 +163,13 @@ const buildProfile = async (userId) => {
         position: teacher?.position || "",
 
         // stats (แสดงใน Header)
+        // integrity_points = คะแนนรวมจากด่าน (ดีที่สุดต่อด่าน) + รางวัลความขยัน (streak_bonus_ip)
         stats: {
-            integrity_points: user.user_stats?.integrity_points ?? 0,
+            integrity_points:
+                (user.user_stats?.integrity_points ?? 0) +
+                (user.user_stats?.streak_bonus_ip ?? 0),
             current_streak: getDisplayStreak(user.user_stats),
+            streak_stars: user.user_stats?.streak_star_count ?? 0,
             progress_percent:
                 role === "student"
                     ? await getProgressPercent(user.id)
@@ -424,7 +430,7 @@ exports.changePassword = async (req, res) => {
 // ============================================================
 
 const buildOverview = async (userId) => {
-    const [units, levels, unitProgress, levelProgress, history, latestPlays, firstPlays, preTestDone] =
+    const [units, levels, unitProgress, levelProgress, history, latestPlays, preTestDone] =
         await Promise.all([
             prisma.units.findMany({
                 orderBy: { order_number: "asc" },
@@ -472,13 +478,6 @@ const buildOverview = async (userId) => {
                 distinct: ["level_id"],
                 select: { level_id: true, earned_ip: true, status: true },
             }),
-            // รอบแรกที่เล่นจบของแต่ละด่าน (ไว้เทียบ "ครั้งแรก → ล่าสุด")
-            prisma.game_play_history.findMany({
-                where: { user_id: userId, completed_at: { not: null } },
-                orderBy: { completed_at: "asc" },
-                distinct: ["level_id"],
-                select: { level_id: true, earned_ip: true },
-            }),
             userProgressController.hasCompletedPreTest(userId),
         ]);
 
@@ -486,7 +485,6 @@ const buildOverview = async (userId) => {
     const levelProgressById = new Map(levelProgress.map((l) => [l.level_id, l]));
     const historyById = new Map(history.map((h) => [h.level_id, h]));
     const latestById = new Map(latestPlays.map((p) => [p.level_id, p]));
-    const firstById = new Map(firstPlays.map((p) => [p.level_id, p]));
 
     const firstActiveUnitId =
         units.find((u) => u.is_active)?.unit_id ?? null;
@@ -513,7 +511,6 @@ const buildOverview = async (userId) => {
             const progress = levelProgressById.get(level.level_id) || null;
             const played = historyById.get(level.level_id) || null;
             const latest = latestById.get(level.level_id) || null;
-            const first = firstById.get(level.level_id) || null;
 
             const passed = PASSED_STATUSES.includes(progress?.status);
 
@@ -531,7 +528,6 @@ const buildOverview = async (userId) => {
                 state,
                 status: progress?.status || null,
                 best_ip: played?._max.earned_ip ?? 0,
-                first_ip: first?.earned_ip ?? null,
                 last_ip: latest?.earned_ip ?? null,
                 last_status: latest?.status ?? null,
                 best_score: progress?.best_score ?? 0,
@@ -616,6 +612,30 @@ exports.getDailyQuests = async (req, res) => {
         const start = new Date(`${today}T00:00:00+07:00`);
         const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
 
+        // แถบ "วันนี้ได้รับรางวัลความขยันไปแล้ว" (แสดงเหนือ Daily Quests)
+        // อ่านจาก last_streak_reward_date เทียบกับ "วันนี้" (ไม่ใช่ตอน Login
+        // ครั้งแรกเท่านั้น) เพื่อให้แถบนี้ยังขึ้นอยู่แม้โหลดหน้านี้ซ้ำ/รอบถัดไป
+        const streakStats = await prisma.user_stats.findUnique({
+            where: { user_id: userId },
+            select: {
+                current_streak: true,
+                last_streak_reward_date: true,
+                streak_star_count: true,
+            },
+        });
+
+        const rewardedToday =
+            streakStats?.last_streak_reward_date &&
+            new Date(streakStats.last_streak_reward_date)
+                .toISOString()
+                .slice(0, 10) === today;
+
+        const streakReward = {
+            claimed_today: Boolean(rewardedToday),
+            streak: streakStats?.current_streak ?? 0,
+            stars: streakStats?.streak_star_count ?? 0,
+        };
+
         const plays = await prisma.game_play_history.findMany({
             where: {
                 user_id: userId,
@@ -645,6 +665,7 @@ exports.getDailyQuests = async (req, res) => {
                 date: today,
                 completed_count: quests.filter((q) => q.completed).length,
                 quests,
+                streak_reward: streakReward,
             },
         });
     } catch (error) {
@@ -684,8 +705,13 @@ exports.getLeaderboard = async (req, res) => {
         const userId = Number(req.user.id);
 
         const stats = await prisma.user_stats.findMany({
-            where: { integrity_points: { gt: 0 } },
-            select: { user_id: true, integrity_points: true },
+            where: {
+                OR: [
+                    { integrity_points: { gt: 0 } },
+                    { streak_bonus_ip: { gt: 0 } },
+                ],
+            },
+            select: { user_id: true, integrity_points: true, streak_bonus_ip: true },
         });
 
         const users = await prisma.users.findMany({
@@ -723,7 +749,7 @@ exports.getLeaderboard = async (req, res) => {
             .map((s) => ({
                 user_id: s.user_id,
                 name: toDisplayName(userById.get(s.user_id)),
-                score: s.integrity_points,
+                score: s.integrity_points + (s.streak_bonus_ip ?? 0),
                 passed_levels: passedByUser.get(s.user_id) || 0,
             }))
             .sort(

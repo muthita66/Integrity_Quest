@@ -14,31 +14,15 @@ export default function ResultPage() {
     const navigate = useNavigate();
     const { state } = useLocation();
 
-    // =========================
-    // ข้อมูลผลลัพธ์จากด่าน
-    // =========================
     const found = state?.found ?? 8;
     const wrong = state?.wrong ?? 0;
     const timeLeft = state?.timeLeft ?? 0;
 
-    // =========================
-    // ตั้งค่าเวลา
-    // =========================
     const MAX_TIME = 60;
 
-    // เวลาที่ใช้จริง — เดิมคำนวณจาก MAX_TIME - timeLeft (นาฬิกาฝั่ง
-    // client) ตอนนี้ใช้ elapsedSeconds ที่ backend คำนวณจริงจาก
-    // started_at/completed_at ของ game_play_history เป็นหลักแทน
-    // (เหลือ fallback ไว้กรณี state เก่าที่ยังไม่มีค่านี้)
     const timeUsed =
         state?.elapsedSeconds ?? (MAX_TIME - timeLeft);
 
-    // =========================
-    // คะแนนพิเศษ (IP) — เดิมคำนวณเองในหน้านี้จาก timeUsed/wrong
-    // ที่ผ่าน state มาตรงๆ ไม่เคยถูกตรวจกับ DB เลย ตอนนี้รับค่าที่
-    // backend (completeReceiptHunt) คำนวณจริงจากเวลา/wrong_count
-    // ใน DB มาแสดงผลอย่างเดียว ไม่คำนวณเองในหน้านี้อีกต่อไป
-    // =========================
     const isFast = state?.isFast ?? false;
     const isFlawless = state?.isFlawless ?? false;
 
@@ -49,21 +33,10 @@ export default function ResultPage() {
     const totalIntegrityPoints =
         state?.totalIntegrityPoints ?? 0;
 
-    // =========================
-    // Animation — เดิมมีทั้ง paper-rise + paper-shake ต่อกัน และทุก
-    // บรรทัดในกระดาษ (หัวข้อ, เส้นแบ่ง, สถิติแต่ละแถว, กล่อง IP,
-    // ข้อความสรุป, ปุ่ม) มี animation ไล่ delay ของตัวเองแยกกันหมด
-    // (8 จุด) ทำให้ดูรกและกว่าจะอ่านเนื้อหาได้ครบต้องรอนาน ตัดเหลือ
-    // แค่กระดาษ fade+rise เข้ามาครั้งเดียว เนื้อหาข้างในโชว์พร้อมกัน
-    // ทันที ส่วนตราปั๊ม "สำเร็จ" ยังคง pop ครั้งเดียวไว้เป็นจุดเน้น
-    // =========================
     const [showConfetti, setShowConfetti] = useState(true);
     const [showPaper, setShowPaper] = useState(false);
     const [showStamp, setShowStamp] = useState(false);
 
-    // =========================
-    // เสียง Bonus เล่นครั้งเดียวตอนเปิดหน้า ไม่วน
-    // =========================
     const [muted] = useGameMuted();
 
     useEffect(() => {
@@ -81,9 +54,6 @@ export default function ResultPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // =========================
-    // สถิติ
-    // =========================
     const stats = [
         {
             label: "เอกสารที่พบ",
@@ -102,9 +72,6 @@ export default function ResultPage() {
         },
     ];
 
-    // =========================
-    // Animation Timeline
-    // =========================
     useEffect(() => {
         const t1 = setTimeout(() => setShowPaper(true), 200);
         const t2 = setTimeout(() => setShowStamp(true), 700);
@@ -119,10 +86,6 @@ export default function ResultPage() {
 
     return (
         <div className="fixed inset-0 w-screen h-screen font-sara overflow-hidden touch-none overscroll-none sarabun-bold">
-
-            {/* =========================================
-                ฉากหลัง
-            ========================================= */}
             <div
                 className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 blur-[2px]"
                 style={{
@@ -178,8 +141,7 @@ export default function ResultPage() {
                         }}
                     >
                         <div className="text-center mb-4">
-                            <p
-                                className="text-[40px] font-bold"
+                            <p className="text-[40px] font-bold"
                                 style={{
                                     color: "#B4802E",
                                 }}
@@ -247,18 +209,12 @@ export default function ResultPage() {
                                 borderColor: "#c9b48f",
                             }}
                         />
-
-                        {/* คะแนน IP — เดิมมีทั้งหัวข้อป้าย emoji, ไอคอนใหญ่
-                            สองไอคอน, และข้อความ "กดผิด: X ครั้ง" ที่ซ้ำกับ
-                            สถิติด้านบนไปแล้ว (เอกสารที่พบ/กดผิด/เวลาเหลือ)
-                            ตัดออกให้เหลือแค่รายการ base + bonus แต่ละบรรทัด
-                            แล้วรวมยอดท้ายสุด ไม่ต้องพูดซ้ำ */}
                         <div className="relative rounded-2xl border-2 border-green-300 bg-green-50/80 px-4 py-3 mb-4">
 
                             {/* ป้ายหัวข้อ */}
                             <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
                                 <div className="bg-green-600 text-white px-6 py-1 rounded-lg font-black text-lg shadow-md whitespace-nowrap">
-                                    คะแนนพิเศษ
+                                    Integrity Points!
                                 </div>
                             </div>
 
@@ -296,7 +252,7 @@ export default function ResultPage() {
 
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm font-bold text-[#2B2118]">
-                                        ไม่เคยกดผิดเลย
+                                        ไม่มีการกดผิด
                                     </span>
 
                                     {isFlawless ? (
@@ -314,7 +270,7 @@ export default function ResultPage() {
                             {/* IP รวมที่ได้จากภารกิจนี้ */}
                             <div className="text-center mt-3 pt-2 border-t border-green-200">
                                 <span className="text-base font-black text-green-700">
-                                    ได้ IP ทั้งหมด +{earnedIP}
+                                    Total IP Earned {earnedIP}
                                 </span>
                             </div>
 
