@@ -1317,6 +1317,66 @@ const calcSlotResult = () => ({
     earnedIP: SLOT_PASS_IP,
 });
 
+// ============================================================
+// Unit 6 Level 3 : ShadowMirror (กระจกสะท้อนใจ)
+// คำถามปลายเปิด 6 ข้อ ให้ AI (Gemini) วิเคราะห์เป็นคะแนน 4 trait
+// (logic / empathy / responsibility / consistency) — คำถาม hardcode
+// อยู่ฝั่ง frontend (ShadowMirror.jsx) ไม่ได้ดึงจากตาราง question
+// ไม่มีคำตอบถูก/ผิด จึงไม่มีเงื่อนไข FAIL — เล่นจบ = ได้ผลเสมอ
+//
+// *** ไม่แจก Integrity Points (IP) ***
+// เป็นกิจกรรมสะท้อนตัวตน ไม่ใช่แบบทดสอบที่มีคะแนนนับ IP — เก็บคะแนน/
+// badge ไว้แค่ให้ "อาจารย์" ดูย้อนหลังในหน้า TeacherPage เท่านั้น
+// (ดู buildShadowMirrorSection ใน teacherController.js)
+// earned_ip ของ game_play_history แถวนี้จะเป็น 0 เสมอ ไม่ถูกนับรวมใน
+// recalcIntegrityPoints ของผู้เล่น
+//
+// คำนวณ/บันทึกผลจริงที่ controllers/reflectController.js
+// (POST /api/reflect) ไม่ใช่ที่ gamePlayController.completeGame
+// เพราะ flow ต่างจาก Level อื่น
+// ============================================================
+
+const SHADOW_MIRROR_UNIT_ID = 6;
+const SHADOW_MIRROR_LEVEL_ORDER = 3;
+
+let shadowMirrorLevelIdCache = null;
+
+const isShadowMirrorLevel = async (levelId) => {
+    if (!shadowMirrorLevelIdCache) {
+        const level = await prisma.level.findFirst({
+            where: { unit_id: SHADOW_MIRROR_UNIT_ID, order_no: SHADOW_MIRROR_LEVEL_ORDER },
+            select: { level_id: true },
+        });
+        shadowMirrorLevelIdCache = level?.level_id ?? null;
+    }
+    return Number(levelId) === shadowMirrorLevelIdCache;
+};
+
+// เกณฑ์ badge จากคะแนนเฉลี่ย 4 trait — ใช้แค่ "แสดงผล" (ไม่มี IP ผูกอยู่
+// แล้ว) เกณฑ์ตรงกับ badgeFromScore() ฝั่ง frontend (ShadowMirror.jsx)
+const SHADOW_MIRROR_RANKS = [
+    { key: "LEGEND", th: "ตำนานแห่งกระจก", test: (avg) => avg >= 90 },
+    { key: "PLATINUM", th: "ตรารางวัลระดับแพลทินัม", test: (avg) => avg >= 78 },
+    { key: "GOLD", th: "ตรารางวัลระดับทอง", test: (avg) => avg >= 63 },
+    { key: "SILVER", th: "ตรารางวัลระดับเงิน", test: (avg) => avg >= 48 },
+    { key: "BRONZE", th: "ตรารางวัลระดับบรอนซ์", test: () => true },
+];
+
+const calcShadowMirrorResult = (avgScore) => {
+    const rank =
+        SHADOW_MIRROR_RANKS.find((r) => r.test(avgScore)) ||
+        SHADOW_MIRROR_RANKS[SHADOW_MIRROR_RANKS.length - 1];
+
+    return {
+        status: "PASS", // ไม่มีเงื่อนไข FAIL
+        isPass: true,
+        isPerfect: rank.key === "LEGEND",
+        badge: rank.key,
+        badgeTh: rank.th,
+        earnedIP: 0, // ไม่แจก IP — เก็บ field ไว้ให้ shape เดียวกับ Level อื่น
+    };
+};
+
 module.exports = {
     SLIP_HUNT_LEVEL_ID,
     SLIP_HUNT_TOTAL_SLIPS,
@@ -1395,4 +1455,11 @@ module.exports = {
     getGoodNetworkQuestions,
     getGoodNetworkStats,
     calcGoodNetworkResult,
+
+    SHADOW_MIRROR_UNIT_ID,
+    SHADOW_MIRROR_LEVEL_ORDER,
+    SHADOW_MIRROR_RANKS,
+
+    isShadowMirrorLevel,
+    calcShadowMirrorResult,
 };

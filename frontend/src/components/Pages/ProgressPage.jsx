@@ -10,6 +10,9 @@ import {
     FiClock,
     FiFilter,
     FiChevronDown,
+    FiFileText,
+    FiFlag,
+    FiStar,
 } from "react-icons/fi";
 
 import bg_login from "../../assets/bg_login.png";
@@ -355,6 +358,88 @@ function UnitCard({ unit, preTestDone, onGo }) {
     );
 }
 
+const formatThaiDate = (iso) => {
+    if (!iso) return null;
+
+    return new Date(iso).toLocaleDateString("th-TH", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "Asia/Bangkok",
+    });
+};
+
+function TestStarSummary({ overview }) {
+    const preDone = overview?.pre_test_done;
+    const postDone = overview?.post_test_done;
+    const stars = overview?.streak_stars ?? 0;
+
+    const cards = [
+        {
+            key: "pre",
+            Icon: FiFileText,
+            title: "Pre-Test",
+            done: preDone,
+            detail: preDone
+                ? `ทำแล้ว · ${formatThaiDate(overview?.pre_test_date)}`
+                : "ยังไม่ได้ทำ",
+        },
+        {
+            key: "post",
+            Icon: FiFlag,
+            title: "Post-Test",
+            done: postDone,
+            detail: postDone
+                ? `ทำแล้ว · ${formatThaiDate(overview?.post_test_date)}`
+                : "ยังไม่ได้ทำ",
+        },
+        {
+            key: "stars",
+            Icon: FiStar,
+            title: "ดาวความขยัน",
+            done: stars > 0,
+            detail:
+                stars > 0
+                    ? `${stars} ดวง · ล่าสุด ${formatThaiDate(overview?.last_star_date)}`
+                    : "ยังไม่ได้รับดาว",
+        },
+    ];
+
+    return (
+        <div className="mb-5 grid gap-4 sm:grid-cols-3">
+            {cards.map((c) => (
+                <div
+                    key={c.key}
+                    className={`flex items-center gap-3 rounded-2xl border p-4 shadow-sm ${c.done
+                        ? "border-emerald-200 bg-emerald-50"
+                        : "border-gray-200 bg-white"
+                        }`}
+                >
+                    <span
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${c.done
+                            ? "bg-emerald-100 text-emerald-600"
+                            : "bg-gray-100 text-gray-400"
+                            }`}
+                    >
+                        <c.Icon size={18} />
+                    </span>
+                    <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-800">
+                            {c.title}
+                        </p>
+                        <p
+                            className={`truncate text-xs ${c.done ? "text-emerald-700" : "text-gray-400"
+                                }`}
+                        >
+                            {c.detail}
+                        </p>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
 // ============================================================
 // Page
 // ============================================================
@@ -454,6 +539,13 @@ export default function ProgressPage() {
                             counts={counts}
                         />
                     </div>
+
+                    {/* ================= PRE/POST-TEST + ดาว ================= */}
+                    {!loading && !error && overview && (
+                        <div className="mt-5">
+                            <TestStarSummary overview={overview} />
+                        </div>
+                    )}
 
                     {/* ================= CONTENT ================= */}
                     <div className="mt-5">

@@ -318,7 +318,7 @@ const toDateKey = (date) =>
 // อีกครั้ง ค่า streak (เช่น 7) จะซ้ำกับรอบก่อนหน้า ถ้าเทียบค่าตรงๆ
 // จะเข้าใจผิดว่า "เคยได้รับไปแล้ว" ทั้งที่เป็นรอบใหม่ที่ควรได้รับอีก
 // ============================================================
-const STREAK_REWARD_EVERY = 7;
+const STREAK_REWARD_EVERY = 3;
 const STREAK_REWARD_IP = 500;
 
 const updateLoginStreak = async (userId) => {

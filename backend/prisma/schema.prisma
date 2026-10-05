@@ -248,6 +248,7 @@ model game_play_history {
   game_play_need_want          game_play_need_want[]
   game_play_project_decisions  game_play_project_decisions[]
   game_play_receipt_hunt       game_play_receipt_hunt[]
+  game_play_shadow_mirror      game_play_shadow_mirror?
   game_play_slip_hunt          game_play_slip_hunt[]
   game_play_slot_rounds        game_play_slot_rounds[]
   game_play_treasurer          game_play_treasurer?
@@ -1076,6 +1077,28 @@ model teacher_student_groups {
   teachers   teachers   @relation(fields: [teacher_id], references: [teacher_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([teacher_id], map: "idx_teacher_student_groups_teacher")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model game_play_shadow_mirror {
+  play_id              Int               @id
+  logic_score          Int
+  logic_note           String?
+  empathy_score        Int
+  empathy_note         String?
+  responsibility_score Int
+  responsibility_note  String?
+  consistency_score    Int
+  consistency_note     String?
+  avg_score            Decimal           @db.Decimal(5, 2)
+  badge_key            String            @db.VarChar(20)
+  overall_reflection   String?
+  shadow_message       String?
+  answers              Json
+  created_at           DateTime          @default(now()) @db.Timestamptz(6)
+  game_play_history    game_play_history @relation(fields: [play_id], references: [play_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([badge_key], map: "idx_game_play_shadow_mirror_badge")
 }
 
 enum quiz_type_enum {

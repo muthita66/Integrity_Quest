@@ -22,6 +22,7 @@ import Level3Music from './components/Unit5/Level3/Level3Music';
 import AuthPage from "./components/pages/AuthPage";
 import MapPage from "./components/pages/MapPage";
 import PreTestPage from "./components/pages/PreTestPage";
+import PostTestPage from "./components/pages/PostTestPage";
 import SettingsPage from "./components/pages/SettingsPage";
 import ProgressPage from "./components/pages/ProgressPage";
 import TeacherPage from "./components/pages/TeacherPage";
@@ -168,6 +169,7 @@ function App() {
 
       <Route path="/map" element={<MapPage />} />
       <Route path="/pretest" element={<PreTestPage />} />
+      <Route path="/posttest" element={<PostTestPage />} />
 
       <Route
         path="/settings"
