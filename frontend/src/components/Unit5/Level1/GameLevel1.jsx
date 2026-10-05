@@ -5,6 +5,12 @@ import { useNavigate } from "react-router-dom";
 import WordCard from "./Wordcard";
 import ClueCard from "./ClueCard";
 import MissionComplete from "./MissionComplete";
+import { isUnit5Paused } from '../Unit5Navigation';
+import { useSound } from "../../../hooks/useSound";
+import useGameMuted from "../../../hooks/useGameMuted";
+import evidenceFoundSound from "../../../assets/sounds/Unit5/level1-evidence-found.mp3";
+import folderOpenSound from "../../../assets/sounds/Unit5/level1-case-folder-open.mp3";
+import investigationMusic from "../../../assets/sounds/Unit5/level1-investigation-piano.mp3";
 
 // ============================================================
 // Unit 5 Level 1 : ตามหาคำจากคำใบ้
@@ -24,11 +30,21 @@ const authHeaders = () => ({
 });
 
 export default function GameLevel1() {
+    const [muted] = useGameMuted();
+    const { play: playFolderOpen, stop: stopFolderOpen } = useSound(folderOpenSound, { volume: 0.4, loop: true, preload: true });
+    const { play: playEvidenceFound, stop: stopEvidenceFound } = useSound(evidenceFoundSound, { volume: 0.4, preload: true });
+    useEffect(() => stopEvidenceFound, [stopEvidenceFound]);
+    useEffect(() => { if (muted) stopEvidenceFound(); }, [muted, stopEvidenceFound]);
     const navigate = useNavigate();
 
     const [playId, setPlayId] = useState(null);
     const [words, setWords] = useState([]);
     const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        if (loading && !muted) playFolderOpen();
+        else stopFolderOpen();
+        return stopFolderOpen;
+    }, [loading, muted, playFolderOpen, stopFolderOpen]);
     const [result, setResult] = useState(null); // ผลจาก complete
     const [finishError, setFinishError] = useState("");
 
@@ -38,6 +54,14 @@ export default function GameLevel1() {
     const [completed, setCompleted] = useState({});
     const [seconds, setSeconds] = useState(0);
     const [showComplete, setShowComplete] = useState(false);
+    const { play: playMusic, stop: stopMusic } = useSound(investigationMusic, {
+        volume: 0.3, loop: true, preload: true, retryOnInteract: true,
+    });
+    useEffect(() => {
+        if (!loading && !showComplete && !muted) playMusic();
+        else stopMusic();
+        return stopMusic;
+    }, [loading, showComplete, muted, playMusic, stopMusic]);
     const [lines, setLines] = useState([]);
 
     // refs สำหรับวัดตำแหน่งจริงของการ์ด แทนพิกัด pixel ที่ hardcode ไว้เดิม
@@ -136,13 +160,14 @@ export default function GameLevel1() {
             }
 
             if (data.data.is_correct) {
+                if (!muted) playEvidenceFound();
                 setCompleted((prev) => (prev[word.id] ? prev : { ...prev, [word.id]: true }));
             }
 
             return data.data.is_correct;
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [playId]
+        [playId, muted, playEvidenceFound]
     );
 
     // --------------------------------------------------------
@@ -183,6 +208,7 @@ export default function GameLevel1() {
     useEffect(() => {
         if (showComplete || loading) return;
         const timer = setInterval(() => {
+            if (isUnit5Paused()) return;
             setSeconds((prev) => prev + 1);
         }, 1000);
         return () => clearInterval(timer);
@@ -256,7 +282,7 @@ export default function GameLevel1() {
     }
 
     return (
-        <div className="h-screen flex flex-col p-4 bg-[#241408] text-[#f4eae1] select-none overflow-hidden relative">
+        <div className="unit5-game-content h-screen flex flex-col p-4 bg-[#241408] text-[#f4eae1] select-none overflow-hidden relative">
 
             {/* พื้นผิวไม้/คอร์กบอร์ดแบบ subtle เพิ่มมิติให้พื้นหลัง */}
             <div className="pointer-events-none absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_20%_10%,rgba(255,180,80,0.06),transparent_40%),radial-gradient(circle_at_80%_90%,rgba(255,140,60,0.05),transparent_45%)]" />

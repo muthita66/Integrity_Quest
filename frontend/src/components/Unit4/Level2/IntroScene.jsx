@@ -3,6 +3,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { FaChevronRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import BookLayout from "../BookLayout";
+import useBackgroundMusic from "../../../hooks/useBackgroundMusic";
+import useGameMuted from "../../../hooks/useGameMuted";
+import casinoAmbience from "../../../assets/sounds/Unit4/unit4-level2-casino-ambience.mp3";
 import useUnit4Chapter, { Unit4Checking } from "../useUnit4Chapter";
 import sceneOffice from "../../../assets/unit4/story-home.png";
 import sceneColleagues from "../../../assets/unit4/story-colleagues.png";
@@ -17,6 +20,8 @@ const SCENES = [
 ];
 
 export default function IntroScene() {
+    const [muted] = useGameMuted();
+    useBackgroundMusic(casinoAmbience, { volume: 0.35, muted });
     const navigate = useNavigate();
     // กันเข้าทาง URL ตรง ๆ ตอนบทนี้ยังไม่ปลดล็อก
     const { checking } = useUnit4Chapter(1);

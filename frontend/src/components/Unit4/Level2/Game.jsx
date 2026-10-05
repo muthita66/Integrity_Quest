@@ -2,6 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FaPlay } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import BookLayout from "../BookLayout";
+import { useSound } from "../../../hooks/useSound";
+import useGameMuted from "../../../hooks/useGameMuted";
+import useBackgroundMusic from "../../../hooks/useBackgroundMusic";
+import casinoAmbience from "../../../assets/sounds/Unit4/unit4-level2-casino-ambience.mp3";
+import spinSound from "../../../assets/sounds/Unit4/unit4-slot-spin-loop.wav";
+import winSound from "../../../assets/sounds/Unit4/unit4-slot-win.mp3";
 import useUnit4Chapter, { Unit4Checking } from "../useUnit4Chapter";
 import "../../../styles/theme.css";
 import "./level2.css";
@@ -17,9 +23,9 @@ import "./level2.css";
 
 const API_URL = "http://localhost:5000";
 const SYMBOLS = ["🍒", "🍋", "🔔", "💎", "7️⃣"];
-const DEFAULT_BETS = [100, 500, 1000];
-const DEFAULT_BALANCE = 1500;
-const MIN_SPIN_TICKS = 16; // วงล้อหมุนอย่างน้อยเท่านี้ก่อนหยุด (≈ 0.9 วิ)
+const DEFAULT_BETS = [1000, 2000, 5000];
+const DEFAULT_BALANCE = 5000;
+const MIN_SPIN_TICKS = 36; // Keep the reels and their sound spinning for about two seconds.
 
 const authHeaders = () => ({
     "Content-Type": "application/json",
@@ -29,6 +35,20 @@ const authHeaders = () => ({
 const randomSymbol = () => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
 
 export default function Game() {
+    const [muted] = useGameMuted();
+    const { play: playWinSound, stop: stopWinSound } = useSound(winSound, { volume: 0.65, preload: true });
+    useEffect(() => stopWinSound, [stopWinSound]);
+    useEffect(() => { if (muted) stopWinSound(); }, [muted, stopWinSound]);
+    const [winReward, setWinReward] = useState(0);
+    useEffect(() => {
+        if (!winReward) return;
+        const timer = setTimeout(() => setWinReward(0), 2400);
+        return () => clearTimeout(timer);
+    }, [winReward]);
+    const ambienceRef = useBackgroundMusic(casinoAmbience, { volume: 0.35, muted });
+    const { play: playSpinSound, stop: stopSpinSound } = useSound(spinSound, { volume: 0.85, loop: true, preload: true });
+    useEffect(() => stopSpinSound, [stopSpinSound]);
+    useEffect(() => { if (muted) stopSpinSound(); }, [muted, stopSpinSound]);
     const navigate = useNavigate();
 
     // กันเข้าทาง URL ตรง ๆ ตอนบทนี้ยังไม่ปลดล็อก + ได้ level_id จาก DB
@@ -38,9 +58,12 @@ export default function Game() {
     const [starting, setStarting] = useState(true);
     const [bets, setBets] = useState(DEFAULT_BETS);
     const [balance, setBalance] = useState(DEFAULT_BALANCE);
-    const [bet, setBet] = useState(500);
+    const [bet, setBet] = useState(1000);
     const [reels, setReels] = useState(["7️⃣", "7️⃣", "7️⃣"]);
     const [spinning, setSpinning] = useState(false);
+    useEffect(() => {
+        if (ambienceRef.current) ambienceRef.current.volume = spinning || winReward ? 0.1 : 0.35;
+    }, [spinning, winReward, ambienceRef]);
     const [message, setMessage] = useState("กำลังเตรียมตู้สล็อต...");
     const [showReality, setShowReality] = useState(false);
     const [result, setResult] = useState(null); // ผลจาก complete
@@ -96,7 +119,7 @@ export default function Game() {
             setPlayId(data.data.play_id);
             setBets(data.data.bets ?? DEFAULT_BETS);
             setBalance(startBalance);
-            setBet(500);
+            setBet(1000);
             setReels(["7️⃣", "7️⃣", "7️⃣"]);
             setMessage("เลือกเดิมพัน แล้วลองหมุนดู");
             setShowReality(false);
@@ -156,6 +179,9 @@ export default function Game() {
         const balanceBefore = balance;
 
         setSpinning(true);
+        setWinReward(0);
+        stopWinSound();
+        if (!muted) playSpinSound();
         setMessage("ระบบกำลังหมุน...");
         setBalance(balanceBefore - bet);
 
@@ -193,9 +219,12 @@ export default function Game() {
 
             clearInterval(intervalRef.current);
             setReels(round.symbols);
+            stopSpinSound();
             setBalance(round.balance_after);
 
             if (round.reward > 0) {
+                setWinReward(round.reward);
+                if (!muted) playWinSound();
                 setMessage(`ชนะ ฿${round.reward.toLocaleString()} — เล่นต่อสิ!`);
             } else if (round.is_broke) {
                 setMessage("เครดิตหมดแล้ว");
@@ -219,12 +248,15 @@ export default function Game() {
             setMessage(error.message || "หมุนไม่สำเร็จ ลองอีกครั้ง");
         } finally {
             clearInterval(intervalRef.current);
+            stopSpinSound();
             setSpinning(false);
         }
     };
 
     // "ลองสังเกตอีกครั้ง" = เริ่มรอบใหม่ (รอบเก่ายังเก็บไว้ในประวัติ)
     const reset = () => {
+        setWinReward(0);
+        stopWinSound();
         clearTimeout(revealTimerRef.current);
         startPlay();
     };
@@ -266,7 +298,11 @@ export default function Game() {
             }
             rightPage={
                 <div className="slot3-page">
-                    <div className="slot3-machine">
+                    <div className={`slot3-machine ${winReward ? 'slot3-machine--win' : ''}`}>
+                        {winReward > 0 && <div className="slot3-win-effect" aria-hidden="true">
+                            <strong>+฿{winReward.toLocaleString()}</strong>
+                            {Array.from({ length: 14 }, (_, i) => <span key={i} style={{ left: `${6 + i * 6.7}%`, animationDelay: `${(i % 5) * 0.08}s` }}>✦</span>)}
+                        </div>}
                         <div className="slot3-topline"><span>CASE 02</span><span>RIGGED MACHINE</span></div>
                         <div className="slot3-heading">
                             <h2>THE GOLDEN LOOP</h2>

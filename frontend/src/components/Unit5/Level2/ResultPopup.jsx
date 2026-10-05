@@ -436,7 +436,7 @@ export default function TaxBuilderResult() {
                             <FaRedoAlt />
 
                             <div>
-                                <strong>เล่นใหม่</strong>
+                                <strong>เริ่มใหม่</strong>
                                 <span>เริ่มใหม่อีกครั้ง</span>
                             </div>
 
@@ -447,12 +447,13 @@ export default function TaxBuilderResult() {
                             <FaPlay />
 
                             <div>
-                                <strong>ดำเนินการต่อ</strong>
+                                <strong>ไปด่านต่อไป</strong>
                                 <span>ไปยังภารกิจถัดไป</span>
                             </div>
 
                         </button>
 
+                        <button className="btn blue" onClick={() => navigate('/map')}>กลับหน้าแมพ</button>
                     </div>
 
                 </div>

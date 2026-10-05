@@ -1,0 +1,7 @@
+.unit6-menu-button{position:fixed;top:10px;right:12px;z-index:20000;width:44px;height:44px;display:grid;place-items:center;border:1px solid #b79554;border-radius:10px;background:#342619ed;color:#fff1d2;font-size:24px;cursor:pointer;box-shadow:0 3px 10px #0004;}
+.unit6-menu-overlay{position:fixed;inset:0;z-index:20001;display:grid;place-items:center;background:#160f0bbd;backdrop-filter:blur(5px);padding:20px;}
+.unit6-menu-panel{width:min(340px,100%);background:#fff5e2;border:2px solid #b68a48;border-radius:16px;padding:28px;color:#49331f;text-align:center;}
+.unit6-menu-panel h2{font-size:24px;font-weight:700;margin:0 0 20px;}
+.unit6-menu-panel button{display:block;width:100%;padding:12px;margin-top:12px;border:1px solid #987047;border-radius:10px;background:#5b3d23;color:#fff5e2;cursor:pointer;}
+.unit6-menu-panel button:last-child{background:transparent;color:#5b3d23;}
+.unit6-menu-panel button:focus-visible,.unit6-menu-button:focus-visible{outline:3px solid #d49433;outline-offset:3px;}

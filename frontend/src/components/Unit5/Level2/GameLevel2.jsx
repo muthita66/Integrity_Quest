@@ -341,7 +341,7 @@ export default function GameLevel2() {
 
             <div
                 className="
-    min-h-screen
+    unit5-game-content min-h-screen
     bg-cover
     bg-center
     bg-no-repeat

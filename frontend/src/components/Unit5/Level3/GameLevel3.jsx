@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { isUnit5Paused } from '../Unit5Navigation';
+import { useSound } from '../../../hooks/useSound';
+import useGameMuted from '../../../hooks/useGameMuted';
+import folderOpenSound from '../../../assets/sounds/Unit5/level1-case-folder-open.mp3';
+import approvalStampSound from '../../../assets/sounds/Unit5/level3-approval-stamp.mp3';
 import {
     FaFileAlt,
     FaCheck,
@@ -40,7 +45,7 @@ const RANK_INFO = {
 
 const GAME_SECONDS = 120;
 
-export default function IntegrityInspector({ nextRoute = "/map" }) {
+export default function IntegrityInspector({ nextRoute = "/unit/unit6" }) {
     const navigate = useNavigate();
 
     const [index, setIndex] = useState(0);
@@ -61,6 +66,20 @@ export default function IntegrityInspector({ nextRoute = "/map" }) {
     const [projects, setProjects] = useState([]);
     const [playId, setPlayId] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [muted] = useGameMuted();
+    const { play: playApprovalStamp, stop: stopApprovalStamp } = useSound(approvalStampSound, {
+        volume: 0.6, preload: true,
+    });
+    useEffect(() => stopApprovalStamp, [stopApprovalStamp]);
+    useEffect(() => { if (muted) stopApprovalStamp(); }, [muted, stopApprovalStamp]);
+    const { play: playFolderOpen, stop: stopFolderOpen } = useSound(folderOpenSound, {
+        volume: 0.4, loop: true, preload: true, retryOnInteract: true,
+    });
+    useEffect(() => {
+        if (loading && !muted) playFolderOpen();
+        else stopFolderOpen();
+        return stopFolderOpen;
+    }, [loading, muted, playFolderOpen, stopFolderOpen]);
     const [pending, setPending] = useState(false);       // กำลังส่งคำตัดสิน
     const [refusedBribe, setRefusedBribe] = useState(false);
     const [result, setResult] = useState(null);          // ผลจาก complete
@@ -160,6 +179,7 @@ export default function IntegrityInspector({ nextRoute = "/map" }) {
     useEffect(() => {
         if (phase === "summary" || loading || !playId) return;
         timerRef.current = setInterval(() => {
+            if (isUnit5Paused()) return;
             setTimeLeft((t) => {
                 if (t <= 1) {
                     clearInterval(timerRef.current);
@@ -258,6 +278,7 @@ export default function IntegrityInspector({ nextRoute = "/map" }) {
                 note: r.note,
             });
             setStampType(action === "approve" ? "approved" : "rejected");
+            if (!muted) playApprovalStamp();
             setPhase("stamping");
             setTimeout(() => setPhase("result"), 850);
         } catch (error) {
@@ -341,7 +362,7 @@ export default function IntegrityInspector({ nextRoute = "/map" }) {
                 {phase === "summary" ? (
                     <div className="summary-card">
                         <div className="summary-kicker"><FaFileAlt /> CASE FILE 03 · MISSION COMPLETE</div>
-                        <h1>Integrity Inspector</h1>
+                        <h1>รายงานการตรวจสอบโครงการ</h1>
                         <p className="summary-sub">
                             ตรวจทั้งหมด {result?.decided ?? correctCount + wrongCount} / {result?.total_projects ?? projects.length} โครงการ
                             {result?.is_timeout ? " (หมดเวลา)" : ""}
@@ -377,7 +398,7 @@ export default function IntegrityInspector({ nextRoute = "/map" }) {
 
                         <p className="summary-flavor">{displayFlavor}</p>
 
-                        <p className="summary-flavor" style={{ color: "#ffcb3f", fontWeight: 800, fontSize: 18 }}>
+                        <p className="summary-reward">
                             ได้รับ +{displayIP} IP
                         </p>
 
@@ -385,7 +406,7 @@ export default function IntegrityInspector({ nextRoute = "/map" }) {
                             <button className="btn blue" onClick={resetGame}>
                                 <FaRedoAlt />
                                 <div>
-                                    <strong>เล่นใหม่</strong>
+                                    <strong>เริ่มใหม่</strong>
                                     <span>เริ่มใหม่อีกครั้ง</span>
                                 </div>
                             </button>
@@ -393,11 +414,12 @@ export default function IntegrityInspector({ nextRoute = "/map" }) {
                                 <button className="btn green" onClick={() => navigate(nextRoute)}>
                                     <FaMapMarkedAlt />
                                     <div>
-                                        <strong>กลับหน้าแผนที่</strong>
-                                        <span>กลับไปยังแผนที่เมือง</span>
+                                        <strong>ไปบทต่อไป</strong>
+                                        <span>เริ่มบทที่ 6</span>
                                     </div>
                                 </button>
                             )}
+                            <button className="btn blue" onClick={() => navigate('/map')}><FaMapMarkedAlt />กลับหน้าแมพ</button>
                         </div>
                     </div>
                 ) : (
@@ -485,9 +507,12 @@ export default function IntegrityInspector({ nextRoute = "/map" }) {
                             </div>
 
                             {feedback && phase === "result" && (
-                                <div className={`feedback ${feedback.correct ? "good" : "bad"}`}>
-                                    {feedback.note} {feedback.delta >= 0 ? "+" : ""}{feedback.delta} คะแนน
-                                    {feedback.integrityDelta !== 0 && `, Integrity ${feedback.integrityDelta}`}
+                                <div role="status" className={`feedback decision-feedback ${feedback.correct ? "good decision-correct" : "bad decision-wrong"}`}>
+                                    <span className="decision-result-icon" aria-hidden="true">{feedback.correct ? <FaCheck /> : <FaTimes />}</span>
+                                    <strong>{feedback.correct ? 'ตัดสินใจถูกต้อง!' : 'ตัดสินใจผิด!'}</strong>
+                                    <div>{feedback.note} {feedback.delta >= 0 ? "+" : ""}{feedback.delta} คะแนน
+                                    {feedback.integrityDelta !== 0 && `, Integrity ${feedback.integrityDelta}`}</div>
+                                    {feedback.correct && <span className="decision-sparkles" aria-hidden="true">✦　✧　✦　✧　✦</span>}
                                 </div>
                             )}
 
@@ -559,6 +584,8 @@ height:100%;
 
 /* ───────── กรอบเกมพอดีจอ ไม่มีสกอลล์ ───────── */
 .inspector-stage{
+box-sizing:border-box;
+padding-top:76px !important;
 height:100vh;
 height:100dvh;
 overflow:hidden;
@@ -798,6 +825,16 @@ z-index:6;
 
 .feedback.good{ background:#1f8a3b; color:white; }
 .feedback.bad{ background:#c62828; color:white; }
+.decision-feedback{border-radius:16px;max-width:90%;white-space:normal;text-align:center;padding:12px 18px;box-shadow:0 4px 22px #0006;}
+.decision-feedback strong{display:block;font-size:clamp(16px,2.2vh,22px);margin:4px 0;}
+.decision-result-icon{display:inline-grid;place-items:center;width:32px;height:32px;border:2px solid currentColor;border-radius:50%;}
+.decision-correct{animation:decisionPop .45s ease-out;box-shadow:0 0 24px #39d77888;}
+.decision-wrong{animation:decisionShake .4s ease-out;box-shadow:0 0 24px #ef535088;}
+.decision-sparkles{display:block;color:#ffe37e;font-size:22px;animation:decisionSparkle .8s ease-out both;}
+@keyframes decisionPop{from{opacity:0;transform:translateX(-50%) scale(.65);}70%{transform:translateX(-50%) scale(1.08);}to{opacity:1;transform:translateX(-50%) scale(1);}}
+@keyframes decisionShake{0%,100%{transform:translateX(-50%);}20%,60%{transform:translateX(calc(-50% - 7px));}40%,80%{transform:translateX(calc(-50% + 7px));}}
+@keyframes decisionSparkle{from{opacity:0;transform:scale(.5);}to{opacity:1;transform:scale(1);}}
+@media(prefers-reduced-motion:reduce){.decision-feedback,.decision-sparkles{animation:none;}}
 
 @keyframes fadeDown{
 from{ opacity:0; transform:translate(-50%,-10px); }
@@ -1049,6 +1086,26 @@ opacity:.85;
 font-weight:500;
 }
 
+.summary-card{position:relative;width:min(760px,94vw);max-height:calc(100dvh - 100px);overflow-y:auto;flex-shrink:0;padding:28px 32px;border:1px solid #d7b47b;border-top:8px solid #bf893c;border-radius:6px 22px 12px 12px;background:repeating-linear-gradient(0deg,transparent,transparent 29px,#ac895c0b 30px),#fff6e4;color:#493720;box-shadow:8px 8px 0 #b4884840,0 18px 50px #0006;}
+.summary-kicker{background:#eee0c6;border:1px solid #d4bd94;color:#82602f;border-radius:4px;padding:7px 14px;letter-spacing:2px;}
+.summary-kicker svg{color:#986d31;}
+.summary-card h1{color:#4e3921;font-size:clamp(21px,3vh,30px);text-shadow:none;margin-top:14px;}
+.summary-sub{color:#8c7657;}
+.summary-grid{border-top:1px dashed #cdb48b;padding-top:16px;margin-top:16px;gap:12px;}
+.summary-item{background:#fffaf0;border:1px solid #e4d4b9;border-radius:8px;color:#8a7354;padding:10px 6px;}
+.summary-item strong{color:#4e3921;font-size:24px;}
+.summary-item.good strong{color:#328457;}.summary-item.bad strong{color:#bd5146;}
+.summary-rank{margin-top:18px;gap:6px;}
+.rank-shield{width:78px;height:78px;box-shadow:0 5px 12px #a47b2930;}
+.rank-text{color:#936b2e;}
+.summary-flavor{color:#79664b;max-width:550px;margin-top:12px;}
+.summary-reward{margin:16px auto 0;padding:10px 24px;width:fit-content;background:#e8efdc;border:1px solid #cad8b6;border-radius:6px;color:#54733d;font-size:22px;font-weight:900;}
+.summary-card .summary-buttons{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:22px;border-top:1px dashed #cdb48b;padding-top:18px;}
+.summary-card .summary-buttons.single{grid-template-columns:repeat(2,minmax(0,1fr));}
+.summary-card .summary-buttons .btn{height:54px;border:1px solid #c8ac80;border-radius:8px;background:#f6ecd9;color:#705332;box-shadow:0 3px 0 #d5c1a0;font-size:15px;}
+.summary-card .summary-buttons .btn.green{background:#755534;border-color:#755534;color:#fff6e4;box-shadow:0 3px 0 #49321d;}
+.summary-card .summary-buttons .btn:hover{filter:brightness(.96);}
+@media(max-width:520px){.summary-card{padding:20px 16px;}.summary-card .summary-buttons{grid-template-columns:1fr;}.summary-grid{gap:6px;}.summary-item strong{font-size:20px;}}
 @media(max-width:640px){
 .hud,.booth,.decision-buttons{ width:94vw; }
 .character{ right:1%; bottom:0; width:50%; height:80%; }

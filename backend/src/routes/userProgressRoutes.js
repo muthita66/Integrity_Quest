@@ -6,6 +6,9 @@ const userProgressController =
 
 const authMiddleware =
     require("../../middleware/authMiddleware");
+const certificateController = require('../controllers/certificateController');
+router.get('/certificate', authMiddleware, certificateController.getCertificate);
+router.post('/reflection-complete', authMiddleware, certificateController.completeReflection);
 
 // ============================================================
 // GET USER PROGRESS

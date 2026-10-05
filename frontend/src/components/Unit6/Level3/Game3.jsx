@@ -4,6 +4,9 @@ import QuizScreen from "./Quiz3";
 import LoadingScreen from "./Loading3";
 import ResultScreen from "./Result3";
 import "./GoldenMirror.css";
+import { useSound } from '../../../hooks/useSound';
+import useGameMuted from '../../../hooks/useGameMuted';
+import levelMusic from '../../../assets/sounds/Unit6/level3-quiet-mind.mp3';
 
 const questions = [
     { tag: "ข้อ 1 · เพื่อน", text: "เพื่อนสนิทมาสารภาพว่าทำเรื่องผิดพลาดร้ายแรง และขอร้องไม่ให้คุณบอกใคร คุณจะพูดอะไรกับเขา?" },
@@ -58,6 +61,15 @@ function generateMockResult(answers) {
 }
 
 export default function ShadowMirror() {
+    const [muted] = useGameMuted();
+    const { play: playMusic, stop: stopMusic } = useSound(levelMusic, {
+        volume: 0.25, loop: true, preload: true, retryOnInteract: true,
+    });
+    useEffect(() => {
+        if (!muted) playMusic();
+        else stopMusic();
+        return stopMusic;
+    }, [muted, playMusic, stopMusic]);
     const [screen, setScreen] = useState("intro");
     const [current, setCurrent] = useState(0);
     const [answers, setAnswers] = useState(Array(questions.length).fill(""));
@@ -115,13 +127,25 @@ export default function ShadowMirror() {
             const parsed = await response.json();
             if (parsed.error) throw new Error(parsed.error);
             setResult(parsed);
-            setScreen("result");
         } catch (err) {
             console.warn("reflect API unavailable, showing local preview data:", err.message);
             setResult(generateMockResult(answers));
             setError("");
-            setScreen("result");
         }
+        try {
+            const saved = await fetch(BACKEND_URL + '/api/user-progress/reflection-complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify(payload),
+            });
+            if (!saved.ok) {
+                const data = await saved.json();
+                throw new Error(data.message || 'บันทึกผลไม่สำเร็จ');
+            }
+        } catch (err) {
+            setError(`ยังไม่ได้บันทึกการเล่นจบ: ${err.message} กรุณาลองใหม่เพื่อรับรางวัล`);
+        }
+        setScreen('result');
     };
 
     const restart = () => {

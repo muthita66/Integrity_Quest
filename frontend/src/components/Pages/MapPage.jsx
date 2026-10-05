@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../MapPage/Header";
 import UnitNode from "../MapPage/GameMap/UnitNode";
@@ -10,10 +10,25 @@ import bg from "../../assets/bg_game.png";
 import Chest from "../MapPage/GameMap/Chest";
 import FloatingStonePath from "../MapPage/GameMap/FloatingStonePath";
 import StreakRewardModal from "../MapPage/StreakRewardModal";
+import CertificateReward from "../MapPage/CertificateReward";
+import useMapHoverSound from '../../hooks/useMapHoverSound';
+import { useSound } from '../../hooks/useSound';
+import useGameMuted from '../../hooks/useGameMuted';
+import mapMusic from '../../assets/sounds/Map/magical-storytime.mp3';
 
 const API_BASE_URL = "http://localhost:5000";
 
 function MapPage() {
+    useMapHoverSound();
+    const [muted] = useGameMuted();
+    const { play: playMusic, stop: stopMusic } = useSound(mapMusic, {
+        volume: 0.25, loop: true, preload: true, retryOnInteract: true,
+    });
+    useEffect(() => {
+        if (!muted) playMusic();
+        else stopMusic();
+        return stopMusic;
+    }, [muted, playMusic, stopMusic]);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -21,6 +36,11 @@ function MapPage() {
     const [loadingProgress, setLoadingProgress] = useState(true);
     const [progressError, setProgressError] = useState("");
     const [streakReward, setStreakReward] = useState(null);
+    const [showCertificate, setShowCertificate] = useState(false);
+    const closeCertificate = useCallback(() => setShowCertificate(false), []);
+    const rewardReady = !loadingProgress && !progressError && progressUnits.length > 0 && progressUnits.every((unit) =>
+        unit.levels?.length > 0 && unit.levels.every((level) => ['PASS', 'PERFECT'].includes(level.status))
+    );
 
     // รางวัลความขยัน: ถ้า Login ครั้งนี้เพิ่งครบ 7 วัน (เก็บไว้ตอน Login
     // ใน sessionStorage) ให้เด้ง popup ครั้งเดียวตอนเปิดหน้า /map ครั้งแรก
@@ -228,6 +248,7 @@ function MapPage() {
 
     return (
         <>
+            {showCertificate && <CertificateReward onClose={closeCertificate} />}
             <StreakRewardModal
                 reward={streakReward}
                 onClose={() => setStreakReward(null)}
@@ -349,6 +370,9 @@ function MapPage() {
                         })}
 
                         <Chest
+                            ready={rewardReady}
+                            disabled={loadingProgress}
+                            onClick={() => setShowCertificate(true)}
                             left="90%"
                             top="69%"
                         />

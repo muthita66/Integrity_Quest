@@ -1,8 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaRedo, FaBookOpen } from "react-icons/fa";
 import BookLayout from "../BookLayout";
+import useButtonHoverSound from "../useButtonHoverSound";
+import { useSound } from "../../../hooks/useSound";
+import useGameMuted from "../../../hooks/useGameMuted";
+import completionSound from "../../../assets/sounds/Unit4/unit4-level-complete.mp3";
 import room from "../../../assets/unit4/investigation-room.png";
 import "../../../styles/theme.css";
 import "./level1.css";
@@ -23,6 +27,12 @@ const RANKS = {
 };
 
 export default function Result() {
+    useButtonHoverSound();
+    const [muted] = useGameMuted();
+    const { play: playCompletion, stop: stopCompletion } = useSound(completionSound, { volume: 0.5 });
+    const soundedPlay = useRef(null);
+    useEffect(() => stopCompletion, [stopCompletion]);
+    useEffect(() => { if (muted) stopCompletion(); }, [muted, stopCompletion]);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
@@ -62,6 +72,11 @@ export default function Result() {
     const [slips, setSlips] = useState([]);
     const [answers, setAnswers] = useState([]);
     const [summary, setSummary] = useState(null);
+    useEffect(() => {
+        if (loading || !summary || !Number.isFinite(playId) || soundedPlay.current === playId) return;
+        soundedPlay.current = playId;
+        if (!muted) playCompletion();
+    }, [loading, summary, playId, muted, playCompletion]);
 
     // Fallback values
     const total = summary?.total_slips ?? 0;

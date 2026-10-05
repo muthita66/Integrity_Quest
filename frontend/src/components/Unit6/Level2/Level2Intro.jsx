@@ -30,7 +30,7 @@ export default function Level2Intro({ onStart, maxLives }) {
           <div className="network-intro-guide-heading"><span>เตรียมพร้อมก่อนออกเดินทาง</span><span>วิธีเล่น 3 ขั้นตอน</span></div>
           <div className="network-intro-steps">
             <article><div className="network-intro-step-icon"><Route size={22} /><b>01</b></div><div><h2>เลือกเส้นทาง</h2><p>คลิกจุดถัดไปที่เชื่อมกับเครือข่ายของคุณ</p></div></article>
-            <article><div className="network-intro-step-icon"><ShieldCheck size={22} /><b>02</b></div><div><h2>ตอบคำถาม</h2><p>ตอบถูกเพื่อเปิดทาง ตอบผิดจะเสียหัวใจ</p></div></article>
+            <article><div className="network-intro-step-icon"><ShieldCheck size={22} /><b>02</b></div><div><h2>ตอบคำถาม</h2><p>ไม่เสียหัวใจได้ 200 IP · เสีย 1 ได้ 150 · เสีย 2 ได้ 100 · หัวใจหมดได้ 50 IP และเริ่มใหม่ได้</p></div></article>
             <article><div className="network-intro-step-icon"><Landmark size={22} /><b>03</b></div><div><h2>ไปให้ถึงเป้าหมาย</h2><p>เชื่อมเครือข่ายถึงศาลก่อนหัวใจหมด</p></div></article>
           </div>
         </section>

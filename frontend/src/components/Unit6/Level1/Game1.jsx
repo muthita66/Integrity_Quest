@@ -2,6 +2,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "./style/Game1.css";
 import { selectNextEvent } from "./eventSelection";
+import { isUnit6Paused } from '../Unit6Navigation';
+import { useSound } from '../../../hooks/useSound';
+import useGameMuted from '../../../hooks/useGameMuted';
+import levelMusic from '../../../assets/sounds/Unit6/level1-best-friends.mp3';
 import {
     FaClipboardList,
     FaUtensils,
@@ -98,6 +102,15 @@ function getTargetConcurrency(elapsedSeconds) {
 
 export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
     const navigate = useNavigate();
+    const [muted] = useGameMuted();
+    const { play: playMusic, stop: stopMusic } = useSound(levelMusic, {
+        volume: 0.25, loop: true, preload: true, retryOnInteract: true,
+    });
+    useEffect(() => {
+        if (!muted) playMusic();
+        else stopMusic();
+        return stopMusic;
+    }, [muted, playMusic, stopMusic]);
 
     const [phase, setPhase] = useState("intro"); // intro | playing | summary
     const [elapsed, setElapsed] = useState(0);
@@ -178,6 +191,7 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
     useEffect(() => {
         if (phase !== "playing") return;
         const id = setInterval(() => {
+            if (isUnit6Paused()) return;
             setElapsed((e) => {
                 const next = e + 1;
                 if (next >= GAME_SECONDS) {
@@ -628,6 +642,9 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
                                     <strong>ด่านต่อไป</strong>
                                     <span>ไปยังภารกิจถัดไป</span>
                                 </div>
+                            </button>
+                            <button className="btn blue" onClick={() => navigate('/map')}>
+                                <FaMapMarkedAlt /><strong>กลับหน้าแมพ</strong>
                             </button>
                         </div>
                     </div>

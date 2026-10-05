@@ -652,3 +652,8 @@
 }
 
 .level3-chat-book .level3-chat-body { min-height: 0; }
+
+.level3-notification-arriving { animation: level3-message-arrive .55s cubic-bezier(.2,.8,.2,1) both; }
+.level3-chat-book .level3-chat-row { animation: level3-message-arrive .35s ease-out both; }
+@keyframes level3-message-arrive { from { opacity: 0; transform: translateY(-22px) scale(.94); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .level3-notification-arriving, .level3-chat-book .level3-chat-row { animation: none; } }
