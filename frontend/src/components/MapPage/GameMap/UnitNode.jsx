@@ -30,6 +30,8 @@ function UnitNode({ unit, locked = false }) {
     return (
         <div
             className="unit-node-container"
+            data-unit-id={unit.id}
+            aria-disabled={locked}
             onClick={handleClick}
             style={{
                 display: "flex",

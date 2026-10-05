@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Level2Intro from "./Level2Intro";
 import "./Game2.css";
 import MissionIcon from "./MissionIcon";
+import { useSound } from '../../../hooks/useSound';
+import useGameMuted from '../../../hooks/useGameMuted';
+import levelMusic from '../../../assets/sounds/Unit6/level2-inspiring-cinematic.mp3';
 import {
   NODES,
   NODE_BY_ID,
@@ -55,6 +58,15 @@ const VIEW_H = 1100;
 const NODE_R = 58;
 
 export default function GoodNetworkGame() {
+  const [muted] = useGameMuted();
+  const { play: playMusic, stop: stopMusic } = useSound(levelMusic, {
+    volume: 0.25, loop: true, preload: true, retryOnInteract: true,
+  });
+  useEffect(() => {
+    if (!muted) playMusic();
+    else stopMusic();
+    return stopMusic;
+  }, [muted, playMusic, stopMusic]);
   const [showIntro, setShowIntro] = useState(true);
   const [reached, setReached] = useState(() => new Set([START_ID]));
   const [lives, setLives] = useState(MAX_LIVES);
@@ -707,15 +719,16 @@ export default function GoodNetworkGame() {
                   </button>
                 )}
                 <button className="gng-btn primary" onClick={resetGame}>
-                  เล่นอีกครั้ง
+                  เล่นใหม่
                 </button>
                 <button
                   className="gng-btn"
                   onClick={() => navigate("/unit6/game3")}
                   style={{ marginLeft: 10 }}
                 >
-                  ภารกิจสุดท้าย
+                  ด่านต่อไป
                 </button>
+                <button className="gng-btn" onClick={() => navigate('/map')} style={{ marginLeft: 10 }}>กลับหน้าแมพ</button>
               </div>
             </div>
 
@@ -730,8 +743,9 @@ export default function GoodNetworkGame() {
                   </button>
                 )}
                 <button className="gng-btn primary" onClick={resetGame}>
-                  ลองใหม่อีกครั้ง
+                  เล่นใหม่
                 </button>
+                <button className="gng-btn" onClick={() => navigate('/map')} style={{ marginLeft: 10 }}>กลับหน้าแมพ</button>
               </div>
             </div>
 
@@ -766,12 +780,6 @@ export default function GoodNetworkGame() {
                         );
                       })}
                     </div>
-                    {answered !== null && !answered.isCorrect && (
-                      <p className="gng-mission-explain">
-                        {"⚠️ ยังไม่ถูก — "}
-                        {answered.explain}
-                      </p>
-                    )}
                   </>
                 )}
               </div>

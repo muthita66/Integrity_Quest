@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaPlay, FaChevronRight } from "react-icons/fa";
 import BookLayout from "../BookLayout";
+import useButtonHoverSound from "../useButtonHoverSound";
 import { HINTS } from "./slips";
 import room from "../../../assets/unit4/investigation-room.png";
 import jane from "../../../assets/unit4/senior-detective.png";
@@ -23,6 +24,7 @@ const DIALOGS = [
 ];
 
 export default function IntroScene() {
+    useButtonHoverSound();
     const navigate = useNavigate();
     const [index, setIndex] = useState(0);
     const [text, setText] = useState("");

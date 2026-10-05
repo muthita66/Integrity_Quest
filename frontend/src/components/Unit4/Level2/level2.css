@@ -822,3 +822,12 @@
         width: auto;
     }
 }
+
+.slot3-machine--win { position: relative; animation: slot3-win-glow .8s ease-in-out 3; }
+.slot3-win-effect { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; border-radius: inherit; }
+.slot3-win-effect strong { position: absolute; top: 38%; left: 50%; transform: translateX(-50%); padding: 10px 22px; border-radius: 30px; background: #372507ed; color: #ffe598; font-size: 28px; white-space: nowrap; box-shadow: 0 0 25px #e8b53580; animation: slot3-prize-rise 2.4s ease-out forwards; }
+.slot3-win-effect span { position: absolute; top: 65%; color: #ffda68; font-size: 23px; text-shadow: 0 0 8px #ffba32; animation: slot3-win-spark 1.8s ease-out forwards; }
+@keyframes slot3-win-glow { 50% { box-shadow: 0 0 28px #e8b53599, inset 0 0 20px #ffe18755; } }
+@keyframes slot3-prize-rise { 0% { opacity: 0; margin-top: 20px; } 15%,75% { opacity: 1; } 100% { opacity: 0; margin-top: -35px; } }
+@keyframes slot3-win-spark { 0% { opacity: 0; transform: translateY(0) scale(.5); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-200px) rotate(110deg) scale(1.2); } }
+@media (prefers-reduced-motion: reduce) { .slot3-machine--win, .slot3-win-effect strong, .slot3-win-effect span { animation: none; } .slot3-win-effect span { display: none; } }

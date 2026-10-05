@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaSearchPlus, FaChevronRight } from "react-icons/fa";
 import BookLayout from "../BookLayout";
+import useButtonHoverSound from "../useButtonHoverSound";
+import { useSound } from "../../../hooks/useSound";
+import useGameMuted from "../../../hooks/useGameMuted";
+import correctAnswerSound from "../../../assets/sounds/Unit4/unit4-correct-answer.mp3";
+import wrongAnswerSound from "../../../assets/sounds/Unit4/unit4-wrong-answer.mp3";
 import ExhibitStrip from "./SlipCard";
 import { HINTS } from "./slips";
 import room from "../../../assets/unit4/investigation-room.png";
@@ -9,6 +14,14 @@ import "../../../styles/theme.css";
 import "./level1.css";
 
 export default function Game() {
+    useButtonHoverSound();
+    const [muted] = useGameMuted();
+    const { play: playCorrect, stop: stopCorrect } = useSound(correctAnswerSound, { volume: 0.5 });
+    const { play: playWrong, stop: stopWrong } = useSound(wrongAnswerSound, { volume: 0.5 });
+    useEffect(() => stopWrong, [stopWrong]);
+    useEffect(() => { if (muted) stopWrong(); }, [muted, stopWrong]);
+    useEffect(() => stopCorrect, [stopCorrect]);
+    useEffect(() => { if (muted) stopCorrect(); }, [muted, stopCorrect]);
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -210,6 +223,8 @@ export default function Game() {
 
             // อัปเดต UI
             const correct = result.data.isCorrect;
+            if (correct && !muted) playCorrect();
+            if (correct === false && !muted) playWrong();
             setVerdict({
                 chosen,
                 correct,

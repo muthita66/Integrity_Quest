@@ -1,0 +1,24 @@
+.certificate-backdrop { position: fixed; inset: 0; z-index: 10000; background: #15162aaa; display: grid; place-items: center; padding: 24px; box-sizing: border-box; }
+.certificate-dialog { display: flex; flex-direction: column; width: min(960px, 100%); max-height: calc(100dvh - 48px); min-height: 0; overflow: hidden; box-sizing: border-box; background: #fff; border-radius: 20px; padding: 16px; box-shadow: 0 20px 80px #0005; font-family: 'Prompt', sans-serif; text-align: center; }
+.certificate-heading, .certificate-actions { flex-shrink: 0; }
+.certificate-preview { flex: 1 1 auto; min-height: 0; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+.certificate-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 12px; }
+.certificate-heading h2 { margin: 0; color: #535f99; font-size: 22px; }
+.certificate-heading button { border: 0; background: #eef0f8; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; }
+.certificate-preview img { display: block; width: auto; height: auto; max-width: 100%; max-height: max(80px, calc(100dvh - 200px)); object-fit: contain; }
+.certificate-download { display: inline-block; background: #535f99; color: white; border: 0; cursor: pointer; border-radius: 12px; padding: 12px 22px; margin-top: 16px; text-decoration: none; }
+.certificate-download:disabled { opacity: .6; cursor: wait; }
+.certificate-dialog :focus-visible { outline: 3px solid #ce9b26; outline-offset: 3px; }
+@media (max-width: 600px) { .certificate-backdrop { padding: 10px; } .certificate-dialog { padding: 12px; max-height: calc(100dvh - 20px); } .certificate-heading h2 { font-size: 18px; } .certificate-preview img { max-height: max(80px, calc(100dvh - 170px)); } }
+@font-face {
+    font-family: 'Certificate Nunito';
+    src: url('../../assets/fonts/Nunito.ttf') format('truetype');
+    font-weight: 200 1000;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Anuparp Thai';
+    src: local('Anuparp Thai'), local('AnuparpThai'), local('Anuparp Thai Regular'), url('/fonts/AnuparpThai.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}

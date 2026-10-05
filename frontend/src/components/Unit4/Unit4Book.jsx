@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useBackgroundMusic from "../../hooks/useBackgroundMusic";
+import useGameMuted from "../../hooks/useGameMuted";
+import preparationMusic from "../../assets/sounds/Unit4/unit4-mystery-music-box.mp3";
+import { useSound } from "../../hooks/useSound";
+import hoverSound from "../../assets/sounds/Unit4/unit4-button-hover.mp3";
 import { motion } from "framer-motion";
 import { FaLock, FaCheck, FaPlay, FaMedal } from "react-icons/fa";
 import BookLayout from "./BookLayout";
@@ -60,6 +65,12 @@ const CHAPTERS = [
 ];
 
 export default function Unit4Book() {
+    const [muted] = useGameMuted();
+    useBackgroundMusic(preparationMusic, { volume: 0.15, muted });
+    const { play: playHover, stop: stopHover } = useSound(hoverSound, { volume: 0.35 });
+    const handleButtonHover = () => { if (!muted) playHover(); };
+    useEffect(() => stopHover, [stopHover]);
+    useEffect(() => { if (muted) stopHover(); }, [muted, stopHover]);
     const navigate = useNavigate();
     const [levels, setLevels] = useState([]);
     const [unitLocked, setUnitLocked] = useState(true);
@@ -184,6 +195,7 @@ export default function Unit4Book() {
             rightLabel="สารบัญคดี"
             rightNote={`${cleared} / ${CHAPTERS.length} บท`}
             onBack={() => navigate("/map")}
+            onButtonHover={handleButtonHover}
 
             /* ---------------- หน้าซ้าย ---------------- */
             leftPage={
@@ -215,6 +227,7 @@ export default function Unit4Book() {
                         </p>
 
                         <motion.button
+                            onMouseEnter={handleButtonHover}
                             type="button"
                             whileTap={{ scale: 0.97 }}
                             disabled={!nextUp.unlocked}
@@ -249,6 +262,7 @@ export default function Unit4Book() {
 
                         {allDone && (
                             <motion.button
+                                onMouseEnter={handleButtonHover}
                                 type="button"
                                 whileTap={{ scale: 0.97 }}
                                 onClick={() => navigate("/unit4/complete")}
@@ -361,6 +375,7 @@ export default function Unit4Book() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                     {state.map((chapter, i) => (
                         <motion.button
+                            onMouseEnter={handleButtonHover}
                             key={chapter.id}
                             type="button"
                             className="chapter-row"

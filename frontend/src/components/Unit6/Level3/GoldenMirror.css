@@ -147,7 +147,15 @@
   margin: 0 auto;
 }
 @media(max-width:720px) {
-  .sm-root .sm-wide-scene .sm-mirror { height: 500px; aspect-ratio: auto; }
+  .sm-root .sm-wide-scene .sm-mirror {
+    max-width: 430px;
+    height: auto;
+    aspect-ratio: 2 / 3;
+    background-image: url('../../../assets/unit6/golden-mirror.png');
+  }
+  .sm-root .sm-wide-scene .sm-q-tag { top: 30%; left: 24%; width: 52%; }
+  .sm-root .sm-wide-scene .sm-q-text { top: 35%; left: 24%; width: 52%; font-size: clamp(12px, 3.2vw, 14px); }
+  .sm-root .sm-wide-scene .sm-textarea { top: 55%; left: 24%; width: 52%; height: 18%; }
 }
 
 .sm-root .sm-result-screen {

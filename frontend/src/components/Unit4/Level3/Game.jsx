@@ -3,6 +3,12 @@ import { FaShieldAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import BookLayout from "../BookLayout";
+import useBackgroundMusic from "../../../hooks/useBackgroundMusic";
+import useGameMuted from "../../../hooks/useGameMuted";
+import { useSound } from "../../../hooks/useSound";
+import blockSuccessSound from "../../../assets/sounds/Unit4/unit4-level3-block-success.mp3";
+import errorAlertSound from "../../../assets/sounds/Unit4/unit4-level3-error-alert.mp3";
+import cyberMusic from "../../../assets/sounds/Unit4/unit4-level3-cyber-alarm.mp3";
 import useUnit4Chapter, { Unit4Checking } from "../useUnit4Chapter";
 import normalScreen from "../../../assets/unit4/normal.png";
 import safeScreen from "../../../assets/unit4/Potect.png";
@@ -20,6 +26,14 @@ const authHeaders = () => ({
 });
 
 export default function Game() {
+    const [muted] = useGameMuted();
+    const { play: playBlockSuccess, stop: stopBlockSuccess } = useSound(blockSuccessSound, { volume: 0.5, preload: true });
+    const { play: playErrorAlert, stop: stopErrorAlert } = useSound(errorAlertSound, { volume: 0.5, preload: true });
+    useEffect(() => stopErrorAlert, [stopErrorAlert]);
+    useEffect(() => { if (muted) stopErrorAlert(); }, [muted, stopErrorAlert]);
+    useEffect(() => stopBlockSuccess, [stopBlockSuccess]);
+    useEffect(() => { if (muted) stopBlockSuccess(); }, [muted, stopBlockSuccess]);
+    useBackgroundMusic(cyberMusic, { volume: 0.35, muted });
     const navigate = useNavigate();
 
     // กันเข้าทาง URL ตรง ๆ ตอนบทนี้ยังไม่ปลดล็อก + ได้ level_id จาก DB
@@ -180,6 +194,7 @@ export default function Game() {
             }
 
             if (data.data.is_correct) {
+                if (!muted) playBlockSuccess();
                 setCorrect((value) => value + 1);
                 setScreenState("safe");
                 timerRef.current = setTimeout(next, 650);
@@ -187,6 +202,7 @@ export default function Game() {
             }
 
             const remaining = hearts - 1;
+            if (!muted) playErrorAlert();
             setVirusAttack(true);
             setScreenState("warning");
             setHearts(remaining);

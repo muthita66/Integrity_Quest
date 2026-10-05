@@ -401,6 +401,12 @@ export default function UnitContentPage() {
             return;
         }
 
+        // เปิดหน้าเตรียมความพร้อมก่อนเปิดหนังสือและเลือกด่านในบทที่ 4
+        if (currentUnitId === 4) {
+            navigate("/unit4/intro");
+            return;
+        }
+
         // หน้าเลือกบทที่ 6 ให้เริ่มที่อินโทรเกม 1 เสมอ
         // ไม่ให้ Progress เดิมพาไปเปิดเกม 2 โดยตรง
         if (currentUnitId === 6) {
@@ -459,7 +465,7 @@ export default function UnitContentPage() {
         // --------------------------------------------------------
 
         if (currentUnitId === 4) {
-            navigate("/unit4/book");
+            navigate("/unit4/intro");
             return;
         }
 

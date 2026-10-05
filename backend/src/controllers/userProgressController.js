@@ -179,7 +179,7 @@ const updateLevelProgress = async ({
                 best_score: bestScore,
 
                 completed_at: isLevelPassed
-                    ? new Date()
+                    ? existingProgress?.completed_at || new Date()
                     : existingProgress?.completed_at || null,
 
                 last_accessed: new Date(),

@@ -13,6 +13,7 @@ export default function BookLayout({
     rightPage,
     backgroundImage = defaultBackground,
     onBack,
+    onButtonHover,
     showBack = true,
     variant = "default",
 }) {
@@ -58,6 +59,7 @@ export default function BookLayout({
 
                         {showBack && (
                             <button
+                                onMouseEnter={onButtonHover}
                                 type="button"
                                 className="icon-btn"
                                 onClick={onBack}

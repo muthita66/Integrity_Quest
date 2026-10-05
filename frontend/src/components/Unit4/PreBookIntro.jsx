@@ -16,6 +16,9 @@ import {
     FaShieldHalved,
 } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
+import useBackgroundMusic from "../../hooks/useBackgroundMusic";
+import useGameMuted from "../../hooks/useGameMuted";
+import preparationMusic from "../../assets/sounds/Unit4/unit4-mystery-music-box.mp3";
 import "../../styles/theme.css";
 
 /* ประกายดาวลอยอยู่พื้นหลัง — ตำแหน่ง/ขนาด/จังหวะกะพริบแยกกันไม่ให้เป็นแพตเทิร์นซ้ำ */
@@ -332,6 +335,8 @@ function NightBeforeScene() {
 }
 
 export default function PreBookIntro() {
+    const [muted] = useGameMuted();
+    useBackgroundMusic(preparationMusic, { volume: 0.15, muted });
     const navigate = useNavigate();
     const [lit, setLit] = useState(false); // โคมไฟ
     const [toast, setToast] = useState("hidden"); // "hidden" | "scam" | "caught"

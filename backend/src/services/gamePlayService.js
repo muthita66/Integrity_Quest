@@ -154,8 +154,8 @@ const getSlipHuntAnswers = async (playId) => {
 // level_id ของ Unit 4 Level 2 (ด่านถัดจาก Slip Hunt)
 const SLOT_LEVEL_ID = 12;
 
-const SLOT_START_BALANCE = 1500;
-const SLOT_BETS = [100, 500, 1000];
+const SLOT_START_BALANCE = 5000;
+const SLOT_BETS = [1000, 2000, 5000];
 const SLOT_MIN_BET = Math.min(...SLOT_BETS);
 
 // จบบทนี้ได้ IP เท่าไร (ไม่มีถูก/ผิด — ได้เมื่อเล่นจนเห็นกลลวงครบ)
@@ -163,8 +163,8 @@ const SLOT_PASS_IP = 150;
 
 // ผลที่ถูกล็อกไว้ตามลำดับการหมุน (สัญลักษณ์คั่นด้วยช่องว่าง)
 const SLOT_SCRIPT = [
-    { symbols: ["💎", "💎", "💎"], multiplier: 5 },
-    { symbols: ["7️⃣", "7️⃣", "7️⃣"], multiplier: 3 },
+    { symbols: ["💎", "💎", "💎"], multiplier: 1.2 },
+    { symbols: ["7️⃣", "7️⃣", "7️⃣"], multiplier: 1.1 },
 ];
 
 // "เกือบชนะ" — สลับหน้าตาไปเรื่อย ๆ ให้ดูเหมือนสุ่มจริง
@@ -268,7 +268,7 @@ const recordSlotSpin = async (playId, bet) => {
     }
 
     const outcome = getSlotOutcome(spinNo);
-    const reward = amount * outcome.multiplier;
+    const reward = Math.round(amount * outcome.multiplier);
     const balanceAfter = balanceBefore - amount + reward;
 
     try {
@@ -1235,7 +1235,7 @@ const calcCrisisResult = (totals) => {
 //   มี 3 หัวใจ — ตอบผิดไม่หยุดเส้นทาง แต่เสีย 1 หัวใจ
 //   ผิดครบ 3 ครั้ง → FAIL ทันที (ตอบต่อไม่ได้)
 //   ไปถึง "ศาลยุติธรรม" (คำถามข้อสุดท้าย) ได้ → PASS / ไม่ผิดเลย → PERFECT
-//   IP = ผลรวม choice.ip_reward ของข้อที่ถูก (ข้อละ 10 → เต็ม 100) ได้แม้ FAIL
+//   IP ตามหัวใจที่เสีย: 0 → 200, 1 → 150, 2 → 100, 3 → 50 (ได้แม้ FAIL)
 // ============================================================
 
 const NETWORK_UNIT_ID = 6;
@@ -1300,12 +1300,13 @@ const getGoodNetworkStats = async (playId, levelId) => {
 const calcGoodNetworkResult = (stats) => {
     const isPass = stats.reachedGoal && !stats.isOutOfLives;
     const isPerfect = isPass && stats.wrong === 0;
+    const earnedIP = 200 - Math.min(NETWORK_LIVES, Math.max(0, stats.wrong)) * 50;
 
     return {
         status: isPerfect ? "PERFECT" : isPass ? "PASS" : "FAIL",
         isPass,
         isPerfect,
-        earnedIP: stats.answerIP,
+        earnedIP,
     };
 };
 

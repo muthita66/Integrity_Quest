@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaChevronRight, FaEnvelopeOpenText, FaShieldAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import BookLayout from "../BookLayout";
+import { useSound } from "../../../hooks/useSound";
+import useGameMuted from "../../../hooks/useGameMuted";
+import notificationSound from "../../../assets/sounds/Unit4/unit4-level3-notification.mp3";
 import useUnit4Chapter, { Unit4Checking } from "../useUnit4Chapter";
 import janeImg from "../../../assets/unit4/Jane.png";
 import "../../../styles/theme.css";
@@ -21,6 +24,25 @@ export default function IntroScene() {
     const { checking } = useUnit4Chapter(2);
     const [chatOpen, setChatOpen] = useState(false);
     const [visibleMessages, setVisibleMessages] = useState(2);
+    const [notificationVisible, setNotificationVisible] = useState(false);
+    const [muted] = useGameMuted();
+    const mutedRef = useRef(muted);
+    useEffect(() => { mutedRef.current = muted; }, [muted]);
+    const { play: playNotification, stop: stopNotification } = useSound(notificationSound, { volume: 0.3, preload: true });
+    useEffect(() => stopNotification, [stopNotification]);
+    useEffect(() => { if (muted) stopNotification(); }, [muted, stopNotification]);
+    useEffect(() => {
+        if (checking) return;
+        const timer = setTimeout(() => {
+            setNotificationVisible(true);
+            if (!mutedRef.current) playNotification();
+        }, 650);
+        return () => clearTimeout(timer);
+    }, [checking, playNotification]);
+    const readNextMessage = () => {
+        if (!muted) playNotification();
+        setVisibleMessages((count) => Math.min(CHAT.length, count + 1));
+    };
     const chatFinished = visibleMessages === CHAT.length;
 
     if (checking) return <Unit4Checking />;
@@ -40,11 +62,11 @@ export default function IntroScene() {
                             <div className="level3-phone-status"><span>09:41</span><span>●●● ◒</span></div>
                             <div className="level3-notification-wallpaper">
                                 <div className="level3-notification-date">วันนี้</div>
-                                <div className="level3-notification-card">
+                                {notificationVisible && <div className="level3-notification-card level3-notification-arriving" role="status">
                                     <div className="level3-notification-head"><img src={janeImg} alt="" /><div><strong>พี่เจน</strong><small>ข้อความใหม่ · เมื่อสักครู่</small></div></div>
                                     <p>ภารกิจด่วนมาก บีบีอ่านข้อความนี้แล้วติดต่อกลับพี่ด้วยนะ</p>
                                     <button type="button" onClick={() => setChatOpen(true)}><FaEnvelopeOpenText /> กดอ่าน</button>
-                                </div>
+                                </div>}
                             </div>
                         </div>
                         <div className="level3-intro-home" />
@@ -66,7 +88,7 @@ export default function IntroScene() {
                             ))}
                         </div>
                         <div className="level3-chat-footer">
-                            {!chatFinished ? <button type="button" onClick={() => setVisibleMessages((count) => Math.min(CHAT.length, count + 1))}>อ่านข้อความต่อ <FaChevronRight size={12} /></button> : <button type="button" onClick={() => navigate("/unit4/level3/game")}>เริ่มภารกิจ Firewall <FaShieldAlt size={13} /></button>}
+                            {!chatFinished ? <button type="button" onClick={readNextMessage}>อ่านข้อความต่อ <FaChevronRight size={12} /></button> : <button type="button" onClick={() => navigate("/unit4/level3/game")}>เริ่มภารกิจ Firewall <FaShieldAlt size={13} /></button>}
                         </div>
                     </div>
                 ) : (

@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { CarTaxiFront } from 'lucide-react';
+import { useSound } from "../../../hooks/useSound";
+import useGameMuted from "../../../hooks/useGameMuted";
+import dialogueTypingSound from "../../../assets/sounds/Unit5/level2-dialogue-typing-clear.wav";
+import introMusic from "../../../assets/sounds/Unit5/level2-intro-documentary.mp3";
 
 export default function Level2Intro() {
     const navigate = useNavigate();
@@ -57,6 +61,21 @@ export default function Level2Intro() {
 
     const [typing, setTyping] = useState(true);
     const [fade, setFade] = useState(false);
+    const [muted] = useGameMuted();
+    const { play: playIntroMusic, stop: stopIntroMusic } = useSound(introMusic, {
+        volume: 0.25, loop: true, preload: true, retryOnInteract: true,
+    });
+    useEffect(() => {
+        if (!muted) playIntroMusic();
+        else stopIntroMusic();
+        return stopIntroMusic;
+    }, [muted, playIntroMusic, stopIntroMusic]);
+    const { play: playTyping, stop: stopTyping } = useSound(dialogueTypingSound, { volume: 0.6, loop: true, preload: true, retryOnInteract: true });
+    useEffect(() => {
+        if (typing && !fade && !muted) playTyping();
+        else stopTyping();
+        return stopTyping;
+    }, [typing, fade, muted, scene, dialogIndex, playTyping, stopTyping]);
 
     const dialogues = useMemo(() => {
         return scene === "police"

@@ -5,6 +5,15 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
+import useUnit4ClickSound from './hooks/useUnit4ClickSound';
+import useUnit5ClickSound from './hooks/useUnit5ClickSound';
+import useUnit6ClickSound from './hooks/useUnit6ClickSound';
+import useUnit6HoverSound from './hooks/useUnit6HoverSound';
+import useUnit5HoverSound from './hooks/useUnit5HoverSound';
+import Unit5Navigation from './components/Unit5/Unit5Navigation';
+import Unit6Navigation from './components/Unit6/Unit6Navigation';
+import Level2Music from './components/Unit5/Level2/Level2Music';
+import Level3Music from './components/Unit5/Level3/Level3Music';
 
 // ============================================================
 // Common / Pages
@@ -137,8 +146,18 @@ import useActivityTracker from "./components/hooks/useActivityTracker";
 function App() {
   useActivityTracker();
   const location = useLocation();
+  useUnit4ClickSound(location.pathname);
+  useUnit5ClickSound(location.pathname);
+  useUnit6ClickSound(location.pathname);
+  useUnit6HoverSound(location.pathname);
+  useUnit5HoverSound(location.pathname);
 
   return (
+    <>
+    <Level2Music />
+    <Level3Music />
+    {(location.pathname.startsWith('/unit6/') || location.pathname === '/unit/unit6') && <Unit6Navigation key={location.pathname} />}
+    {location.pathname.startsWith('/unit5/') && location.pathname.replace(/\/$/, '') !== '/unit5/result' && <Unit5Navigation key={location.pathname} />}
     <Routes>
 
       {/* ====================================================== */}
@@ -497,7 +516,7 @@ function App() {
         path="/unit5/level3/game"
         element={
           <Unit5Level3Game
-            nextRoute="/map"
+            nextRoute="/unit/unit6"
           />
         }
       />
@@ -550,6 +569,7 @@ function App() {
       />
 
     </Routes>
+    </>
   );
 }
 

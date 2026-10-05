@@ -1,17 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { MdWarning } from "react-icons/md";
+import useBackgroundMusic from "../../../hooks/useBackgroundMusic";
+import useGameMuted from "../../../hooks/useGameMuted";
+import { useSound } from "../../../hooks/useSound";
+import messageNotification from "../../../assets/sounds/Unit5/level1-message-notification.mp3";
+import policeAtmosphere from "../../../assets/sounds/Unit5/level1-police-station-atmosphere.mp3";
 
 import officeBg from "../../../assets/unit5/office.png";
 import heroChar from "../../../assets/unit5/hero.png";
 
 export default function IntroScene() {
+    const [muted] = useGameMuted();
+    useBackgroundMusic(policeAtmosphere, { volume: 0.35, muted });
     const navigate = useNavigate();
 
     const [showNarration, setShowNarration] = useState(true);
     const [showCharacter, setShowCharacter] = useState(false);
     const [showMessage, setShowMessage] = useState(false);
+    const notificationPlayed = useRef(false);
+    const { play: playNotification, stop: stopNotification } = useSound(messageNotification, { volume: 0.3, preload: true });
+    useEffect(() => stopNotification, [stopNotification]);
+    useEffect(() => { if (muted) stopNotification(); }, [muted, stopNotification]);
+    useEffect(() => {
+        if (!showMessage || notificationPlayed.current) return;
+        notificationPlayed.current = true;
+        if (!muted) playNotification();
+    }, [showMessage, muted, playNotification]);
 
     useEffect(() => {
         const t1 = setTimeout(() => {
