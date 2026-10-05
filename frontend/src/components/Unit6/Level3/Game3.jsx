@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import IntroScreen from "./Intro3";
 import QuizScreen from "./Quiz3";
 import LoadingScreen from "./Loading3";
@@ -57,6 +58,28 @@ function generateMockResult(answers) {
     };
 }
 
+// level_id ของ ShadowMirror (Unit 6 Level 3 "กระจกสะท้อนใจ") ใน DB
+// (unit_id = 6, order_no = 3) — ใช้ตอนเรียก POST /api/game-play/start
+// เพื่อขอ play_id ก่อนเริ่มเล่น
+const SHADOW_MIRROR_LEVEL_ID = 19;
+
+// แนบ JWT token แบบเดียวกับ service อื่น ๆ ของโปรเจกต์ (ยังไม่มี axios
+// instance กลางที่แนบ token อัตโนมัติ — ดู authConfig() ใน
+// services/gamePlayService.js ฝั่ง frontend)
+const authConfig = () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        throw new Error("กรุณาเข้าสู่ระบบก่อนเริ่มเกม");
+    }
+
+    return {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+};
+
 export default function ShadowMirror() {
     const [screen, setScreen] = useState("intro");
     const [current, setCurrent] = useState(0);
@@ -64,6 +87,7 @@ export default function ShadowMirror() {
     const [error, setError] = useState("");
     const [result, setResult] = useState(null);
     const [loadingIdx, setLoadingIdx] = useState(0);
+    const [playId, setPlayId] = useState(null);
     const textareaRef = useRef(null);
     const BACKEND_URL = "http://localhost:5000";
 
@@ -75,9 +99,27 @@ export default function ShadowMirror() {
         return () => clearInterval(timer);
     }, [screen]);
 
-    const startGame = () => {
+    const startGame = async () => {
+        setError("");
         setCurrent(0);
         setAnswers(Array(questions.length).fill(""));
+
+        // ขอ play_id จากระบบ game_play_history กลางก่อนเริ่มเล่น (เหมือน
+        // Level อื่น ๆ ทุกด่าน) — ถ้าขอไม่สำเร็จ (เช่น ยังไม่ login, หรือ
+        // backend ปิดอยู่ตอน dev) ให้ยังเล่นต่อได้ แต่จะไม่มีการบันทึก
+        // ประวัติ/ได้ IP จริง (runAnalysis จะ fallback เป็น mock แทน)
+        try {
+            const response = await axios.post(
+                BACKEND_URL + "/api/game-play/start",
+                { level_id: SHADOW_MIRROR_LEVEL_ID },
+                authConfig()
+            );
+            setPlayId(response.data?.data?.play_id ?? null);
+        } catch (err) {
+            console.warn("เริ่มบันทึกรอบการเล่นไม่สำเร็จ จะเล่นแบบไม่บันทึกผล:", err.message);
+            setPlayId(null);
+        }
+
         setScreen("quiz");
     };
 
@@ -102,19 +144,13 @@ export default function ShadowMirror() {
         setError("");
 
         const payload = {
+            play_id: playId,
             answers: questions.map((q, i) => ({ question: q.text, answer: answers[i] })),
         };
 
         try {
-            const response = await fetch(BACKEND_URL + "/api/reflect", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-            if (!response.ok) throw new Error("network");
-            const parsed = await response.json();
-            if (parsed.error) throw new Error(parsed.error);
-            setResult(parsed);
+            const response = await axios.post(BACKEND_URL + "/api/reflect", payload, authConfig());
+            setResult(response.data);
             setScreen("result");
         } catch (err) {
             console.warn("reflect API unavailable, showing local preview data:", err.message);
@@ -128,6 +164,7 @@ export default function ShadowMirror() {
         setCurrent(0);
         setAnswers(Array(questions.length).fill(""));
         setError("");
+        setPlayId(null);
         setScreen("intro");
     };
 

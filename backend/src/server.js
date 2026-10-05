@@ -46,6 +46,7 @@ const inspectorGameRoutes = require("./routes/inspectorGameRoutes");
 
 // unit 6
 const crisisGameRoutes = require("./routes/crisisGameRoutes");
+const reflectRoutes = require("./routes/Reflectroutes"); // Unit 6 Level 3 : ShadowMirror
 
 console.log("Game Play Routes Loaded");
 
@@ -96,6 +97,7 @@ app.use('/api/inspector-game', inspectorGameRoutes);
 
 // unit 6
 app.use('/api/crisis-game', crisisGameRoutes);
+app.use('/api/reflect', reflectRoutes);
 
 app.get("/", (req, res) => {
     res.send("APT running...");

@@ -1,18 +1,10 @@
 import { useEffect, useState } from "react";
 import bg_game from "../../assets/bg_game.png";
 import { useNavigate } from "react-router-dom";
-import { getTestStatus } from "../services/profileService";
 
 // TODO: ถ้ามี env ของ backend URL อยู่แล้ว (เช่น VITE_API_URL) ให้ใช้ตัวนั้นแทน
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const QUIZ_TYPE = "post_test";
-
-// ============================================================
-// Post-Test (หน้าตาเหมือน Pre-Test)
-// ------------------------------------------------------------
-// ทำได้เมื่อ: ทำ Pre-Test แล้ว + เล่นผ่านครบทั้ง 6 บท + ยังไม่เคยทำ
-// เช็กจาก GET /api/profile/test-status ก่อนแสดงคำถาม
-// ============================================================
 
 function PostTest() {
     const [questions, setQuestions] = useState([]); // [{ quiz_id, question_text, ... }]
@@ -20,22 +12,13 @@ function PostTest() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
-    const [status, setStatus] = useState(null); // ผลจาก /profile/test-status
 
     const navigate = useNavigate();
 
     useEffect(() => {
-        const load = async () => {
+        const fetchQuizzes = async () => {
             try {
                 setLoading(true);
-
-                // 1) เช็กสิทธิ์ก่อน
-                const testStatus = await getTestStatus();
-                setStatus(testStatus);
-
-                if (!testStatus.post_test_unlocked) return;
-
-                // 2) ผ่านเงื่อนไข → โหลดคำถาม
                 const res = await fetch(`${API_BASE}/quizzes?type=${QUIZ_TYPE}`);
 
                 if (!res.ok) {
@@ -46,22 +29,14 @@ function PostTest() {
                 setQuestions(data.quizzes || []);
             } catch (err) {
                 console.error(err);
-
-                if (err.status === 401 || err.status === 403) {
-                    navigate("/", { replace: true });
-                    return;
-                }
-
                 setError("ไม่สามารถโหลดคำถามได้ กรุณาลองใหม่อีกครั้ง");
             } finally {
                 setLoading(false);
             }
         };
 
-        load();
-    }, [navigate]);
-
-    const locked = !loading && status && !status.post_test_unlocked;
+        fetchQuizzes();
+    }, []);
 
     const handleSelect = (quizId, score) => {
         setAnswers((prev) => ({
@@ -100,15 +75,8 @@ function PostTest() {
             const data = await res.json().catch(() => ({}));
 
             if (res.status === 409) {
-                // ทำ post-test ไปแล้ว
+                // ทำ post-test ไปแล้ว (เผื่อกรณีหลุดผ่านการเช็คที่ปุ่มบนหน้า map มาได้)
                 alert(data.message || "คุณทำแบบทดสอบนี้ไปแล้ว");
-                navigate("/map");
-                return;
-            }
-
-            if (res.status === 403) {
-                // ยังเล่นไม่ครบทุกบท (backend เช็กซ้ำอีกชั้น)
-                alert(data.message || "ต้องเล่นให้ครบทุกบทก่อนทำ Post-Test");
                 navigate("/map");
                 return;
             }
@@ -170,87 +138,22 @@ function PostTest() {
                         Post-Test
                     </div>
 
-                    {/* ยังทำไม่ได้ */}
-                    {locked && (
-                        <div style={{ textAlign: "center", color: "#4c2323", padding: "12px 0" }}>
-                            <div style={{ fontSize: 40, marginBottom: 8 }}>
-                                {status.post_test_done ? "✅" : "🔒"}
-                            </div>
-
-                            <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>
-                                {status.post_test_done
-                                    ? "คุณทำ Post-Test ไปแล้ว"
-                                    : !status.pre_test_done
-                                        ? "กรุณาทำ Pre-Test ก่อน"
-                                        : "ยังทำ Post-Test ไม่ได้"}
-                            </div>
-
-                            {!status.post_test_done && status.pre_test_done && (
-                                <>
-                                    <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>
-                                        ต้องเล่นผ่านให้ครบทุกบทก่อน · ตอนนี้ผ่านแล้ว{" "}
-                                        {status.units_completed}/{status.units_total} บท
-                                    </div>
-
-                                    <div
-                                        style={{
-                                            height: 10,
-                                            maxWidth: 360,
-                                            margin: "0 auto 16px",
-                                            borderRadius: 999,
-                                            background: "rgba(255,255,255,.6)",
-                                            overflow: "hidden",
-                                        }}
-                                    >
-                                        <div
-                                            style={{
-                                                width: `${status.units_total ? (status.units_completed / status.units_total) * 100 : 0}%`,
-                                                height: "100%",
-                                                background: "linear-gradient(90deg,#34d399,#10b981)",
-                                            }}
-                                        />
-                                    </div>
-                                </>
-                            )}
-
-                            <button
-                                onClick={() => navigate("/map")}
-                                style={{
-                                    backgroundColor: "#ea580c",
-                                    color: "white",
-                                    padding: "9px 34px",
-                                    borderRadius: "18px",
-                                    fontSize: "15px",
-                                    fontWeight: "700",
-                                    fontFamily: "'Sarabun', sans-serif",
-                                    cursor: "pointer",
-                                    border: "none",
-                                    boxShadow: "0 5px 15px rgba(91,56,41,.5)",
-                                }}
-                            >
-                                กลับไปหน้าแผนที่
-                            </button>
-                        </div>
-                    )}
-
                     {/* Description */}
-                    {!locked && (
-                        <div
-                            style={{
-                                textAlign: "center",
-                                color: "#603535",
-                                fontWeight: "700",
-                                fontSize: "15px",
-                                marginBottom: "16px",
-                                lineHeight: 1.4,
-                            }}
-                        >
-                            กรุณาให้คะแนนตามระดับความคิดเห็นของท่าน
-                            <br />
-                            1 = ไม่เห็นด้วยอย่างยิ่ง | 2 = ไม่เห็นด้วย | 3 = ปานกลาง |
-                            4 = เห็นด้วย | 5 = เห็นด้วยอย่างยิ่ง
-                        </div>
-                    )}
+                    <div
+                        style={{
+                            textAlign: "center",
+                            color: "#603535",
+                            fontWeight: "700",
+                            fontSize: "15px",
+                            marginBottom: "16px",
+                            lineHeight: 1.4,
+                        }}
+                    >
+                        กรุณาให้คะแนนตามระดับความคิดเห็นของท่าน
+                        <br />
+                        1 = ไม่เห็นด้วยอย่างยิ่ง | 2 = ไม่เห็นด้วย | 3 = ปานกลาง |
+                        4 = เห็นด้วย | 5 = เห็นด้วยอย่างยิ่ง
+                    </div>
 
                     {/* Loading / Error states */}
                     {loading && (
@@ -268,7 +171,6 @@ function PostTest() {
                     {/* Questions */}
                     {!loading &&
                         !error &&
-                        !locked &&
                         questions.map((q, qIndex) => (
                             <div
                                 key={q.quiz_id}
@@ -347,7 +249,7 @@ function PostTest() {
                         ))}
 
                     {/* Submit */}
-                    {!loading && !error && !locked && (
+                    {!loading && !error && (
                         <div
                             style={{
                                 textAlign: "center",

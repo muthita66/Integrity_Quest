@@ -347,6 +347,12 @@ exports.startGame = async (req, res) => {
         // Unit 6 Level 2 : Good Network (ใช้ question/choice — หา level จาก DB)
         const isNetwork = await gamePlayService.isGoodNetworkLevel(levelId);
 
+        // Unit 6 Level 3 : ShadowMirror (กระจกสะท้อนใจ) — คำถามปลายเปิด
+        // hardcode อยู่ฝั่ง frontend ไม่ได้ดึงจากตาราง question จึงไม่ต้อง
+        // นับ/ตรวจอะไรตรงนี้ ผลเกม/IP คำนวณที่ controllers/reflectController.js
+        // (POST /api/reflect) แทน — endpoint นี้แค่สร้าง play_id ให้
+        const isShadowMirror = await gamePlayService.isShadowMirrorLevel(levelId);
+
         if (levelId === 5) {
             // Unit 2 Level 1: Need / Want
             maxScore = await prisma.level_items.count({
@@ -408,6 +414,10 @@ exports.startGame = async (req, res) => {
             // ไม่ได้ใช้ตาราง question จึงต้องมี branch แยก ไม่งั้น
             // จะตกไปนับ question แล้วได้ 0 → 400)
             maxScore = gamePlayService.SLIP_HUNT_TOTAL_SLIPS;
+        } else if (isShadowMirror) {
+            // Unit 6 Level 3 : ShadowMirror — คะแนนเต็มคือค่าเฉลี่ย trait
+            // score จาก AI (0-100) ไม่มีระบบนับคำถามจาก DB
+            maxScore = 100;
         } else if (isCrisis) {
             // Unit 6 Level 1 : รับมือวิกฤต (โจทย์อยู่ใน level_crisis_events)
             maxScore = 0;

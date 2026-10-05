@@ -133,6 +133,8 @@ function StudentGroupsEditor({ groups, onChange, faculties, theme }) {
                                 <option value="2">ปี 2</option>
                                 <option value="3">ปี 3</option>
                                 <option value="4">ปี 4</option>
+                                <option value="5">ปี 5</option>
+                                <option value="6">ปี 6</option>
                             </FormSelect>
                         </div>
 
@@ -387,6 +389,8 @@ export default function RegisterForm({
                                     <option value="2">ปี 2</option>
                                     <option value="3">ปี 3</option>
                                     <option value="4">ปี 4</option>
+                                    <option value="5">ปี 5</option>
+                                    <option value="6">ปี 6</option>
                                 </FormSelect>
                             </>
                         )}
