@@ -16,6 +16,7 @@ import {
     FiPlus,
     FiMoreVertical,
     FiTrash2,
+    FiStar,
 } from "react-icons/fi";
 
 import {
@@ -859,6 +860,8 @@ function AddGroupModal({ faculties, onClose, onAdded }) {
                             <option value="2">ปี 2</option>
                             <option value="3">ปี 3</option>
                             <option value="4">ปี 4</option>
+                            <option value="5">ปี 5</option>
+                            <option value="6">ปี 6</option>
                         </select>
                     </div>
 
@@ -1441,6 +1444,12 @@ export default function TeacherPage() {
                                                                 <div>
                                                                     <p className="font-medium text-gray-800">{fullName(s)}</p>
                                                                     <p className="text-xs text-gray-400">{s.username}</p>
+                                                                    {s.streak_stars > 0 && (
+                                                                        <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-amber-500">
+                                                                            <FiStar size={12} className="fill-amber-400" />
+                                                                            {s.streak_stars} ดวง
+                                                                        </p>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         </td>

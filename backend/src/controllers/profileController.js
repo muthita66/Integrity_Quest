@@ -430,7 +430,19 @@ exports.changePassword = async (req, res) => {
 // ============================================================
 
 const buildOverview = async (userId) => {
-    const [units, levels, unitProgress, levelProgress, history, latestPlays, preTestDone] =
+    const [
+        units,
+        levels,
+        unitProgress,
+        levelProgress,
+        history,
+        latestPlays,
+        firstPlays,
+        preTestDone,
+        preTestAnswer,
+        postTestAnswer,
+        userStats,
+    ] =
         await Promise.all([
             prisma.units.findMany({
                 orderBy: { order_number: "asc" },
@@ -478,13 +490,51 @@ const buildOverview = async (userId) => {
                 distinct: ["level_id"],
                 select: { level_id: true, earned_ip: true, status: true },
             }),
+            // รอบแรกที่เล่นจบของแต่ละด่าน (ไว้แสดง "คะแนนครั้งแรก")
+            prisma.game_play_history.findMany({
+                where: { user_id: userId, completed_at: { not: null } },
+                orderBy: { completed_at: "asc" },
+                distinct: ["level_id"],
+                select: { level_id: true, earned_ip: true, status: true },
+            }),
             userProgressController.hasCompletedPreTest(userId),
+
+            // วันที่ทำ Pre-Test (เอาแถวแรกสุดที่ตอบ — ทุกข้อของ quiz_type เดียวกัน
+            // ถูกบันทึกพร้อมกันตอน submit ครั้งเดียว เลยใช้แถวไหนก็ได้วันเดียวกัน)
+            prisma.user_quiz_answers.findFirst({
+                where: {
+                    user_id: userId,
+                    quizzes: { is: { quiz_type: "pre_test" } },
+                },
+                orderBy: { answered_at: "asc" },
+                select: { answered_at: true },
+            }),
+
+            // วันที่ทำ Post-Test
+            prisma.user_quiz_answers.findFirst({
+                where: {
+                    user_id: userId,
+                    quizzes: { is: { quiz_type: "post_test" } },
+                },
+                orderBy: { answered_at: "asc" },
+                select: { answered_at: true },
+            }),
+
+            // จำนวนดาวสะสม + วันที่ได้ล่าสุด
+            prisma.user_stats.findUnique({
+                where: { user_id: userId },
+                select: {
+                    streak_star_count: true,
+                    last_streak_reward_date: true,
+                },
+            }),
         ]);
 
     const unitProgressById = new Map(unitProgress.map((u) => [u.unit_id, u]));
     const levelProgressById = new Map(levelProgress.map((l) => [l.level_id, l]));
     const historyById = new Map(history.map((h) => [h.level_id, h]));
     const latestById = new Map(latestPlays.map((p) => [p.level_id, p]));
+    const firstById = new Map(firstPlays.map((p) => [p.level_id, p]));
 
     const firstActiveUnitId =
         units.find((u) => u.is_active)?.unit_id ?? null;
@@ -511,6 +561,7 @@ const buildOverview = async (userId) => {
             const progress = levelProgressById.get(level.level_id) || null;
             const played = historyById.get(level.level_id) || null;
             const latest = latestById.get(level.level_id) || null;
+            const first = firstById.get(level.level_id) || null;
 
             const passed = PASSED_STATUSES.includes(progress?.status);
 
@@ -528,6 +579,8 @@ const buildOverview = async (userId) => {
                 state,
                 status: progress?.status || null,
                 best_ip: played?._max.earned_ip ?? 0,
+                first_ip: first?.earned_ip ?? null,
+                first_status: first?.status ?? null,
                 last_ip: latest?.earned_ip ?? null,
                 last_status: latest?.status ?? null,
                 best_score: progress?.best_score ?? 0,
@@ -567,6 +620,11 @@ const buildOverview = async (userId) => {
 
     return {
         pre_test_done: preTestDone,
+        pre_test_date: preTestAnswer?.answered_at ?? null,
+        post_test_done: !!postTestAnswer,
+        post_test_date: postTestAnswer?.answered_at ?? null,
+        streak_stars: userStats?.streak_star_count ?? 0,
+        last_star_date: userStats?.last_streak_reward_date ?? null,
         overall_percent: await getProgressPercent(userId),
         units: result,
     };

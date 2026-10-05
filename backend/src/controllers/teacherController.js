@@ -216,6 +216,7 @@ exports.getDashboard = async (req, res) => {
                     integrity_points: true,
                     current_streak: true,
                     last_login_date: true,
+                    streak_star_count: true,
                 },
             }),
             prisma.units.findMany({ select: { unit_id: true } }),
@@ -386,6 +387,7 @@ exports.getDashboard = async (req, res) => {
                     total_levels: totalLevels,
                     integrity_points: stat?.integrity_points ?? 0,
                     streak: streakAlive ? stat?.current_streak ?? 0 : 0,
+                    streak_stars: stat?.streak_star_count ?? 0,
                     plays: play?._count._all ?? 0,
                     time_spent: session?._sum.active_minutes ?? 0, // นาที (ใช้งานจริง)
                     last_active: lastActiveKey,       // "YYYY-MM-DD"
@@ -1281,6 +1283,85 @@ const buildCrisisSection = async (playId) => {
     }
 };
 
+// ---------- ShadowMirror (Unit 6 Level 3 : กระจกสะท้อนใจ) ----------
+// คำถามปลายเปิด วิเคราะห์ด้วย AI (Gemini) ไม่มีถูก/ผิด ไม่มี IP ผูกอยู่
+// (ดูหมายเหตุใน services/gamePlayService.js + controllers/reflectController.js)
+// แสดงคำตอบดิบ 6 ข้อ + คะแนน 4 trait + สรุปจาก AI ให้อาจารย์ดูอย่างเดียว
+const SHADOW_MIRROR_TRAIT_LABEL = {
+    logic: "Logic · ตรรกะ",
+    empathy: "Empathy · ความเห็นใจ",
+    responsibility: "Responsibility · ความรับผิดชอบ",
+    consistency: "Consistency · ความสอดคล้อง",
+};
+
+const SHADOW_MIRROR_BADGE_LABEL = {
+    LEGEND: "ตำนานแห่งกระจก",
+    PLATINUM: "ตรารางวัลระดับแพลทินัม",
+    GOLD: "ตรารางวัลระดับทอง",
+    SILVER: "ตรารางวัลระดับเงิน",
+    BRONZE: "ตรารางวัลระดับบรอนซ์",
+};
+
+const buildShadowMirrorSection = async (playId) => {
+    try {
+        const row = await prisma.game_play_shadow_mirror.findUnique({
+            where: { play_id: playId },
+        });
+
+        if (!row) return null;
+
+        const answers = Array.isArray(row.answers) ? row.answers : [];
+
+        const qaRows = answers.map((a, index) => ({
+            title: `ข้อ ${index + 1} · ${a?.question ?? "-"}`,
+            answer: a?.answer?.trim() ? a.answer : "(ไม่ได้ตอบ)",
+            correct_answer: null,
+            is_correct: null,
+            note: "",
+        }));
+
+        const traitRows = [
+            { key: "logic", score: row.logic_score, note: row.logic_note },
+            { key: "empathy", score: row.empathy_score, note: row.empathy_note },
+            {
+                key: "responsibility",
+                score: row.responsibility_score,
+                note: row.responsibility_note,
+            },
+            { key: "consistency", score: row.consistency_score, note: row.consistency_note },
+        ].map((t) => ({
+            title: SHADOW_MIRROR_TRAIT_LABEL[t.key] || t.key,
+            answer: `${t.score}/100`,
+            correct_answer: null,
+            is_correct: null,
+            note: t.note || "",
+        }));
+
+        const summaryRow = {
+            title: "สรุปจาก AI",
+            answer: `คะแนนเฉลี่ย ${Number(row.avg_score).toFixed(1)}/100 · ${SHADOW_MIRROR_BADGE_LABEL[row.badge_key] || row.badge_key
+                }`,
+            correct_answer: null,
+            is_correct: null,
+            note: [
+                row.overall_reflection || null,
+                row.shadow_message ? `เงาบอกว่า: ${row.shadow_message}` : null,
+            ]
+                .filter(Boolean)
+                .join(" · "),
+        };
+
+        return {
+            key: "shadow_mirror",
+            title: "กระจกสะท้อนใจ (คำถามปลายเปิด วิเคราะห์โดย AI — ไม่มี IP)",
+            rows: [...qaRows, ...traitRows, summaryRow],
+        };
+    } catch (error) {
+        console.error("buildShadowMirrorSection error:", error.message);
+        return null;
+    }
+};
+
 exports.getLevelPlayDetail = async (req, res) => {
     try {
         const studentUserId = Number(req.params.id);
@@ -1329,7 +1410,7 @@ exports.getLevelPlayDetail = async (req, res) => {
             return res.json({ data: { level, play: null, sections: [] } });
         }
 
-        const [questions, bubbles, needWant, comparison, cases, receipt, money, treasurer, slipHunt, slot, wordClue, budget, inspector, crisis] =
+        const [questions, bubbles, needWant, comparison, cases, receipt, money, treasurer, slipHunt, slot, wordClue, budget, inspector, crisis, shadowMirror] =
             await Promise.all([
                 buildQuestionSection(play.play_id),
                 buildBubbleSection(play.play_id),
@@ -1345,6 +1426,7 @@ exports.getLevelPlayDetail = async (req, res) => {
                 buildBudgetSection(play.play_id),
                 buildInspectorSection(play.play_id),
                 buildCrisisSection(play.play_id),
+                buildShadowMirrorSection(play.play_id),
             ]);
 
         const sections = [
@@ -1362,6 +1444,7 @@ exports.getLevelPlayDetail = async (req, res) => {
             budget,
             inspector,
             crisis,
+            shadowMirror,
         ].filter(Boolean);
 
         return res.json({
