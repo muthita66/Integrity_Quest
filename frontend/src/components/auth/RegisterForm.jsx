@@ -203,6 +203,7 @@ export default function RegisterForm({
         value: registerData[name],
         onChange: handleRegisterChange,
         focusClass: theme.focus,
+        required: true,
     });
 
     const studentGroups = registerData.studentGroups || [];

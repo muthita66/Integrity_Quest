@@ -99,6 +99,10 @@ exports.register = async (req, res) => {
             password,
             gender,
 
+            // ความยินยอม PDPA — บังคับทุก role ต้องมีก่อนสมัครสำเร็จ
+            consent_at,
+            consent_version,
+
             // student + teacher
             faculty,
 
@@ -115,14 +119,26 @@ exports.register = async (req, res) => {
         } = req.body;
 
         if (role !== ROLE.STUDENT && role !== ROLE.TEACHER) {
+            console.log("Register 400: role ไม่ถูกต้อง", req.body);
             return res.status(400).json({
                 message: "role ไม่ถูกต้อง",
             });
         }
 
         if (!username || !email || !password || !firstName || !lastName || !gender) {
+            console.log("Register 400: กรุณากรอกข้อมูลให้ครบ", req.body);
             return res.status(400).json({
                 message: "กรุณากรอกข้อมูลให้ครบ",
+            });
+        }
+
+        // ต้องผ่านขั้นยินยอม PDPA มาก่อนเท่านั้น (กันเคส bypass หน้ายินยอมฝั่ง
+        // frontend แล้วยิง API ตรง ๆ) — บังคับเฉพาะ "นักเรียน" เพราะเอกสาร
+        // ยินยอมพูดถึงข้อมูลนิสิตโดยเฉพาะ อาจารย์ไม่ต้องผ่านหน้านี้
+        if (role === ROLE.STUDENT && (!consent_at || !consent_version)) {
+            console.log("Register 400: กรุณายินยอม...", req.body);
+            return res.status(400).json({
+                message: "กรุณายินยอมให้เก็บและใช้ข้อมูลก่อนสมัครสมาชิก",
             });
         }
 
@@ -136,6 +152,7 @@ exports.register = async (req, res) => {
         });
 
         if (existingUser) {
+            console.log("Register 400: Email หรือ Username นี้ถูกใช้แล้ว", req.body);
             return res.status(400).json({
                 message: "Email หรือ Username นี้ถูกใช้แล้ว",
             });
@@ -210,6 +227,9 @@ exports.register = async (req, res) => {
                     role_id: teacherRoleId,
                     created_at: new Date(),
                     last_login: new Date(),
+                    // อาจารย์ไม่ผ่านหน้ายินยอม — เลยไม่มี consent_at ส่งมา
+                    consent_at: null,
+                    consent_version: null,
 
                     teachers: {
                         create: {
@@ -259,6 +279,8 @@ exports.register = async (req, res) => {
                 role_id: STUDENT_ROLE_ID,
                 created_at: new Date(),
                 last_login: new Date(),
+                consent_at: new Date(consent_at),
+                consent_version: String(consent_version),
 
                 students: {
                     create: {
@@ -310,14 +332,6 @@ const todayInBangkok = () =>
 const toDateKey = (date) =>
     date ? new Date(date).toISOString().slice(0, 10) : null;
 
-// ============================================================
-// รางวัลความขยัน: Login ต่อเนื่องครบทุก 7 วัน ได้ +500 IP
-// ------------------------------------------------------------
-// เงื่อนไข "รับไปแล้วหรือยัง" เทียบจาก "วันที่" (last_streak_reward_date)
-// ไม่เทียบจากค่า streak ตรงๆ เพราะถ้า streak ขาดแล้วไต่กลับมาครบ 7
-// อีกครั้ง ค่า streak (เช่น 7) จะซ้ำกับรอบก่อนหน้า ถ้าเทียบค่าตรงๆ
-// จะเข้าใจผิดว่า "เคยได้รับไปแล้ว" ทั้งที่เป็นรอบใหม่ที่ควรได้รับอีก
-// ============================================================
 const STREAK_REWARD_EVERY = 3;
 const STREAK_REWARD_IP = 500;
 

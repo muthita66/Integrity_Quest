@@ -404,7 +404,7 @@ export default function BubbleResultPage() {
                         </p>
 
                         <p
-                            className="font-extrabold text-xl mb-4 text-center"
+                            className="font-extrabold text-md mb-4 text-center"
                             style={{ color: isPerfect ? "#166534" : "#8a6a3c" }}
                         >
                             {resultText.highlight_text}
@@ -467,7 +467,7 @@ export default function BubbleResultPage() {
                                 className="button-finish-game green"
                             >
                                 <span className="button-finish-game-top">
-                                    ภารกิจถัดไป
+                                    ด่านถัดไป
                                 </span>
                                 <span className="button-finish-game-bottom"></span>
                                 <span className="button-finish-game-base"></span>

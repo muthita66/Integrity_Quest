@@ -680,7 +680,7 @@ export default function MirrorResultPage() {
                                     className="button-finish-game green"
                                 >
                                     <span className="button-finish-game-top">
-                                        ภารกิจถัดไป
+                                        ด่านถัดไป
                                     </span>
                                     <span className="button-finish-game-bottom"></span>
                                     <span className="button-finish-game-base"></span>

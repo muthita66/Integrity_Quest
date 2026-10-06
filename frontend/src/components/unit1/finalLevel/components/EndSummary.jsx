@@ -396,7 +396,7 @@ export default function EndSummary({ finalLevelResult, cases, onRestart }) {
                         onClick={() => navigate("/unit2/intro")}
                         className="result-button result-button-green"
                     >
-                        <span className="result-button-top">ไปบทถัดไป</span>
+                        <span className="result-button-top">บทต่อไป</span>
                     </button>
                 </div>
             </div>

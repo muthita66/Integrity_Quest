@@ -339,9 +339,9 @@ export default function ResultPage({
                             </button>
                         ) : (
                             <button
-                                onClick={() => navigate('/map')}
+                                onClick={() => navigate('/unit3/level1/intro')}
                                 className="button-finish-game green">
-                                <span className="button-finish-game-top">ดำเนินการต่อ</span>
+                                <span className="button-finish-game-top">บทต่อไป</span>
                                 <span className="button-finish-game-bottom"></span>
                                 <span className="button-finish-game-base"></span>
                             </button>

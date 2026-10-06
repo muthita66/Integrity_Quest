@@ -6,6 +6,7 @@ export default function FormInput({
     onChange,
     placeholder,
     noIcon = false,
+    required = false,
     focusClass = "focus:border-blue-500 focus:ring-blue-100",
 }) {
     const showIcon = !noIcon && Icon;
@@ -23,6 +24,7 @@ export default function FormInput({
                 onChange={onChange}
                 placeholder={placeholder}
                 aria-label={placeholder}
+                required={required}
                 className={`
                     w-full rounded-lg border border-gray-300 bg-white
                     py-3 ${showIcon ? "pl-10" : "pl-3.5"} pr-3.5

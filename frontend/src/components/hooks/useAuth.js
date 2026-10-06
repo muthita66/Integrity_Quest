@@ -153,7 +153,8 @@ export default function useAuth() {
             }, 1000);
         } catch (err) {
             console.log(err);
-            showPopup("error", "เข้าสู่ระบบไม่สำเร็จ!");
+            const msg = err.response?.data?.message || "เข้าสู่ระบบไม่สำเร็จ!";
+            showPopup("error", msg);
         }
     };
 
@@ -220,8 +221,9 @@ export default function useAuth() {
                 setIsLogin(true);
             }, 2000);
         } catch (err) {
-            console.log(err);
-            showPopup("error", "ลงทะเบียนไม่สำเร็จ!");
+            console.log("STATUS:", err.response?.status);
+            console.log("BODY:", err.response?.data);
+            showPopup("error", err.response?.data?.message || "ลงทะเบียนไม่สำเร็จ!");
         }
     };
 

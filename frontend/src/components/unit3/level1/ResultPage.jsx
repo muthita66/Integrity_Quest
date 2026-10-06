@@ -314,7 +314,7 @@ export default function ResultPage() {
                                 className="result-button result-button-green"
                             >
                                 <span className="result-button-top">
-                                    ด่านต่อไป
+                                    ด่านถัดไป
                                 </span>
                             </button>
                         </div>
