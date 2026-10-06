@@ -621,10 +621,11 @@ model roles {
 }
 
 model rules {
-  id          Int     @id @default(autoincrement())
-  name        String  @db.VarChar(50)
-  description String?
-  rule_type   String? @db.VarChar(100)
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(50)
+  description       String?
+  rule_type         String?             @db.VarChar(100)
+  sceneMissionRules sceneMissionRules[]
 }
 
 model sceneMission {
@@ -645,6 +646,7 @@ model sceneMissionRules {
   description      String?
   title            String?      @db.VarChar(100)
   image_path       String?      @db.VarChar(255)
+  rules            rules        @relation(fields: [rule_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rule_id")
   sceneMission     sceneMission @relation(fields: [scene_mission_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_scene_mission")
 }
 
@@ -777,6 +779,8 @@ model users {
   role_id             Int
   last_login          DateTime              @db.Date
   created_at          DateTime              @db.Timestamptz(6)
+  consent_at          DateTime?             @db.Timestamptz(6)
+  consent_version     String?               @db.VarChar(10)
   feedback            feedback[]
   game_play_history   game_play_history[]
   logs_user_actions   logs_user_actions[]
