@@ -153,31 +153,41 @@ exports.getDashboard = async (req, res) => {
         // 3. นิสิตตามกลุ่มที่เลือก
         // ------------------------------------------------------------
         // ไม่มีช่องไหนระบุในกลุ่ม (เว้นว่าง) = ทุกค่าของช่องนั้น
-        // เลือก "นิสิตทั้งหมด" (activeGroup = null) = ไม่กรองเลย
+        // เลือก "นิสิตทั้งหมด" (activeGroup = null) = รวมนิสิตของ "ทุกกลุ่ม
+        // ที่อาจารย์คนนี้ดูแล" เท่านั้น (ไม่ใช่นิสิตทั้งระบบ) — ถ้าอาจารย์
+        // ดูแลหลายกลุ่ม จะ union เงื่อนไขของทุกกลุ่มเข้าด้วยกันแบบ OR
         // --------------------------------------------------------
 
-        const matchingMajorIds = activeGroup
-            ? majors
+        // เงื่อนไข Prisma where สำหรับนิสิตที่ตรงกับกลุ่มเดียว
+        const buildGroupWhere = (group) => {
+            const majorIds = majors
                 .filter((m) => {
-                    if (
-                        activeGroup.faculty_id &&
-                        m.faculty_id !== activeGroup.faculty_id
-                    ) {
+                    if (group.faculty_id && m.faculty_id !== group.faculty_id) {
                         return false;
                     }
-                    if (activeGroup.major_id && m.major_id !== activeGroup.major_id) {
+                    if (group.major_id && m.major_id !== group.major_id) {
                         return false;
                     }
                     return true;
                 })
-                .map((m) => m.major_id)
-            : null;
+                .map((m) => m.major_id);
+
+            return {
+                major_id: { in: majorIds },
+                ...(group.year ? { entry_year: group.year } : {}),
+            };
+        };
+
+        const studentsWhere = activeGroup
+            ? buildGroupWhere(activeGroup)
+            : groups.length > 0
+                ? { OR: groups.map(buildGroupWhere) }
+                : // อาจารย์เก่าที่ยังไม่มีกลุ่มเลย (ข้อมูลก่อนฟีเจอร์นี้) —
+                // ไม่กรอง กันหน้าจอว่างเปล่าไปเลย
+                {};
 
         const students = await prisma.students.findMany({
-            where: {
-                ...(matchingMajorIds ? { major_id: { in: matchingMajorIds } } : {}),
-                ...(activeGroup?.year ? { entry_year: activeGroup.year } : {}),
-            },
+            where: studentsWhere,
             select: {
                 user_id: true,
                 first_name: true,

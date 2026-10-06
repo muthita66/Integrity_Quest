@@ -126,16 +126,6 @@ export default function SceneMission({
                         ))}
                     </div>
 
-                    {/* Scoring */}
-                    <div className="rounded-2xl bg-white/80 border border-white/90 px-5 py-3 mb-5 text-center sarabun-bold">
-                        <p className="font-bold text-gray-800 mb-1">ระดับความสามารถของนักสืบ</p>
-                        <p className="text-sm text-black flex flex-wrap justify-center gap-x-4 gap-y-1">
-                            <span>🥇 <span className="font-semibold text-yellow-600">ปรมาจารย์</span><span className="font-light text-gray-400 mr-1"></span> : ตอบถูกทั้งหมด</span>
-                            <span>🥈 <span className="font-semibold text-gray-500">มือฉมัง</span><span className="font-light text-gray-400 mr-1"></span> : ผิด 1-2 ครั้ง</span>
-                            <span>🥉 <span className="font-semibold text-amber-700">เริ่มต้น</span><span className="font-light text-gray-400 mr-1"></span> : ผิด 3 ครั้งขึ้นไป</span>
-                        </p>
-                    </div>
-
                     {/* Start Button & Back */}
                     <div className="flex w-full justify-center gap-6 items-center">
                         <button

@@ -4,6 +4,7 @@ export default function FormSelect({
     onChange,
     children,
     className = "",
+    required = false,
     focusClass = "focus:border-blue-500 focus:ring-blue-100",
 }) {
     return (
@@ -11,6 +12,7 @@ export default function FormSelect({
             name={name}
             value={value}
             onChange={onChange}
+            required={required}
             className={`
                 w-full rounded-lg border border-gray-300 bg-white
                 px-3.5 py-3 text-sm

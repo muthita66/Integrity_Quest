@@ -387,7 +387,7 @@ export default function ResultPage({
                             }
                             disabled={!isPass}
                             className="button-finish-game">
-                            <span className="button-finish-game-top">ไปต่อ</span>
+                            <span className="button-finish-game-top">ด่านถัดไป</span>
                             <span className="button-finish-game-bottom"></span>
                             <span className="button-finish-game-base"></span>
                         </button>

@@ -479,7 +479,7 @@ export default function Unit2Level1ResultPage() {
                             </button>
                             {pass ? (
                                 <button onClick={handleNext} className="button-finish-game green">
-                                    <span className="button-finish-game-top">ไปด่านต่อไป</span>
+                                    <span className="button-finish-game-top">ด่านถัดไป</span>
                                     <span className="button-finish-game-bottom"></span>
                                     <span className="button-finish-game-base"></span>
                                 </button>

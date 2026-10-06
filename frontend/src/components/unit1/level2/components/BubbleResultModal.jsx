@@ -113,7 +113,7 @@ export default function BubbleResultModal({ score }) {
                     />
                 ))}
 
-                <img src={ResultHappy} alt="" className="absolute z-10 w-[150px] h-[150px] object-contain -top-15 left-1/2 -translate-x-1/2 " />
+                <img src={ResultHappy} alt="" className="absolute z-10 w-[148px] h-[148px] object-contain -top-17 left-[calc(50%+12px)] -translate-x-1/2 " />
 
                 {/* เนื้อหา */}
                 <div className="relative z-10 flex flex-col items-center px-12 pt-16 pb-10 mt-10 mb-4">

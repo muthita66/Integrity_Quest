@@ -672,7 +672,7 @@
 }
 
 /* text */
-.text {
+.Btn .text {
     position: absolute;
     right: 0%;
     width: 0%;

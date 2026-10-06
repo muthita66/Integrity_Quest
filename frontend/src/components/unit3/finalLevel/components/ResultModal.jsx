@@ -342,10 +342,10 @@ export default function ResultModal({ finished, result, resetGame }) {
 
                                     {/* ด่านถัดไป */}
                                     <button
-                                        onClick={() => navigate("/unit3/level-next")}
+                                        onClick={() => navigate("/unit4/intro")}
                                         className="result-button result-button-green"
                                     >
-                                        <span className="result-button-top">ด่านถัดไป</span>
+                                        <span className="result-button-top">บทต่อไป</span>
                                     </button>
                                 </>
                             )}
