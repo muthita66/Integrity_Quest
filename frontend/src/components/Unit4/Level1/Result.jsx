@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -11,7 +12,7 @@ import room from "../../../assets/unit4/investigation-room.png";
 import "../../../styles/theme.css";
 import "./level1.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 
 // ทุก request ไป /api/slip-hunt ต้องแนบ token (backend ตรวจสิทธิ์เจ้าของรอบ)
 const authHeaders = () => ({
@@ -40,7 +41,7 @@ export default function Result() {
     const replay = async () => {
         try {
             const response = await fetch(
-                "http://localhost:5000/api/game-play/start",
+                `${BASE_URL}/api/game-play/start`,
                 {
                     method: "POST",
                     headers: {

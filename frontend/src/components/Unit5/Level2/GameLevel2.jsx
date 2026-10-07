@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -27,7 +28,7 @@ import EventPopup from "./EventPopup";
 //              → /unit5/result?playId=
 // ============================================================
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 15;
 
 const authHeaders = () => ({

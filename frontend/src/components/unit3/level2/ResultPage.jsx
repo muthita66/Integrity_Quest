@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -6,7 +7,7 @@ import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import gameOverSound from "../../../assets/sounds/BackgroundGame/GameOver.mp3";
 import useGameMuted from "../../../hooks/useGameMuted";
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 9;
 
 // ข้อความ fallback เผื่อยังไม่ได้ insert แถวใน level_result_messages

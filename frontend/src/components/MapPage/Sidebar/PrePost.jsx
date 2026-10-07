@@ -1,8 +1,9 @@
+import { BASE_URL } from "../../../config";
 import { useEffect, useState } from "react";
 import { FaLock, FaUnlock, FaCheckCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE = import.meta.env.VITE_API_URL || `${BASE_URL}/api`;
 
 function PrePost() {
     const navigate = useNavigate();

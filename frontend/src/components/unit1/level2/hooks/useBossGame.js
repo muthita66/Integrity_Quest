@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../../config";
 import {
     useCallback,
     useEffect,
@@ -50,7 +51,7 @@ export default function useBossGame({
             setIsLoading(true);
             setError(null);
             const response = await fetch(
-                `http://localhost:5000/api/question/level/${levelId}`
+                `${BASE_URL}/api/question/level/${levelId}`
             );
             if (!response.ok) {
                 throw new Error(`ไม่สามารถโหลดคำถามได้ (${response.status})`);
@@ -126,7 +127,7 @@ export default function useBossGame({
         }
         try {
             const res = await fetch(
-                "http://localhost:5000/api/game-play/answer",
+                `${BASE_URL}/api/game-play/answer`,
                 {
                     method: "POST",
                     headers: {
@@ -167,7 +168,7 @@ export default function useBossGame({
         }
         try {
             const res = await fetch(
-                "http://localhost:5000/api/game-play/complete",
+                `${BASE_URL}/api/game-play/complete`,
                 {
                     method: "POST",
                     headers: {

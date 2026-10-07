@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../config";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -69,7 +70,7 @@ function Header() {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/auth/logout",
+                `${BASE_URL}/api/auth/logout`,
                 {
                     method: "POST",
 

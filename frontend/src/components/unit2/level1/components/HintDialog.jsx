@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../../config";
 import { useEffect, useState } from "react";
 import { HiLockClosed, HiLockOpen } from "react-icons/hi";
 import Lamp from "../../../../assets/unit2/Level1/intro/lamp.png";
@@ -6,7 +7,7 @@ import QuestionOne from "../../../../assets/unit2/level1/Minigame/QuestionOne.pn
 import QuestionTwo from "../../../../assets/unit2/level1/Minigame/QuestionTwo.png";
 import QuestionThree from "../../../../assets/unit2/level1/Minigame/QuestionThree.png";
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 5;
 
 const QUESTION_IMAGES = [

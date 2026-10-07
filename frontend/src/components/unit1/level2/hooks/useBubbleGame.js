@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../../config";
 import {
     useCallback,
     useEffect,
@@ -248,7 +249,7 @@ export default function useBubbleGame(
 
                 const response =
                     await fetch(
-                        "http://localhost:5000/api/game-play/start",
+                        `${BASE_URL}/api/game-play/start`,
                         {
                             method: "POST",
 
@@ -420,7 +421,7 @@ export default function useBubbleGame(
 
                     const response =
                         await fetch(
-                            "http://localhost:5000/api/game-play/bubble/shoot",
+                            `${BASE_URL}/api/game-play/bubble/shoot`,
                             {
                                 method: "POST",
 

@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../config";
 import React, {
     useEffect,
     useState,
@@ -16,7 +17,7 @@ import {
 } from "react-icons/fa6";
 
 const API_BASE_URL =
-    "http://localhost:5000";
+    `${BASE_URL}`;
 
 // Unit 4 : ด่านที่ 1, 2, 3 (ตาม order_no) → หน้า intro ของแต่ละบท
 const UNIT4_ROUTES = [

@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../config";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useBackgroundMusic from "../../hooks/useBackgroundMusic";
@@ -10,7 +11,7 @@ import { FaLock, FaCheck, FaPlay, FaMedal } from "react-icons/fa";
 import BookLayout from "./BookLayout";
 import "../../styles/theme.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const UNIT_ID = 4;
 const PASSED_STATUSES = ["PASS", "PERFECT"];
 

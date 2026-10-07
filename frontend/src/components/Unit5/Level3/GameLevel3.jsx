@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { isUnit5Paused } from '../Unit5Navigation';
@@ -22,7 +23,7 @@ import inspectorImg from "../../../assets/unit5/inspector.png";
 import briefingBg from "../../../assets/unit5/briefing.png";
 import "./Game.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 16;
 
 const authHeaders = () => ({

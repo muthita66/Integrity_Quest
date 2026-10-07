@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "./style/Game1.css";
@@ -43,7 +44,7 @@ const LOCATIONS = [
     { id: "computerRoom", name: "ห้องคอม", icon: FaDesktop },
 ];
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const UNIT_ID = 6;
 const LEVEL_ORDER = 1;
 

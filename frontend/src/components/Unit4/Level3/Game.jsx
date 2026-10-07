@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaShieldAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +18,7 @@ import virusImg from "../../../assets/unit4/virus.png";
 import "../../../styles/theme.css";
 import "./level3.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const DEFAULT_HEARTS = 4;
 
 const authHeaders = () => ({

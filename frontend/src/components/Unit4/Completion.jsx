@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../config";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FaArrowRight, FaMedal } from "react-icons/fa6";
@@ -12,7 +13,7 @@ import "../../styles/theme.css";
 // เปิดได้เฉพาะตอนผ่านครบทุกบทแล้ว ไม่งั้นพากลับหน้าสารบัญ
 // ============================================================
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const UNIT_ID = 4;
 
 // IP เต็มของแต่ละบท: สลิป 250 + สล็อต 150 + Firewall 160

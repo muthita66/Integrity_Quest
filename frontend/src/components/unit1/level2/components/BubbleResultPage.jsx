@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../../config";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
@@ -55,7 +56,7 @@ export default function BubbleResultPage() {
                 const token = getToken();
 
                 const response = await fetch(
-                    `http://localhost:5000/api/level-result/${LEVEL_ID}/${status}`,
+                    `${BASE_URL}/api/level-result/${LEVEL_ID}/${status}`,
                     {
                         headers: token
                             ? { Authorization: `Bearer ${token}` }

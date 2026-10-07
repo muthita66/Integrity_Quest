@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useEffect, useId, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
@@ -12,7 +13,7 @@ import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import gameOverSound from "../../../assets/sounds/BackgroundGame/GameOver.mp3";
 import useGameMuted from "../../../hooks/useGameMuted";
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 5;
 
 // ละอองแสงลอย — ตำแหน่งคงที่ไม่ re-render ใหม่ (จาก MirrorResultPage)

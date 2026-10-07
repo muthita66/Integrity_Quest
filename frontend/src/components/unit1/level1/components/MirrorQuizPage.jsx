@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../../config";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdTableRows } from "react-icons/md";
@@ -70,7 +71,7 @@ export default function MirrorQuizPage() {
             try {
                 const [questionResponse, gameResponse] = await Promise.all([
                     fetch(
-                        `http://localhost:5000/api/question/level/${LEVEL_ID}`
+                        `${BASE_URL}/api/question/level/${LEVEL_ID}`
                     ),
                     startGame(LEVEL_ID),
                 ]);

@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaPlay } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +22,7 @@ import "./level2.css";
 //   เครดิตหมด   → POST /api/game-play/complete { play_id } → PASS + IP
 // ============================================================
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const SYMBOLS = ["🍒", "🍋", "🔔", "💎", "7️⃣"];
 const DEFAULT_BETS = [1000, 2000, 5000];
 const DEFAULT_BALANCE = 5000;

@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../config";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -703,7 +704,7 @@ export default function TeacherPage() {
 
         try {
             if (token) {
-                await fetch("http://localhost:5000/api/auth/logout", {
+                await fetch(`${BASE_URL}/api/auth/logout`, {
                     method: "POST",
                     headers: { Authorization: `Bearer ${token}` },
                 });

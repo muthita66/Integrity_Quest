@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../../config";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
@@ -13,7 +14,7 @@ import useGameMuted from "../../../../hooks/useGameMuted";
 
 import "../../../../styles/unit1/Level1/button.css";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = `${BASE_URL}/api`;
 
 // เสียงตามผลการเล่น
 const RESULT_SOUNDS = {

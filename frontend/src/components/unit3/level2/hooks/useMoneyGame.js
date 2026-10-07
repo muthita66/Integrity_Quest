@@ -1,7 +1,8 @@
+import { BASE_URL } from "../../../../config";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = `${BASE_URL}`;
 const LEVEL_ID = 9;
 const INITIAL_TIME = 60;
 const TOTAL_ITEMS = 11;

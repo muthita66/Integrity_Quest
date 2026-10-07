@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import './Result.css';
@@ -33,7 +34,7 @@ const BUDGET_CONFIG = [
 // คะแนน / ความสุข / Rank / IP คิดที่ backend (gamePlayService.calcBudgetResult)
 // ============================================================
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 
 const RANK_INFO = {
     S: { rankText: "ยอดเยี่ยม!", stars: 5 },

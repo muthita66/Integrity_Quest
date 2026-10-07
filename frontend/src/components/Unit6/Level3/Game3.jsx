@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import IntroScreen from "./Intro3";
@@ -163,7 +164,7 @@ export default function ShadowMirror() {
 
     const textareaRef = useRef(null);
 
-    const BACKEND_URL = "http://localhost:5000";
+    const BACKEND_URL = `${BASE_URL}`;
 
     useEffect(() => {
         if (screen !== "loading") return;

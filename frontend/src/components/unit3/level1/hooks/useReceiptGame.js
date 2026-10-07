@@ -1,7 +1,8 @@
+import { BASE_URL } from "../../../../config";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 8;
 const INITIAL_TIME = 60;
 const MAX_WRONG = 3;

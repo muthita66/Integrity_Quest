@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../../config";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -37,7 +38,7 @@ export default function Level1IntroPage() {
                 setLoading(true);
 
                 const response = await fetch(
-                    "http://localhost:5000/api/introDialog/level/8"
+                    `${BASE_URL}/api/introDialog/level/8`
                 );
 
                 if (!response.ok) {

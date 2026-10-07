@@ -1,13 +1,14 @@
+import { BASE_URL } from "../../../../config";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const API_URL = "http://localhost:5000/api/final-level/data";
-const GAME_PLAY_START_URL = "http://localhost:5000/api/game-play/start";
-const CHECKOUT_URL = "http://localhost:5000/api/final-level/checkout";
+const API_URL = `${BASE_URL}/api/final-level/data`;
+const GAME_PLAY_START_URL = `${BASE_URL}/api/game-play/start`;
+const CHECKOUT_URL = `${BASE_URL}/api/final-level/checkout`;
 const RECEIPT_DECIDE_URL =
-    "http://localhost:5000/api/final-level/receipt/decide";
+    `${BASE_URL}/api/final-level/receipt/decide`;
 const EVENT_APPLY_URL =
-    "http://localhost:5000/api/final-level/event/apply";
-const COMPLETE_URL = "http://localhost:5000/api/final-level/complete";
+    `${BASE_URL}/api/final-level/event/apply`;
+const COMPLETE_URL = `${BASE_URL}/api/final-level/complete`;
 
 export default function useTreasurerGame(isPaused = false) {
     const [gameData, setGameData] = useState(null);
