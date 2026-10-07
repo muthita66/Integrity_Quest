@@ -96,7 +96,7 @@ function PreTest() {
 
     return (
         <div
-            className="h-screen w-full flex items-center justify-center px-10 pt-16 pb-10 overflow-hidden"
+            className="h-dvh w-full flex items-center justify-center px-10 pt-16 pb-10 overflow-hidden"
             style={{
                 backgroundImage: `url(${bg_game})`,
                 backgroundSize: "cover",

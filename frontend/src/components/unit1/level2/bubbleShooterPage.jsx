@@ -55,7 +55,7 @@ export default function BubbleShooterPage() {
   // Loading
   if (isLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-black">
+      <div className="h-dvh w-full flex items-center justify-center bg-black">
         <p className="text-2xl sarabun-bold text-white">
           กำลังโหลดเกม...
         </p>
@@ -67,7 +67,7 @@ export default function BubbleShooterPage() {
   if (error) {
     return (
       <Background>
-        <div className="h-screen w-full flex items-center justify-center">
+        <div className="h-dvh w-full flex items-center justify-center">
           <div
             className="
               bg-white
@@ -114,7 +114,7 @@ export default function BubbleShooterPage() {
   // Main Game
   return (
     <Background>
-      <div className="relative h-screen w-screen overflow-hidden">
+      <div className="relative h-dvh w-screen overflow-hidden">
         <div
           className="
             relative
@@ -250,7 +250,7 @@ export default function BubbleShooterPage() {
           }}
           onExit={() => {
             setShowExitDialog(false);
-            navigate("/unit1");
+            navigate("/map");
           }}
         />
 
@@ -258,4 +258,3 @@ export default function BubbleShooterPage() {
     </Background>
   );
 }
-

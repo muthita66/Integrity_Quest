@@ -360,12 +360,12 @@ export default function Game() {
                                 )}
                                 {completeError && (
                                     <p style={{ color: "#B91C1C" }}>
-                                        {completeError} — กด “บทต่อไป” เพื่อลองบันทึกอีกครั้ง
+                                        {completeError} — กด “ด่านถัดไป” เพื่อลองบันทึกอีกครั้ง
                                     </p>
                                 )}
                                 <div className="slot3-reality-actions">
                                     <button type="button" onClick={reset} disabled={starting}>ลองสังเกตอีกครั้ง</button>
-                                    <button type="button" onClick={finishLevel}>บทต่อไป</button>
+                                    <button type="button" onClick={finishLevel}>ด่านถัดไป</button>
                                 </div>
                             </div>
                         </div>

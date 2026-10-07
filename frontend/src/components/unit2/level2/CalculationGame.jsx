@@ -400,7 +400,7 @@ export default function CalculationGame() {
 
     if (isLoading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-black">
+            <div className="flex min-h-dvh items-center justify-center bg-black">
                 <p className="text-xl sarabun-bold text-white">
                     กำลังโหลดข้อมูลเกม...
                 </p>
@@ -410,7 +410,7 @@ export default function CalculationGame() {
 
     if (error) {
         return (
-            <div className="flex min-h-screen items-center justify-center">
+            <div className="flex min-h-dvh items-center justify-center">
                 <p className="text-xl font-bold text-red-500">
                     ไม่สามารถโหลดข้อมูลเกมได้
                 </p>
@@ -432,7 +432,7 @@ export default function CalculationGame() {
     }
 
     return (
-        <div className="relative flex h-screen w-full items-center justify-center overflow-hidden font-sara">
+        <div className="relative flex h-dvh w-full items-center justify-center overflow-hidden font-sara">
             {/* Background */}
             <img
                 src={bgGame}

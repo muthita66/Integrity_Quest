@@ -1,19 +1,6 @@
 const prisma = require("../lib/prisma");
 const gamePlayService = require("../services/gamePlayService");
 
-// ============================================================
-// Budget Game (Unit 5 Level 2 : จัดสรรงบประมาณให้เมือง)
-// ------------------------------------------------------------
-// ทุก route ต้อง login (authenticateToken ใน budgetGameRoutes)
-//
-// Flow:
-// 1. POST /api/game-play/start       { level_id: 15 } → play_id
-// 2. POST /api/budget-game/submit    { playId, budgets } กดสรุปผล
-//    → ตรวจ + บันทึกลง game_play_budget_allocations
-// 3. POST /api/game-play/complete    { play_id } → คะแนน / Rank / IP
-// 4. GET  /api/budget-game/play/:playId  ใช้แสดงหน้า Result
-// ============================================================
-
 const isTeacher = async (userId) =>
     (await prisma.teachers.count({ where: { user_id: Number(userId) } })) > 0;
 
@@ -72,10 +59,6 @@ const loadAccessiblePlay = async (req, res, playId) => {
     return play;
 };
 
-/**
- * POST /api/budget-game/submit
- * body: { playId, budgets: { school, hospital, road, fire, park, water } }
- */
 const submit = async (req, res) => {
     try {
         const playId = parseId(req.body.playId);
@@ -118,10 +101,6 @@ const submit = async (req, res) => {
     }
 };
 
-/**
- * GET /api/budget-game/play/:playId
- * งบที่จัดสรร + คะแนน/Rank/IP (คิดใหม่จากงบที่บันทึกไว้ — ได้ค่าเดียวกันเสมอ)
- */
 const getPlay = async (req, res) => {
     try {
         const playId = parseId(req.params.playId);

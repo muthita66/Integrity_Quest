@@ -1,19 +1,4 @@
 const prisma = require("../lib/prisma");
-
-/**
- * GET /api/slips/level/:levelId
- *
- * ดึงข้อมูลสลิปทั้งหมดของ Level ที่กำหนด
- *
- * Flow:
- * level
- *   ↓
- * level_items
- *   ↓
- * items
- *   ↓
- * slip_details
- */
 const getSlipsByLevel = async (req, res) => {
     try {
         const { levelId } = req.params;

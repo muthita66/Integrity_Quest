@@ -639,7 +639,7 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
                             <button className="btn green" onClick={() => navigate(nextRoute)}>
                                 <FaPlay />
                                 <div>
-                                    <strong>ด่านต่อไป</strong>
+                                    <strong>ด่านถัดไป</strong>
                                     <span>ไปยังภารกิจถัดไป</span>
                                 </div>
                             </button>

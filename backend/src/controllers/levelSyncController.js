@@ -1,17 +1,6 @@
 const prisma = require("../lib/prisma");
 const userProgressController = require("./userProgressController");
 
-// ============================================================
-// Level Sync (ใช้กับด่านที่มี controller แยก เช่น Unit 3)
-// ------------------------------------------------------------
-// หลังเล่นจบ 1 รอบ (มีแถวใน game_play_history ที่ completed_at แล้ว)
-//   1. อัปเดต user_level_progress → ผ่านแล้วปลดล็อกด่าน/บทถัดไป
-//   2. คำนวณ Integrity Points ใหม่ = ผลรวม "คะแนนดีที่สุด" ของแต่ละด่าน
-//      (ทับค่าที่ controller เดิมบวกเพิ่มไว้ → เล่นซ้ำปั๊ม IP ไม่ได้)
-//
-// ห่อ try/catch ไว้ทั้งหมด: ถ้าพัง จะไม่ทำให้ผลเกมที่ส่งกลับพัง
-// ============================================================
-
 // สถานะที่ถือว่า "ผ่านด่าน" (Unit 3 ใช้ COMPLETED / FAILED)
 const PASSED_PLAY_STATUSES = [
     "PASS",

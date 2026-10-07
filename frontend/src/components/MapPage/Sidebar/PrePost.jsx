@@ -2,16 +2,10 @@ import { useEffect, useState } from "react";
 import { FaLock, FaUnlock, FaCheckCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-// TODO: ถ้ามี env ของ backend URL อยู่แล้ว (เช่น VITE_API_URL) ให้ใช้ตัวนั้นแทน
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 function PrePost() {
     const navigate = useNavigate();
-
-    // ดึงสถานะจริงจาก backend ครั้งเดียวตอนโหลด sidebar นี้
-    // (pre_test_done / post_test_done / post_test_unlocked มาจาก
-    // GET /api/profile/test-status ซึ่งเช็ค user_quiz_answers +
-    // ความคืบหน้าทุกบทให้แล้ว ไม่ต้องคำนวณเองฝั่ง frontend อีก)
     const [status, setStatus] = useState(null);
     const [loading, setLoading] = useState(true);
 

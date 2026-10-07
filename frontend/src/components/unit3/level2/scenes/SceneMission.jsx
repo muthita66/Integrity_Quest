@@ -35,7 +35,7 @@ export default function SceneMission({
     };
 
     return (
-        <div className="relative w-full h-screen overflow-hidden">
+        <div className="relative w-full h-dvh overflow-hidden">
             {/* Background */}
             <img
                 src={bgGameLevel2}

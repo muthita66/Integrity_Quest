@@ -23,8 +23,8 @@ export default function MissionComplete({ nextPath = '/unit5/2Intro', earnedIP }
                 </div>
                 <div className="case-complete-actions">
                     <button type="button" onClick={() => navigate('/unit5/tutorial')} className="case-complete-next">เริ่มใหม่</button>
-                    <button type="button" onClick={() => navigate(nextPath)} className="case-complete-next">ไปด่านต่อไป <FaArrowRight /></button>
-                    <button type="button" onClick={() => navigate('/map')} className="case-complete-next">กลับหน้าแมพ</button>
+                    <button type="button" onClick={() => navigate(nextPath)} className="case-complete-next">ด่านถัดไป <FaArrowRight /></button>
+                    <button type="button" onClick={() => navigate('/map')} className="case-complete-next">กลับหน้าหลัก</button>
                 </div>
             </div>
         </motion.section>

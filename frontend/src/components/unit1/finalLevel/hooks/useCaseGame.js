@@ -21,45 +21,17 @@ export default function useCaseGame() {
     const [analysisChecked, setAnalysisChecked] = useState({});
     const [evidenceResults, setEvidenceResults] = useState({});
 
-    /*
-     * เหตุผลที่ยังไม่ผ่าน Evidence Analysis ต่อ case
-     * "incomplete" = เลือกหลักฐานสำคัญไม่ครบ
-     * "overpick"    = เลือกครบแล้ว แต่มีหลักฐานที่ผิดติดมาด้วย
-     * ใช้แยกข้อความที่โชว์ใน EvidenceAnalysis ให้ตรงกับสาเหตุจริง
-     */
     const [evidenceFailReasons, setEvidenceFailReasons] = useState({});
 
-    /*
-     * ติดตาม attempt แรกของแต่ละ case
-     * firstAttemptPerfect[caseId] = true
-     * firstAttemptOverpick[caseId] = true
-     * analysisRetryCount[caseId] = จำนวนครั้งที่ retry
-     */
     const [firstAttemptPerfect, setFirstAttemptPerfect] = useState({});
     const [firstAttemptOverpick, setFirstAttemptOverpick] = useState({});
     const [analysisRetryCount, setAnalysisRetryCount] = useState({});
     const [hasRestartedAnyCase, setHasRestartedAnyCase] = useState(false);
     const [hasEverTimedOut, setHasEverTimedOut] = useState(false);
 
-    /*
-     * popup สำหรับ:
-     * evidence retry เกินกำหนด
-     * verdict ผิด
-     * timer หมด
-     */
     const [gameOverPopup, setGameOverPopup] = useState(null);
 
-    /*
-     * ผลจบเกม (Rank + IP) ที่ backend คำนวณให้จริงตอน completeGame()
-     * ใช้ค่าเดียวกันนี้ทั้งหมดในหน้า Summary ไม่คำนวณซ้ำฝั่ง Frontend
-     * อีกต่อไป (เดิมมี heuristic คะแนน 100 - penalty อยู่ในหน้า
-     * EndSummary ซึ่งไม่ตรงกับ IP ที่ได้จริงใน DB เลย)
-     */
     const [finalLevelResult, setFinalLevelResult] = useState(null);
-
-    /*
-     * โหลดข้อมูล Final Level จาก Database
-     */
     useEffect(() => {
         const fetchFinalLevel = async () => {
             try {
@@ -124,12 +96,6 @@ export default function useCaseGame() {
                         location: caseData.location,
                         briefing: caseData.description || "",
                         background: uiConfig.background || null,
-
-                        /*
-                         * บทเรียนท้ายเกมของคดีนี้ — ดึงจาก DB
-                         * (final_cases.lesson_title / lesson_description)
-                         * แทนที่จะ hardcode ไว้ใน EndSummary.jsx เหมือนเดิม
-                         */
                         lessonTitle: caseData.lesson_title || "",
                         lessonDescription:
                             caseData.lesson_description || "",
@@ -153,16 +119,6 @@ export default function useCaseGame() {
                         ),
 
                         correct: correctIndex,
-
-                        /*
-                         * คำอธิบายคำตอบถูก/ผิด — ดึงจาก DB โดยตรง
-                         * (question.correct_explain / wrong_explain มีอยู่
-                         * แล้วใน schema) เดิมมีทั้งข้อความ hardcode คงที่
-                         * และค่าจาก DB (dbCorrectExplain/dbWrongExplain)
-                         * แสดงซ้อนกันทั้งคู่ใน VerdictPage ทำให้เนื้อหา
-                         * ซ้ำซ้อนและไม่ตรงกับที่ทีม content แก้ไขใน DB จริง
-                         * ตอนนี้เหลือแหล่งเดียวคือ DB เท่านั้น
-                         */
                         correctExplain: questionData?.correct_explain || "",
                         wrongExplain: questionData?.wrong_explain || "",
                     };
@@ -201,9 +157,6 @@ export default function useCaseGame() {
         ? analysisChecked[currentCase.id] || false
         : false;
 
-    /*
-     * ID ของหลักฐานที่ถูกต้อง
-     */
     const relevantIds = useMemo(() => {
         if (!currentCase) return [];
 
@@ -218,9 +171,6 @@ export default function useCaseGame() {
 
     const unlockedCaseCount = Object.keys(results).length;
 
-    /*
-     * เก็บหลักฐานที่ผู้เล่นเปิดดู
-     */
     const collectEvidence = (
         evidence = activeEvidence
     ) => {
@@ -244,9 +194,6 @@ export default function useCaseGame() {
         });
     };
 
-    /*
-     * เลือกหลักฐานสำหรับวิเคราะห์
-     */
     const toggleAnalysisPick = (evidenceId) => {
         if (!currentCase || isAnalysisChecked) return;
 
@@ -268,25 +215,17 @@ export default function useCaseGame() {
         });
     };
 
-    /*
-     * ตรวจหลักฐาน
-     */
     const submitAnalysis = async () => {
         if (!currentCase || analysisPickList.length === 0) {
             return;
         }
 
-        /*
-         * ต้องเลือก relevant ครบทุกชิ้น
-         */
         const hasAllRelevantEvidence =
             relevantIds.every((relevantId) =>
                 analysisPickList.includes(relevantId)
             );
 
-        /*
-         * ตรวจว่ามีหลักฐานที่ไม่เกี่ยวข้องติดมาหรือไม่
-         */
+
         const hasOverpick =
             analysisPickList.some((pickedId) => {
                 const evidence =
@@ -297,19 +236,9 @@ export default function useCaseGame() {
                 return evidence && !evidence.relevant;
             });
 
-        /*
-         * ถือว่า "ผ่านโดยไม่ต้อง Retry" ก็ต่อเมื่อเลือกหลักฐานสำคัญ
-         * ครบทุกชิ้น "และ" ไม่มีหลักฐานที่ผิดติดมาด้วย (เลือกเกิน)
-         * เดิมโค้ดจุดนี้เช็คแค่ hasAllRelevantEvidence เฉย ๆ ทำให้
-         * เลือกเกิน+ผิดแล้วยังผ่านไปตอบคำถามต่อได้เลยโดยไม่ต้อง Retry
-         * ซึ่งขัดกับกติกาที่ตกลงกัน (เลือกเกินแล้วมีอันผิด = ต้อง Retry)
-         */
         const isPerfect =
             hasAllRelevantEvidence && !hasOverpick;
 
-        /*
-         * บันทึกหลักฐานที่ผู้เล่นเลือกลง Database
-         */
         if (!attemptId) {
             console.error("ไม่พบ attemptId");
             return;
@@ -372,9 +301,6 @@ export default function useCaseGame() {
 
         const isFirstAttempt = currentRetry === 0;
 
-        /*
-         * บันทึกผล attempt แรก
-         */
         if (isFirstAttempt) {
             setFirstAttemptPerfect((previous) => ({
                 ...previous,
@@ -387,22 +313,11 @@ export default function useCaseGame() {
             }));
         }
 
-        /*
-         * เก็บผลการเลือกหลักฐาน — ใช้ isPerfect (ครบ + ไม่เกิน)
-         * ไม่ใช่ hasAllRelevantEvidence เฉย ๆ เพื่อให้ EvidenceAnalysis
-         * บังคับ Retry เมื่อเลือกเกินและมีอันผิดติดมาด้วย
-         */
         setEvidenceResults((previous) => ({
             ...previous,
             [currentCase.id]: isPerfect,
         }));
 
-        /*
-         * บันทึกสาเหตุที่ไม่ผ่าน (ถ้าไม่ผ่าน) ไว้แสดงข้อความให้ตรงจุด
-         * - ไม่ครบ (ไม่ว่าจะเกินด้วยหรือไม่) ให้ความสำคัญกับ "ไม่ครบ"
-         *   ก่อน เพราะยังไงก็ต้องเลือกเพิ่มอยู่ดี
-         * - ครบแล้วแต่เกิน (มีอันผิดติดมา) ถึงจะนับเป็น overpick
-         */
         setEvidenceFailReasons((previous) => ({
             ...previous,
             [currentCase.id]: isPerfect
@@ -417,9 +332,6 @@ export default function useCaseGame() {
             [currentCase.id]: true,
         }));
 
-        /*
-         * ถ้ายังไม่ Perfect (ไม่ครบ หรือ เกิน+ผิด) และเป็นครั้งที่ 3
-         */
         if (!isPerfect && currentRetry >= 2) {
             setGameOverPopup({
                 type: "evidence_limit",
@@ -428,9 +340,6 @@ export default function useCaseGame() {
         }
     };
 
-    /*
-     * Retry การเลือกหลักฐาน
-     */
     const retryAnalysis = async () => {
         if (!currentCase) {
             return;
@@ -475,12 +384,6 @@ export default function useCaseGame() {
             const newAttemptId =
                 data.data.new_attempt.attempt_id;
 
-            /*
-             * เดิมจุดนี้ไม่เคยเพิ่ม analysisRetryCount เลย ทำให้
-             * currentRetry ใน submitAnalysis() ค้างอยู่ที่ 0 ตลอด
-             * กด "เลือกหลักฐานใหม่" กี่ครั้งก็ยังเหลือโอกาส 3 ครั้ง
-             * เสมอ และเงื่อนไขครบ 3 ครั้ง (currentRetry >= 2) ไม่ทำงาน
-             */
             setAnalysisRetryCount((previous) => ({
                 ...previous,
                 [currentCase.id]:
@@ -537,9 +440,6 @@ export default function useCaseGame() {
         }
     };
 
-    /*
-    * ตรวจคำตอบและบันทึกลง Database
-    */
     const submitAnswer = async () => {
         if (!currentCase || selected === null) {
             return;
@@ -615,13 +515,6 @@ export default function useCaseGame() {
                 [currentCase.id]: isCorrect,
             }));
 
-            /*
-             * ตัด setGameOverPopup(type: "wrong_verdict") ออก —
-             * VerdictPage เองมีทั้งข้อความอธิบายและปุ่ม Restart
-             * (onRestart={restartFailedCase}) อยู่แล้วเวลา isCorrect
-             * เป็น false เดิมโค้ดจุดนี้เลยทำให้ GameOverPopup ลอยมา
-             * ซ้อนทับ VerdictPage อีกชั้นโดยไม่จำเป็น
-             */
             setStage("verdict");
 
         } catch (error) {
@@ -640,9 +533,6 @@ export default function useCaseGame() {
         setGameOverPopup(null);
     };
 
-    /*
-     * เวลาเลือกหลักฐานหมด
-     */
     const timerExpired = async () => {
         if (!currentCase) {
             return;
@@ -818,12 +708,6 @@ export default function useCaseGame() {
         }
     };
 
-    /*
-     * จบการเล่น Final Level และบันทึก Rank/IP
-     * ตัด heuristic คะแนน (100 - penalty ต่าง ๆ) ที่เคยคำนวณฝั่ง
-     * Frontend ออกทั้งหมด — Backend คำนวณ Rank + IP จากข้อมูลจริงใน
-     * DB ล้วน (game_play_case_attempts) แล้วส่งกลับมาให้ใช้ตรง ๆ
-     */
     const completeGame = async () => {
         if (!playId) {
             console.error("ไม่พบ playId");
@@ -913,10 +797,6 @@ export default function useCaseGame() {
 
             return;
         }
-
-        /*
-         * จบ Case 5
-         */
         const completedGame = await completeGame();
 
         if (!completedGame) {
@@ -926,9 +806,7 @@ export default function useCaseGame() {
         setStage("end");
     };
 
-    /*
-     * Restart ทั้งเกม
-     */
+
     const restart = () => {
         setStage("intro");
         setCaseIdx(0);
@@ -951,9 +829,6 @@ export default function useCaseGame() {
         setFinalLevelResult(null);
     };
 
-    /*
-     * Restart Case ที่เล่นผิด (หลัง Verdict ผิด)
-     */
     const restartFailedCase = async () => {
         if (!currentCase) return;
 
@@ -963,15 +838,6 @@ export default function useCaseGame() {
         }
 
         const id = currentCase.id;
-
-        /*
-         * ปิด Attempt เดิม (ตอบ Verdict ผิด) และเปิด Attempt ใหม่
-         * ผ่าน endpoint เดียวกับ Retry หลักฐาน/Timeout เพื่อให้ Backend
-         * เห็นว่า Case นี้เคย Retry จริง ๆ (ใช้ตัดสิน Rank ตอน
-         * completeGame — เดิมฟังก์ชันนี้ไม่ยิง backend เลย ทำให้
-         * Attempt เก่าค้างเป็น IN_PROGRESS และ completeGame มองไม่เห็น
-         * การ Restart)
-         */
         try {
             const token = localStorage.getItem("token");
 
@@ -1066,28 +932,16 @@ export default function useCaseGame() {
         setStage("brief");
     };
 
-    /*
-     * จำนวน Case ที่ตอบถูก
-     */
     const passCount =
         Object.values(results).filter(Boolean).length;
 
-    /*
-     * จำนวน Case ที่เลือกหลักฐานถูก
-     */
     const evidencePassCount =
         Object.values(evidenceResults).filter(Boolean)
             .length;
 
-    /*
-     * คะแนนเดิมของหน้าเกม
-     */
     const totalScore =
         passCount + evidencePassCount;
 
-    /*
-     * จำนวน Case ที่มีการ retry
-     */
     const allCaseIds = cases.map(
         (caseData) => caseData.id
     );
@@ -1138,7 +992,6 @@ export default function useCaseGame() {
         }
     };
 
-    // startCaseAttempt()
     const startCaseAttempt = async (caseId) => {
         if (!playId) {
             console.error("ไม่พบ playId");
@@ -1204,9 +1057,7 @@ export default function useCaseGame() {
             return null;
         }
     };
-    /*
-    * เปิด Case
-    */
+
     const openCase = async (index) => {
         if (
             index < 0 ||
@@ -1241,9 +1092,6 @@ export default function useCaseGame() {
     };
 
     return {
-        /*
-         * API state
-         */
         cases,
         loading,
         error,
@@ -1255,31 +1103,19 @@ export default function useCaseGame() {
         completeGame,
         finalLevelResult,
 
-        /*
-         * Game state
-         */
         stage,
         setStage,
         caseIdx,
         currentCase,
 
-        /*
-         * Evidence
-         */
         collectedList,
         allCollected,
         activeEvidence,
         setActiveEvidence,
 
-        /*
-         * Question
-         */
         selected,
         setSelected,
 
-        /*
-         * Results
-         */
         results,
         analysisPickList,
         isAnalysisChecked,
@@ -1287,24 +1123,15 @@ export default function useCaseGame() {
         evidenceFailReasons,
         unlockedCaseCount,
 
-        /*
-         * Score
-         */
         passCount,
         evidencePassCount,
         totalScore,
         analysisRetryCount,
 
-        /*
-         * Game status
-         */
         gameOverPopup,
         hasEverTimedOut,
         hasRestartedAnyCase,
 
-        /*
-         * Actions
-         */
         collectEvidence,
         toggleAnalysisPick,
         submitAnalysis,

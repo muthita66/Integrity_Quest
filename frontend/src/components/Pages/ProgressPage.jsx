@@ -374,6 +374,9 @@ function TestStarSummary({ overview }) {
     const postDone = overview?.post_test_done;
     const stars = overview?.streak_stars ?? 0;
 
+    const prePercent = overview?.pre_test_percent;
+    const postPercent = overview?.post_test_percent;
+
     const cards = [
         {
             key: "pre",
@@ -383,6 +386,7 @@ function TestStarSummary({ overview }) {
             detail: preDone
                 ? `ทำแล้ว · ${formatThaiDate(overview?.pre_test_date)}`
                 : "ยังไม่ได้ทำ",
+            percent: preDone ? prePercent ?? 0 : null,
         },
         {
             key: "post",
@@ -392,6 +396,7 @@ function TestStarSummary({ overview }) {
             detail: postDone
                 ? `ทำแล้ว · ${formatThaiDate(overview?.post_test_date)}`
                 : "ยังไม่ได้ทำ",
+            percent: postDone ? postPercent ?? 0 : null,
         },
         {
             key: "stars",
@@ -402,6 +407,7 @@ function TestStarSummary({ overview }) {
                 stars > 0
                     ? `${stars} ดวง · ล่าสุด ${formatThaiDate(overview?.last_star_date)}`
                     : "ยังไม่ได้รับดาว",
+            percent: null,
         },
     ];
 
@@ -423,7 +429,7 @@ function TestStarSummary({ overview }) {
                     >
                         <c.Icon size={18} />
                     </span>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-gray-800">
                             {c.title}
                         </p>
@@ -434,15 +440,16 @@ function TestStarSummary({ overview }) {
                             {c.detail}
                         </p>
                     </div>
+                    {c.percent !== null && (
+                        <span className="shrink-0 text-2xl font-extrabold leading-none text-emerald-600">
+                            {c.percent}%
+                        </span>
+                    )}
                 </div>
             ))}
         </div>
     );
 }
-
-// ============================================================
-// Page
-// ============================================================
 
 export default function ProgressPage() {
     const navigate = useNavigate();
@@ -496,8 +503,6 @@ export default function ProgressPage() {
 
     const handleGo = (level, unitId) => {
         if (!level || level.state === "locked") return;
-
-        // ลำดับของด่านในบท (เรียงตาม order_no) → ใช้กับบทที่ map ตามลำดับ
         const unit = units.find((u) => Number(u.unit_id) === Number(unitId));
         const index = [...(unit?.levels || [])]
             .sort((a, b) => Number(a.order_no) - Number(b.order_no))
@@ -513,7 +518,6 @@ export default function ProgressPage() {
         >
             <div className="flex min-h-full items-center justify-center p-6 lg:p-8">
                 <div className="w-full max-w-7xl rounded-2xl bg-white/60 p-6 shadow-2xl backdrop-blur-lg border border-white/20 lg:p-8">
-                    {/* ================= HEADER ================= */}
                     <button
                         type="button"
                         onClick={() => navigate("/map")}
@@ -532,22 +536,17 @@ export default function ProgressPage() {
                                 ดูผลการเล่นทุกบท และกดเพื่อไปเล่นต่อได้เลย
                             </p>
                         </div>
-                        {/* ================= FILTER ================= */}
                         <FilterDropdown
                             value={filter}
                             onChange={setFilter}
                             counts={counts}
                         />
                     </div>
-
-                    {/* ================= PRE/POST-TEST + ดาว ================= */}
                     {!loading && !error && overview && (
                         <div className="mt-5">
                             <TestStarSummary overview={overview} />
                         </div>
                     )}
-
-                    {/* ================= CONTENT ================= */}
                     <div className="mt-5">
                         {loading && (
                             <p className="py-16 text-center text-gray-500">

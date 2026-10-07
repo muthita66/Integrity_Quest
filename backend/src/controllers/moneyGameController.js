@@ -5,27 +5,9 @@ const TOTAL_ITEMS = 11;
 
 const PERSONAL_TYPE_ID = 5;
 const CLUB_TYPE_ID = 6;
-
-// ================= IP Reward =================
-// กติกา: เกมนี้ตอบผิดแม้ข้อเดียวก็ FAILED ทันที (ไม่มีโอกาสแก้ตัว)
-// ดังนั้นถ้าเล่นจบแบบผ่าน (ครบ 11/11) แปลว่าตอบถูกทุกข้อจริงๆ ไม่ต้อง
-// มี "no-wrong bonus" แยกเหมือน Receipt Hunt เพราะซ้ำซ้อนกับเงื่อนไข
-// ผ่านด่านอยู่แล้ว
-//   Base (ผ่านด่าน)                    = 150 IP
-//   Speed Bonus (เวลาที่ใช้จริง
-//     <= 30 วินาที)                     = 50 IP
-// รวมสูงสุด 200 IP (สเกลใหม่) — เวลาที่ใช้จริงคำนวณจาก
-// started_at/completed_at ของ game_play_history เอง ไม่เชื่อ client
 const BASE_PASS_IP = 150;
 const SPEED_BONUS_IP = 50;
 const SPEED_BONUS_SECONDS = 30;
-
-// ------------------------------------------------------------
-// IP รวม = ผลรวม earned_ip "ที่ดีที่สุด" ของแต่ละ level
-// (เล่นซ้ำไม่บวกเพิ่ม — แนวเดียวกับ recalcIntegrityPoints ใน
-//  gamePlayController) เดิมไฟล์นี้ใช้ increment ทำให้เล่นซ้ำแล้ว
-//  IP บวกเพิ่มทุกรอบ
-// ------------------------------------------------------------
 const recalcIntegrityPoints = async (userId) => {
     const uid = Number(userId);
 
@@ -59,11 +41,7 @@ const recalcIntegrityPoints = async (userId) => {
     return total;
 };
 
-// =====================================================
-// Start Money Game
-// =====================================================
 exports.startMoneyGame = async (playId) => {
-    // ตรวจสอบ Game Play
     const play = await prisma.game_play_history.findUnique({
         where: {
             play_id: playId,
@@ -160,9 +138,6 @@ exports.startMoneyGame = async (playId) => {
     };
 };
 
-// =====================================================
-// Classify Money
-// =====================================================
 exports.classifyMoney = async (
     playId,
     itemId,
@@ -252,9 +227,6 @@ exports.classifyMoney = async (
         },
     });
 
-    // =================================================
-    // ตอบผิด → FAILED ทันที
-    // =================================================
     if (!isCorrect) {
         await prisma.game_play_history.update({
             where: {
@@ -277,9 +249,6 @@ exports.classifyMoney = async (
         };
     }
 
-    // =================================================
-    // นับจำนวนที่ตอบถูก
-    // =================================================
     const correctCount =
         await prisma.game_play_money.count({
             where: {
@@ -295,9 +264,6 @@ exports.classifyMoney = async (
             },
         });
 
-    // =================================================
-    // ครบ 11 รายการ
-    // =================================================
     if (correctCount === TOTAL_ITEMS) {
         return {
             item_id: itemId,
@@ -326,15 +292,6 @@ exports.classifyMoney = async (
     };
 };
 
-// =====================================================
-// Complete Money Game
-//
-// เดิมฟังก์ชันนี้แค่ set score/status ไม่เคยให้ IP เลยทั้งด่าน —
-// ตอนนี้เพิ่ม Base + Speed Bonus คำนวณจากข้อมูลจริงใน DB ทั้งหมด
-// (started_at/completed_at ของ game_play_history เอง สำหรับเวลาที่
-// ใช้จริง) ไม่เชื่อค่าที่ client ส่งมาเลย — ใช้ updateMany +
-// completed_at: null กันเรียกจบเกมซ้ำได้ IP ซ้ำ (แนวเดียวกับด่านอื่น)
-// =====================================================
 exports.completeMoneyGame = async (playId) => {
     // ตรวจสอบ Play
     const play =
@@ -375,10 +332,6 @@ exports.completeMoneyGame = async (playId) => {
 
     const completedAt = new Date();
 
-    // ----------------------------------------------------
-    // เวลาที่ใช้จริง = completed_at - started_at (ของรอบนี้เอง
-    // ใน DB) ไม่ใช่เวลาที่ client คำนวณแล้วส่งมา
-    // ----------------------------------------------------
     const elapsedSeconds = Math.max(
         0,
         Math.floor(
@@ -390,11 +343,6 @@ exports.completeMoneyGame = async (playId) => {
     const isFast = elapsedSeconds <= SPEED_BONUS_SECONDS;
     const speedBonusIP = isFast ? SPEED_BONUS_IP : 0;
     const earnedIP = BASE_PASS_IP + speedBonusIP;
-
-    // ----------------------------------------------------
-    // บันทึกผล — updateMany + completed_at: null กันเรียกจบเกม
-    // ซ้ำพร้อมกันได้ IP ซ้ำ
-    // ----------------------------------------------------
     const updated = await prisma.game_play_history.updateMany({
         where: {
             play_id: playId,
@@ -427,9 +375,6 @@ exports.completeMoneyGame = async (playId) => {
         };
     }
 
-    // ----------------------------------------------------
-    // อัปเดต IP รวมของ User (นับเฉพาะรอบที่ดีที่สุดของแต่ละ level)
-    // ----------------------------------------------------
     const totalIntegrityPoints =
         await recalcIntegrityPoints(play.user_id);
 
@@ -453,10 +398,6 @@ exports.completeMoneyGame = async (playId) => {
     };
 };
 
-// =====================================================
-// Fail Money Game
-// ใช้กรณีหมดเวลา
-// =====================================================
 exports.failMoneyGame = async (playId) => {
     // ตรวจสอบ Play
     const play =

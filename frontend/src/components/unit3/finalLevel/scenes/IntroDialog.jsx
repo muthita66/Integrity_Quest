@@ -13,9 +13,12 @@ export default function IntroDialog({
     totalScenes = 5,
 }) {
     return (
+        // Responsive: กว้าง 88% (แท็บเล็ต) → 70% (≥1024px) → 60% (≥1280px)
+        // สูงขั้นต่ำ 240px และยืดตามความยาวข้อความได้ (เดิม h-[240px] ตายตัว ข้อความยาวจะล้นกล่อง)
+        // แถวปุ่มอยู่ใน flow ปกติ จึงดันกล่องให้สูงขึ้นเองได้
         <div
             className="
-                relative mx-auto w-[60%] h-[240px]
+                relative mx-auto w-[88%] lg:w-[70%] xl:w-[60%] min-h-[240px]
                 bg-black/40 backdrop-blur-sm border-2 border-white/50 rounded-2xl text-white
                 px-6 pb-5 pt-8
                 shadow-2xl

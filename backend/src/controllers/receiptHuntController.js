@@ -19,31 +19,11 @@ const DECOY_ITEM_TYPE_ID = 4;
 const TARGET_COUNT = 8;
 const DECOY_COUNT = 5;
 const TOTAL_COUNT = 13;
-
-// ================= IP Reward (สเกลใหม่) =================
-// กติกา: ให้ IP เฉพาะตอนเก็บ Target ครบ (ผ่านด่าน) เท่านั้น
-//   Base (ผ่านด่าน)              = 150 IP
-//   Speed Bonus (เวลาที่ใช้จริง
-//     <= 30 วินาที)               = 30 IP
-//   No-Wrong Bonus (ไม่เคยกดผิด
-//     เลยทั้งรอบ — ผิด 1 ครั้งก็ไม่ได้) = 20 IP
-// รวมสูงสุด 200 IP
-//
-// เวลาที่ใช้จริงคำนวณจาก started_at/completed_at ของ
-// game_play_history เอง (ไม่เชื่อ timeLeft/timeUsed ที่ client
-// ส่งมา) ส่วน wrong_count นับจากตาราง game_play_receipt_hunt
-// จริง (is_correct === false) เหมือนที่ใช้ตัดสินแพ้อยู่แล้ว
 const BASE_PASS_IP = 150;
 const SPEED_BONUS_IP = 30;
 const SPEED_BONUS_SECONDS = 30;
 const NO_WRONG_BONUS_IP = 20;
 
-// ------------------------------------------------------------
-// IP รวม = ผลรวม earned_ip "ที่ดีที่สุด" ของแต่ละ level
-// (เล่นซ้ำไม่บวกเพิ่ม — แนวเดียวกับ recalcIntegrityPoints ใน
-//  gamePlayController) เดิมไฟล์นี้ใช้ increment ทำให้เล่นซ้ำแล้ว
-//  IP บวกเพิ่มทุกรอบ
-// ------------------------------------------------------------
 const recalcIntegrityPoints = async (userId) => {
     const uid = Number(userId);
 
@@ -197,7 +177,6 @@ exports.startReceiptHunt = async (playId) => {
     };
 };
 
-// ================= Select Receipt =================
 exports.selectReceipt = async (playId, playItemId) => {
     const play = await prisma.game_play_history.findUnique({
         where: {
@@ -269,7 +248,6 @@ exports.selectReceipt = async (playId, playItemId) => {
         (item) => item.is_correct === false
     ).length;
 
-    // ================= Failed เมื่อผิดครบ 3 ครั้ง =================
     if (wrongCount >= 3) {
         await prisma.game_play_history.update({
             where: {
@@ -312,16 +290,6 @@ exports.selectReceipt = async (playId, playItemId) => {
     };
 };
 
-
-// ================= Complete Receipt Hunt =================
-//
-// เดิมฟังก์ชันนี้แค่ set score/status ไม่เคยให้ IP เลยทั้งด่าน —
-// ตอนนี้เพิ่ม Base + Speed Bonus + No-Wrong Bonus คำนวณจากข้อมูล
-// จริงใน DB ทั้งหมด (started_at/completed_at ของ game_play_history
-// เอง สำหรับเวลาที่ใช้จริง, wrong_count จาก game_play_receipt_hunt
-// เอง) ไม่เชื่อค่าที่ client ส่งมาเลยสักตัว — ใช้ updateMany +
-// completed_at: null กันเรียกจบเกมซ้ำได้ IP ซ้ำ (แนวเดียวกับ
-// ด่านอื่นที่แก้ไปแล้ว)
 exports.completeReceiptHunt = async (playId) => {
     const play = await prisma.game_play_history.findUnique({
         where: {
@@ -395,11 +363,6 @@ exports.completeReceiptHunt = async (playId) => {
     }
 
     const completedAt = new Date();
-
-    // ----------------------------------------------------
-    // เวลาที่ใช้จริง = completed_at - started_at (ของรอบนี้เอง
-    // ใน DB) ไม่ใช่ timeLeft/timeUsed ที่ client คำนวณแล้วส่งมา
-    // ----------------------------------------------------
     const elapsedSeconds = Math.max(
         0,
         Math.floor(
@@ -414,11 +377,6 @@ exports.completeReceiptHunt = async (playId) => {
     const speedBonusIP = isFast ? SPEED_BONUS_IP : 0;
     const noWrongBonusIP = isFlawless ? NO_WRONG_BONUS_IP : 0;
     const earnedIP = BASE_PASS_IP + speedBonusIP + noWrongBonusIP;
-
-    // ----------------------------------------------------
-    // บันทึกผล — updateMany + completed_at: null กันเรียกจบเกม
-    // ซ้ำพร้อมกันได้ IP ซ้ำ (แนวเดียวกับด่านอื่น)
-    // ----------------------------------------------------
     const updated = await prisma.game_play_history.updateMany({
         where: {
             play_id: Number(playId),
@@ -449,10 +407,6 @@ exports.completeReceiptHunt = async (playId) => {
             completed_at: alreadyCompleted.completed_at,
         };
     }
-
-    // ----------------------------------------------------
-    // อัปเดต IP รวมของ User (นับเฉพาะรอบที่ดีที่สุดของแต่ละ level)
-    // ----------------------------------------------------
     const totalIntegrityPoints =
         await recalcIntegrityPoints(play.user_id);
 

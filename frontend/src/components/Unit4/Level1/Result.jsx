@@ -329,7 +329,7 @@ export default function Result() {
                             style={{ alignSelf: "center" }}
                             onClick={finish}
                         >
-                            <FaBookOpen size={14} /> กลับไปหน้าสารบัญ
+                            <FaBookOpen size={14} /> กลับหน้าหลัก
                         </button>
                         <button
                             type="button"
@@ -358,7 +358,7 @@ export default function Result() {
                             color: "var(--text-secondary)",
                         }}
                     >
-                        จุดที่ทำให้แต่ละใบจริงหรือปลอม อ่านทวนก่อนไปบทต่อไป
+                        จุดที่ทำให้แต่ละใบจริงหรือปลอม อ่านทวนก่อนไปด่านถัดไป
                     </p>
 
                     {answers.map((answer) => {

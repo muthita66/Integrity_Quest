@@ -12,21 +12,6 @@ const {
 } = require("../controllers/slipHuntController");
 
 const authenticateToken = require("../../middleware/authMiddleware");
-
-/**
- * Routes สำหรับ Slip Hunt Game (Unit 4 Level 1)
- * Base URL: /api/slip-hunt
- *
- * ทุก route ต้อง login (ส่ง Authorization: Bearer <token>)
- * และเข้าถึงได้เฉพาะรอบการเล่นของตัวเอง (อาจารย์ดูได้ทุกคน)
- *
- * Flow:
- * 1. POST /api/game-play/start        { level_id }     → play_id
- * 2. POST /api/slip-hunt/answer        ทีละสลิป (5 ครั้ง)
- * 3. POST /api/game-play/complete      { play_id }      → ผล + IP
- * 4. GET  /api/slip-hunt/play/:playId  ใช้แสดงหน้า Result
- */
-
 router.use(authenticateToken);
 
 // บันทึกคำตอบ 1 สลิป

@@ -1,33 +1,13 @@
 const prisma = require("../lib/prisma");
 
-const receiptHuntController =
-    require("./receiptHuntController");
-
-const finalLevelController =
-    require("./finalLevelController");
-
-const moneyGameController =
-    require("./moneyGameController");
-
-const userProgressController =
-    require("./userProgressController");
+const receiptHuntController = require("./receiptHuntController");
+const finalLevelController = require("./finalLevelController");
+const moneyGameController = require("./moneyGameController");
+const userProgressController = require("./userProgressController");
 
 // Unit 4 Level 1 : Slip Hunt
 const gamePlayService =
     require("../services/gamePlayService");
-
-// ============================================================
-// Integrity Points (IP) รวม
-// ============================================================
-//
-// IP รวมของ User = ผลรวมของ earned_ip "ที่ดีที่สุด" ของแต่ละ level
-// คำนวณใหม่จาก game_play_history ทุกครั้งที่เล่นจบ แทนการบวกเพิ่ม
-//   - เล่นซ้ำแล้วได้มากกว่าเดิม → IP รวมเพิ่มตามส่วนต่าง
-//   - เล่นซ้ำแล้วได้เท่า/น้อยกว่า → IP รวมไม่เปลี่ยน
-// เรียกซ้ำกี่ครั้งก็ได้ค่าเท่าเดิม (ไม่มีทางนับซ้ำ)
-//
-// ต้องเรียก "หลัง" บันทึก earned_ip ลง game_play_history แล้ว
-// ============================================================
 
 const recalcIntegrityPoints = async (userId) => {
     const uid = Number(userId);
@@ -63,10 +43,7 @@ const recalcIntegrityPoints = async (userId) => {
     return total;
 };
 
-// ============================================================
 // Utility
-// ============================================================
-
 const shuffle = (array) => {
     const result = [...array];
 
@@ -83,15 +60,8 @@ const shuffleArray = (array) => {
     return [...array].sort(() => Math.random() - 0.5);
 };
 
-// ============================================================
-// Progress Helper
-// ============================================================
-//
-// เรียก updateLevelProgress() หลังบันทึกผลเกมเสร็จแล้ว
-// ห่อ try/catch ไว้ เพื่อไม่ให้ error ของระบบ Progress ทำให้
-// Response ของเกมพัง (ผลเกม + IP ถูกบันทึกไปแล้วก่อนหน้านี้)
-// ============================================================
 
+// Progress Helper
 const saveLevelProgress = async ({
     userId,
     levelId,
@@ -123,10 +93,7 @@ const saveLevelProgress = async ({
     }
 };
 
-// ============================================================
 // START GAME
-// ============================================================
-
 exports.startGame = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -143,10 +110,7 @@ exports.startGame = async (req, res) => {
 
         const levelId = Number(level_id);
 
-        // ========================================================
         // ตรวจสอบ Level
-        // ========================================================
-
         const level = await prisma.level.findUnique({
             where: {
                 level_id: levelId,
@@ -159,23 +123,7 @@ exports.startGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // ตรวจสอบสิทธิ์การเข้า Level (Level Lock)
-        // ========================================================
-        //
-        // กติกา:
-        // 1. ถ้ามี user_level_progress และ is_locked = true
-        //    → ห้ามเข้า Level
-        // 2. ถ้ายังไม่มี user_level_progress
-        //    → อนุญาตเฉพาะ Level แรกของ Unit แรกที่เปิดใช้งาน
-        //       หรือ Level แรกของ Unit ที่ถูกปลดล็อกแล้ว
-        // 3. Level ที่ไม่ใช่ Level แรกของ Unit
-        //    ต้องมี progress row ที่ถูกปลดล็อกก่อนเสมอ
-        //
-        // Frontend แสดง 🔒 / 🔓 ได้ แต่ Backend เป็นตัวป้องกันจริง
-        // เพื่อไม่ให้ผู้ใช้ bypass ด้วยการยิง API ตรง
-        // ========================================================
-
         const levelProgress =
             await prisma.user_level_progress.findUnique({
                 where: {
@@ -302,9 +250,7 @@ exports.startGame = async (req, res) => {
             }
         }
 
-        // ========================================================
         // Unit แรก: ต้องทำ Pre-Test ก่อนถึงจะเล่นได้
-        // ========================================================
         if (isFirstActiveUnit) {
             const preTestDone =
                 await userProgressController.hasCompletedPreTest(
@@ -335,10 +281,7 @@ exports.startGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // นับจำนวนข้อมูลสำหรับ Score
-        // ========================================================
-
         let maxScore = 0;
 
         // Unit 6 Level 1 : Crisis Response (level_id หาจาก DB — unit 6 ลำดับ 1)
@@ -348,9 +291,6 @@ exports.startGame = async (req, res) => {
         const isNetwork = await gamePlayService.isGoodNetworkLevel(levelId);
 
         // Unit 6 Level 3 : ShadowMirror (กระจกสะท้อนใจ) — คำถามปลายเปิด
-        // hardcode อยู่ฝั่ง frontend ไม่ได้ดึงจากตาราง question จึงไม่ต้อง
-        // นับ/ตรวจอะไรตรงนี้ ผลเกม/IP คำนวณที่ controllers/reflectController.js
-        // (POST /api/reflect) แทน — endpoint นี้แค่สร้าง play_id ให้
         const isShadowMirror = await gamePlayService.isShadowMirrorLevel(levelId);
 
         if (levelId === 5) {
@@ -400,9 +340,6 @@ exports.startGame = async (req, res) => {
             maxScore = 8;
         } else if (levelId === 9) {
             // Unit 3 Level 2 : Money Game (แยกเงินส่วนตัว/เงินชมรม)
-            // เดิม level นี้ไม่มี branch เลย ตกไปเช็ค prisma.question
-            // (ซึ่ง level นี้ไม่ได้ใช้ตาราง question เลย) ทำให้ยิง 400
-            // หรือได้ play ที่ไม่มี items ติดไปเลย — ใน 1 รอบมี 11 รายการ
             maxScore = 11;
         } else if (levelId === 10) {
             // Unit 3 FinalLevel : Treasurer
@@ -410,13 +347,10 @@ exports.startGame = async (req, res) => {
             maxScore = 100;
         } else if (gamePlayService.isSlipHuntLevel(levelId)) {
             // Unit 4 Level 1 : Slip Hunt
-            // 1 รอบมีสลิป 5 ใบ (คำตอบเก็บใน game_play_slip_hunt
-            // ไม่ได้ใช้ตาราง question จึงต้องมี branch แยก ไม่งั้น
-            // จะตกไปนับ question แล้วได้ 0 → 400)
+
             maxScore = gamePlayService.SLIP_HUNT_TOTAL_SLIPS;
         } else if (isShadowMirror) {
             // Unit 6 Level 3 : ShadowMirror — คะแนนเต็มคือค่าเฉลี่ย trait
-            // score จาก AI (0-100) ไม่มีระบบนับคำถามจาก DB
             maxScore = 100;
         } else if (isCrisis) {
             // Unit 6 Level 1 : รับมือวิกฤต (โจทย์อยู่ใน level_crisis_events)
@@ -460,11 +394,9 @@ exports.startGame = async (req, res) => {
             }
         } else if (gamePlayService.isSlotLevel(levelId)) {
             // Unit 4 Level 2 : Slot (กับดักพนัน)
-            // ไม่มีคะแนนถูก/ผิด — ผลการหมุนเก็บใน game_play_slot_rounds
             maxScore = 0;
         } else if (levelId !== 2) {
             // Level อื่น ๆ ที่ใช้ question + choice
-            // (Level 2 ไม่มี Score จึงข้ามการนับตรงนี้)
             const questionCount = await prisma.question.count({
                 where: {
                     level_id: levelId,
@@ -480,10 +412,7 @@ exports.startGame = async (req, res) => {
             maxScore = questionCount;
         }
 
-        // ========================================================
         // Level 2 : Bubble Shooter + Boss
-        // ========================================================
-        // Level 2 ไม่มี Score (ใช้ระบบ IP แทน คำนวณตอน completeGame)
         if (levelId === 2) {
             maxScore = 0;
 
@@ -575,19 +504,8 @@ exports.startGame = async (req, res) => {
                 ),
             ]);
 
-            // ====================================================
-            // สร้าง Game Play History
-            // หรือใช้ play_id เดิมเฉพาะตอนที่ Frontend "ส่ง play_id มา
-            // เอง" เท่านั้น (Retry จริง ๆ ผ่าน restartGame())
-            //
-            // ตั้งใจไม่ค้นหารอบเก่าที่ยังไม่จบมา "รีไซเคิล" อัตโนมัติ
-            // แล้ว (เคยทำแบบนั้นเพื่อกัน StrictMode ยิงซ้ำ) เพราะทำให้
-            // ทุกครั้งที่ผู้เล่นกด "เล่นใหม่" โดยไม่ตั้งใจ Retry ระบบ
-            // จะไปรื้อรอบเก่าที่ค้างไว้เป็นวัน ๆ ขึ้นมาใช้แทนการสร้าง
-            // รอบใหม่ การกัน StrictMode ยิงซ้ำตอนนี้ทำที่ฝั่ง Frontend
-            // ด้วย isStartingRef ใน useBubbleGame.js แทนแล้ว
-            // ====================================================
 
+            // สร้าง Game Play History
             const targetPlayId = play_id
                 ? Number(play_id)
                 : null;
@@ -633,11 +551,6 @@ exports.startGame = async (req, res) => {
                             "เกมนี้จบแล้ว ไม่สามารถ Retry ได้",
                     });
                 }
-
-                // ล้างข้อมูลของรอบย่อยเดิม (Bubble + คำตอบ Boss)
-                // แต่ยังคง game_play_history เดิมไว้
-                // และไม่รีเซ็ต wrong_count เพราะใช้ตัดสินว่า
-                // "เคยผิด/Retry" หรือไม่ สำหรับคำนวณ IP ตอนจบเกม
                 await prisma.game_play_bubbles.deleteMany({
                     where: {
                         play_id: existingPlay.play_id,
@@ -680,10 +593,7 @@ exports.startGame = async (req, res) => {
                     });
             }
 
-            // ====================================================
             // บันทึก Bubble ที่ถูกสุ่มของ Play นี้
-            // ====================================================
-
             await prisma.game_play_bubbles.createMany({
                 data: selectedBubbles.map(
                     (bubble, index) => ({
@@ -697,10 +607,7 @@ exports.startGame = async (req, res) => {
                 ),
             });
 
-            // ====================================================
             // ดึง Bubble ของ Play นี้กลับมา
-            // ====================================================
-
             const playBubbles =
                 await prisma.game_play_bubbles.findMany({
                     where: {
@@ -750,31 +657,23 @@ exports.startGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Level อื่น ๆ
-        // ========================================================
+        const play = await prisma.game_play_history.create({
+            data: {
+                user_id: userId,
+                level_id: levelId,
+                score: 0,
+                max_score: maxScore,
+                started_at: new Date(),
+                status: "IN_PROGRESS",
+            },
+        });
 
-        const play =
-            await prisma.game_play_history.create({
-                data: {
-                    user_id: userId,
-                    level_id: levelId,
-                    score: 0,
-                    max_score: maxScore,
-                    started_at: new Date(),
-                    status: "IN_PROGRESS",
-                },
-            });
-
-        // ========================================================
         // Unit 3 Level 1 : Receipt Hunt
-        // ========================================================
-
         if (levelId === 8) {
-            const receiptHunt =
-                await receiptHuntController.startReceiptHunt(
-                    play.play_id
-                );
+            const receiptHunt = await receiptHuntController.startReceiptHunt(
+                play.play_id
+            );
 
             return res.status(201).json({
                 message:
@@ -794,15 +693,11 @@ exports.startGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 3 Level 2 : Money Game
-        // ========================================================
-
         if (levelId === 9) {
-            const moneyGame =
-                await moneyGameController.startMoneyGame(
-                    play.play_id
-                );
+            const moneyGame = await moneyGameController.startMoneyGame(
+                play.play_id
+            );
 
             return res.status(201).json({
                 message:
@@ -822,10 +717,7 @@ exports.startGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 3 FinalLevel : Treasurer
-        // ========================================================
-
         if (levelId === 10) {
             const treasurer =
                 await finalLevelController.startTreasurerGame(
@@ -850,11 +742,7 @@ exports.startGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 6 Level 1 : Crisis Response
-        // ส่งเหตุการณ์ + ตัวเลือกไปด้วย (ไม่มีคะแนนของตัวเลือก)
-        // ========================================================
-
         if (isNetwork) {
             const questions =
                 await gamePlayService.getGoodNetworkQuestions(levelId);
@@ -897,11 +785,7 @@ exports.startGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 5 Level 3 : Integrity Inspector
-        // ส่งเอกสารโครงการไปด้วย (ไม่มีเฉลย)
-        // ========================================================
-
         if (gamePlayService.isInspectorLevel(levelId)) {
             const projects =
                 await gamePlayService.getInspectorProjects(levelId);
@@ -922,10 +806,7 @@ exports.startGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 5 Level 2 : จัดสรรงบประมาณให้เมือง
-        // ========================================================
-
         if (gamePlayService.isBudgetLevel(levelId)) {
             return res.status(201).json({
                 message: "เริ่มเกมจัดสรรงบประมาณสำเร็จ",
@@ -943,14 +824,9 @@ exports.startGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 5 Level 1 : ตามหาคำจากคำใบ้
-        // ส่งคำใบ้ + ตัวอักษรที่เปิดให้ (ไม่มีคำตอบเต็ม)
-        // ========================================================
-
         if (gamePlayService.isWordClueLevel(levelId)) {
-            const words =
-                await gamePlayService.getWordPuzzles(levelId);
+            const words = await gamePlayService.getWordPuzzles(levelId);
 
             return res.status(201).json({
                 message: "เริ่มเกมตามหาคำสำเร็จ",
@@ -969,11 +845,7 @@ exports.startGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 4 Level 3 : Firewall Defender
-        // ส่งคำถาม + ตัวเลือกไปด้วย (ไม่มีเฉลย)
-        // ========================================================
-
         if (gamePlayService.isFirewallLevel(levelId)) {
             const questions =
                 await gamePlayService.getFirewallQuestions(levelId);
@@ -996,10 +868,7 @@ exports.startGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 4 Level 2 : Slot (กับดักพนัน)
-        // ========================================================
-
         if (gamePlayService.isSlotLevel(levelId)) {
             return res.status(201).json({
                 message: "เริ่มเกมสล็อตสำเร็จ",
@@ -1035,10 +904,7 @@ exports.startGame = async (req, res) => {
     }
 };
 
-// ============================================================
 // ANSWER QUESTION
-// ============================================================
-
 exports.answerGame = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -1049,10 +915,7 @@ exports.answerGame = async (req, res) => {
             choice_id,
         } = req.body;
 
-        // ========================================================
         // ตรวจข้อมูลที่ส่งมา
-        // ========================================================
-
         if (
             !play_id ||
             !question_id ||
@@ -1079,16 +942,12 @@ exports.answerGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // 1. ตรวจสอบรอบการเล่น
-        // ========================================================
-
-        const play =
-            await prisma.game_play_history.findUnique({
-                where: {
-                    play_id: playId,
-                },
-            });
+        const play = await prisma.game_play_history.findUnique({
+            where: {
+                play_id: playId,
+            },
+        });
 
         if (!play) {
             return res.status(404).json({
@@ -1161,16 +1020,12 @@ exports.answerGame = async (req, res) => {
             }
         }
 
-        // ========================================================
         // 2. ตรวจสอบ Question
-        // ========================================================
-
-        const question =
-            await prisma.question.findUnique({
-                where: {
-                    question_id: questionId,
-                },
-            });
+        const question = await prisma.question.findUnique({
+            where: {
+                question_id: questionId,
+            },
+        });
 
         if (!question) {
             return res.status(404).json({
@@ -1190,16 +1045,12 @@ exports.answerGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // 3. ตรวจสอบ Choice
-        // ========================================================
-
-        const choice =
-            await prisma.choice.findUnique({
-                where: {
-                    choice_id: choiceId,
-                },
-            });
+        const choice = await prisma.choice.findUnique({
+            where: {
+                choice_id: choiceId,
+            },
+        });
 
         if (!choice) {
             return res.status(404).json({
@@ -1219,17 +1070,13 @@ exports.answerGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // 4. ตรวจว่าตอบข้อนี้ไปแล้วหรือยัง
-        // ========================================================
-
-        const existingAnswer =
-            await prisma.game_play_answers.findFirst({
-                where: {
-                    play_id: playId,
-                    question_id: questionId,
-                },
-            });
+        const existingAnswer = await prisma.game_play_answers.findFirst({
+            where: {
+                play_id: playId,
+                question_id: questionId,
+            },
+        });
 
         if (existingAnswer) {
             return res.status(409).json({
@@ -1239,23 +1086,10 @@ exports.answerGame = async (req, res) => {
             });
         }
 
-        // ========================================================
+
         // 5. บันทึกคำตอบ
-        // ========================================================
-
-        // ========================================================
         // Level 2 : Boss Bubble
-        // ไม่ใช้ Score / ip_reward ระหว่างตอบ
-        // IP จะคำนวณตอน completeGame()
-        //
-        // Level อื่น ๆ ที่ใช้ question + choice (รวม FinalLevel
-        // level_id = 3) : ใช้ค่า ip_reward จริงของ choice ที่มีอยู่
-        // ใน Database (ไม่ hardcode ว่าตอบถูก = 1 อีกต่อไป เพื่อให้
-        // ทีม content ปรับค่า IP ต่อ choice ได้จาก DB โดยตรง)
-        // ========================================================
-
-        const isLevel2 =
-            play.level_id === 2;
+        const isLevel2 = play.level_id === 2;
 
         const answer =
             await prisma.game_play_answers.create({
@@ -1275,12 +1109,7 @@ exports.answerGame = async (req, res) => {
                 },
             });
 
-        // ========================================================
         // ถ้า Level 2 ตอบผิด
-        // เก็บ wrong_count ไว้เป็นหลักฐานว่าเคย Retry
-        // (ใช้ตัดสินโบนัส "ผ่านตั้งแต่รอบแรก" ตอน completeGame)
-        // ========================================================
-
         if (
             isLevel2 &&
             choice.is_correct === false
@@ -1310,9 +1139,6 @@ exports.answerGame = async (req, res) => {
                 },
             });
         } else {
-            // ====================================================
-            // Logic เดิมของ Level อื่น
-            // ====================================================
 
             const scoreResult =
                 await prisma.game_play_answers.aggregate({
@@ -1339,12 +1165,7 @@ exports.answerGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // ส่งผลกลับ Frontend
-        // ========================================================
-
-        // Unit 6 Level 2 : Good Network — ส่งเฉลย + คำอธิบายกลับไป
-        // (หน้าเกมไฮไลต์ข้อที่ถูกและแสดงคำอธิบายหลังตอบ — ตอบไปแล้วแก้ไม่ได้)
         let reveal = {};
 
         if (await gamePlayService.isGoodNetworkLevel(play.level_id)) {
@@ -1416,19 +1237,14 @@ exports.answerGame = async (req, res) => {
     }
 };
 
-// ============================================================
 // Unit 1 Level 1 : Magic Mirror — IP สเกลใหม่
-// ============================================================
 const MIRROR_IP = {
     PER_CORRECT: 50,              // ตอบถูกข้อละ 50 (5 ข้อ = 250)
     FIRST_TRY_PERFECT_BONUS: 50,  // ถูกครบตั้งแต่ครั้งแรก +50 (เต็ม 300)
     MAX_WRONG_TO_PASS: 3,         // ผิดเกิน 3 ข้อ = FAIL (เกณฑ์ผ่านเดิม)
 };
 
-// ============================================================
 // COMPLETE GAME
-// ============================================================
-
 exports.completeGame = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -1458,16 +1274,12 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // ค้นหา Play
-        // ========================================================
-
-        const play =
-            await prisma.game_play_history.findUnique({
-                where: {
-                    play_id: playId,
-                },
-            });
+        const play = await prisma.game_play_history.findUnique({
+            where: {
+                play_id: playId,
+            },
+        });
 
         if (!play) {
             return res.status(404).json({
@@ -1476,10 +1288,7 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // ตรวจสอบ User
-        // ========================================================
-
         if (play.user_id !== userId) {
             return res.status(403).json({
                 message:
@@ -1487,10 +1296,7 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // ถ้าเกมจบแล้ว
-        // ========================================================
-
         if (play.completed_at) {
             return res.status(200).json({
                 message:
@@ -1524,32 +1330,13 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 1 Level 2 : Bubble Shooter + Boss Bubble
-        // ========================================================
-        //
-        // กติกา IP (สเกลใหม่)
-        //   ยิง Bubble Bad ถูก     = ลูกละ 10 IP
-        //   ตอบ Boss ถูก           = ข้อละ 20 IP (3 ข้อ = 60)
-        //   (นับจากรอบย่อยสุดท้ายที่ผ่าน — Retry จะล้างของรอบก่อน)
-        //   status: ไม่เคยผิดเลย = PERFECT / เคยผิดแล้ว Retry = PASS
-        //
-        // "เคยผิด" ดูจาก wrong_count ซึ่งเพิ่มจาก
-        //   - shootBubble  (ยิง Good ผิด)
-        //   - answerGame   (ตอบ Boss ผิด)
-        // และ wrong_count ไม่ถูกรีเซ็ตตอน Retry (ดู startGame)
-        // ========================================================
-
         if (play.level_id === 2) {
             const BOSS_QUESTION_COUNT = 3;
             const BUBBLE_IP_EACH = 10;      // Bubble Bad ลูกละ 10
             const BOSS_IP_EACH = 20;        // Boss ข้อละ 20
             const FIRST_TRY_BONUS_IP = 0;   // โบนัสไม่เคยผิด (ตอนนี้ไม่มี)
 
-            // ----------------------------------------------------
-            // 1. รอบปัจจุบันต้องยังไม่ FAILED
-            //    (ยิง Good ผิดแล้วต้อง Retry ก่อนถึงจะจบเกมได้)
-            // ----------------------------------------------------
             if (play.status !== "IN_PROGRESS") {
                 return res.status(400).json({
                     message:
@@ -1561,10 +1348,6 @@ exports.completeGame = async (req, res) => {
                 });
             }
 
-            // ----------------------------------------------------
-            // 2. ตรวจด่าน Bubble ของรอบปัจจุบัน
-            //    Bad ต้องถูกยิงครบ / Good ต้องไม่ถูกยิงเลย
-            // ----------------------------------------------------
             const playBubbles =
                 await prisma.game_play_bubbles.findMany({
                     where: {
@@ -1609,11 +1392,6 @@ exports.completeGame = async (req, res) => {
                 });
             }
 
-            // ----------------------------------------------------
-            // 3. ตรวจ Boss ต้องตอบถูกครบ 3/3
-            //    (Retry จะลบคำตอบ Boss ของรอบก่อนใน startGame แล้ว
-            //     ตรงนี้จึงมีแค่คำตอบของรอบปัจจุบัน)
-            // ----------------------------------------------------
             const bossAnswers =
                 await prisma.game_play_answers.findMany({
                     where: {
@@ -1646,12 +1424,6 @@ exports.completeGame = async (req, res) => {
                 });
             }
 
-            // ----------------------------------------------------
-            // 4. คำนวณ IP
-            //    wrong_count นับรวมตลอดทั้งเกม (ไม่รีเซ็ตตอน Retry)
-            //    ดังนั้นถ้า > 0 แปลว่าเคยผิดมาก่อน ไม่ว่าจะที่
-            //    Bubble หรือ Boss ก็ตาม
-            // ----------------------------------------------------
             const wrongCount = play.wrong_count ?? 0;
             const isFirstTry = wrongCount === 0;
 
@@ -1667,11 +1439,6 @@ exports.completeGame = async (req, res) => {
             const status = isFirstTry ? "PERFECT" : "PASS";
             const completedAt = new Date();
 
-            // ----------------------------------------------------
-            // 5. บันทึกผล
-            //    updateMany + completed_at: null กันเรียกซ้ำพร้อมกัน
-            //    (ไม่ให้ได้ IP สองรอบจากการกดจบเกมรัว ๆ)
-            // ----------------------------------------------------
             const updated =
                 await prisma.game_play_history.updateMany({
                     where: {
@@ -1695,11 +1462,6 @@ exports.completeGame = async (req, res) => {
                 });
             }
 
-            // ----------------------------------------------------
-            // 5.1 UPDATE USER LEVEL PROGRESS
-            //     Level 2 ผ่านเสมอเมื่อมาถึงจุดนี้ (PERFECT / PASS)
-            //     เกมนี้ใช้ IP เป็นหลัก ไม่ใช้ Score จึงส่ง score = 0
-            // ----------------------------------------------------
             await saveLevelProgress({
                 userId,
                 levelId: play.level_id,
@@ -1708,19 +1470,11 @@ exports.completeGame = async (req, res) => {
                 passed: true,
             });
 
-            // ----------------------------------------------------
-            // 6. เพิ่ม IP ให้ User
-            // ----------------------------------------------------
-            // IP รวม = ผลรวม earned_ip ที่ดีที่สุดของแต่ละ level
-            // (เล่นซ้ำไม่บวกเพิ่ม นับเฉพาะรอบที่ดีที่สุด)
             const userStats = {
                 integrity_points:
                     await recalcIntegrityPoints(userId),
             };
 
-            // ----------------------------------------------------
-            // 7. ส่งผลกลับ Frontend (ใช้ทำหน้า Result)
-            // ----------------------------------------------------
             return res.status(200).json({
                 message: "จบเกม Level 2 สำเร็จ",
 
@@ -1749,25 +1503,7 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 2 Level 1 : Need / Want
-        // ========================================================
-        //
-        // กติกา (ตกลงกันไว้):
-        //   ต้องตอบถูก "ครบทุกชิ้น" ถึงจะ PASS — ผิดแม้ชิ้นเดียว = FAIL
-        //   ทันที จบเกม ต้องเริ่ม play ใหม่ (ไม่มีแก้คำตอบในรอบเดิม)
-        //
-        //   PASS  → ได้ IP พื้นฐาน + โบนัส "ผ่านตั้งแต่รอบแรก"
-        //           (ไม่เคยมี play ที่ completed_at แล้วของ user คนนี้
-        //           ใน level นี้มาก่อนเลย ไม่ว่าจะ PASS หรือ FAIL)
-        //   FAIL  → IP = 0, ไม่เพิ่ม user_stats
-        //
-        // ตัวเลข IP เป็นค่าคงที่ปรับง่ายจุดเดียว (BASE_PASS_IP /
-        // FIRST_TRY_BONUS_IP) — ยังไม่ได้ย้ายไป DB เหมือน RANK_BONUS_IP
-        // ของ FinalLevel เพราะที่นี่มีแค่ 2 สถานะ (PASS/FAIL) ไม่ใช่
-        // 4-tier แบบ Rank
-        // ========================================================
-
         if (play.level_id === 5) {
             // สเกลใหม่: ถูกครบ 10 ชิ้น = 100 / ผ่านตั้งแต่ครั้งแรก +50 → 150
             const BASE_PASS_IP = 100;
@@ -1805,12 +1541,6 @@ exports.completeGame = async (req, res) => {
                 });
             }
 
-            // ----------------------------------------------------
-            // ดึงคำตอบทั้งหมดพร้อมชื่อ/รูปของ Item เพื่อส่งกลับให้
-            // หน้า Result ใช้แสดงผลตรง ๆ (ไม่ต้องพึ่งข้อมูลที่ Frontend
-            // จำไว้เองอีกต่อไป — เดิม Frontend คำนวณ pass/score เอง
-            // แล้วส่งผ่าน router state ซึ่งไม่ตรวจสอบกับ DB เลย)
-            // ----------------------------------------------------
             const levelItemsWithType =
                 await prisma.level_items.findMany({
                     where: { level_id: 5 },
@@ -1861,12 +1591,6 @@ exports.completeGame = async (req, res) => {
             const status = isPerfect ? "PASS" : "FAIL";
             const completedAt = new Date();
 
-            // ----------------------------------------------------
-            // ผ่านตั้งแต่รอบแรก = ไม่เคยมี play ที่จบไปแล้ว (ไม่ว่าจะ
-            // PASS หรือ FAIL) ของ user คนนี้ใน level นี้มาก่อนเลย
-            // (นับเฉพาะ play อื่นที่ completed_at แล้ว ไม่รวม play
-            // ปัจจุบัน)
-            // ----------------------------------------------------
             const priorCompletedCount =
                 await prisma.game_play_history.count({
                     where: {
@@ -1885,10 +1609,6 @@ exports.completeGame = async (req, res) => {
                     : 0;
             const earnedIP = baseIP + bonusIP;
 
-            // ----------------------------------------------------
-            // บันทึกผล — updateMany + completed_at:null กันเรียกซ้ำ
-            // พร้อมกันได้ IP ซ้ำ (แนวเดียวกับ Level 2 / FinalLevel)
-            // ----------------------------------------------------
             const updated =
                 await prisma.game_play_history.updateMany({
                     where: {
@@ -1910,11 +1630,6 @@ exports.completeGame = async (req, res) => {
                 });
             }
 
-            // ----------------------------------------------------
-            // UPDATE USER LEVEL PROGRESS
-            //   ถูกครบ → PASS → Unlock Level 6
-            //   ผิดอย่างน้อย 1 → FAIL → Level 6 ยัง LOCKED
-            // ----------------------------------------------------
             await saveLevelProgress({
                 userId,
                 levelId: play.level_id,
@@ -1923,11 +1638,6 @@ exports.completeGame = async (req, res) => {
                 passed: isPerfect,
             });
 
-            // ----------------------------------------------------
-            // เพิ่ม IP ให้ User (เฉพาะตอน PASS)
-            // ----------------------------------------------------
-            // IP รวม = ผลรวม earned_ip ที่ดีที่สุดของแต่ละ level
-            // (เล่นซ้ำไม่บวกเพิ่ม นับเฉพาะรอบที่ดีที่สุด)
             const userStats = {
                 integrity_points:
                     await recalcIntegrityPoints(userId),
@@ -1963,21 +1673,8 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 2 Level 2 : Calculation / Comparison
-        // ========================================================
-
         if (play.level_id === 6) {
-            /*
-             * เดิม branch นี้ปิดเกมเป็น "COMPLETED" เสมอโดยไม่เช็คเลยว่า
-             * ตอบถูกจริงไหม และไม่เคยให้ IP เลยแม้แต่นิดเดียว (pass/fail
-             * เดิมคำนวณแค่ฝั่ง Frontend จาก hp >= 15 เท่านั้น) — ตอนนี้
-             * แก้ให้ backend ตรวจจริงจากข้อมูลในตาราง game_play_comparison
-             * และให้ IP ตามกติกาที่ตกลงกันไว้: "ผ่าน" = ตอบถูกครบทุกข้อ
-             * ไม่ว่าจะใช้กี่ครั้ง, "IP" = นับเป็นข้อๆ ไป ข้อไหนตอบถูก
-             * ตั้งแต่ครั้งแรกที่พยายามข้อนั้น (ไม่ใช่ครั้งแรกที่เข้าเล่น
-             * ทั้งด่าน) ได้ +1 IP ต่อข้อ สูงสุด 5 IP ต่อการเล่น 1 รอบ
-             */
             const totalQuestions =
                 await prisma.comparison_questions.count({
                     where: {
@@ -2019,12 +1716,6 @@ exports.completeGame = async (req, res) => {
                 });
             }
 
-            // ---------------------------------------------------
-            // "ผ่าน" = ตอบถูกครบทุกข้อ (นับจากข้อมูลจริงในตาราง
-            // ไม่ใช่แค่เช็คว่าตอบครบทุกข้อโดยไม่สนว่าถูกหรือผิด) — ใช้
-            // เป็นเงื่อนไขให้ IP เท่านั้น ไม่ใช่ข้อความที่แสดงบนหน้า
-            // Result (ดู messageStatus ด้านล่าง)
-            // ---------------------------------------------------
             const correctlyAnsweredQuestions =
                 await prisma.game_play_comparison.findMany({
                     where: {
@@ -2045,13 +1736,6 @@ exports.completeGame = async (req, res) => {
             const isPass =
                 correctlyAnsweredQuestions.length ===
                 totalQuestions;
-
-            // ---------------------------------------------------
-            // IP (สเกลใหม่) — ให้เฉพาะตอนผ่านด่าน (ถูกครบทุกข้อ)
-            //   ตอบถูก                         ข้อละ 20
-            //   + ถูกตั้งแต่ครั้งแรกของข้อนั้น   ข้อละ +10
-            //   ถูกหมดตั้งแต่ครั้งแรก 5 ข้อ = 150
-            // ---------------------------------------------------
             const COMPARE_IP_PER_CORRECT = 20;
             const COMPARE_IP_FIRST_TRY_BONUS = 10;
 
@@ -2076,17 +1760,6 @@ exports.completeGame = async (req, res) => {
                 : 0;
 
             const earnedIP = answerIP + firstTryBonusIP;
-
-            /*
-             * ข้อความหน้า Result แบ่งเป็น 4 ระดับตามจำนวนข้อที่ตอบถูก
-             * ตั้งแต่ครั้งแรก (ไม่ใช่แค่ PASS/FAIL 2 สถานะ) เพราะเกมนี้
-             * "ผ่าน" ได้เสมอถ้าเล่นจนจบตามปกติ (ตอบผิดแค่ทำให้ตอบใหม่
-             * ไม่ได้ทำให้จบเกมแบบ FAIL) สิ่งที่ต่างกันจริงๆ คือคะแนน/IP
-             * ที่ได้ เลยใช้คะแนนมากำหนดข้อความแทน ตรงกับที่เคย hardcode
-             * ไว้ใน ResultPage.jsx เดิม (5 = PERFECT, 3-4 = GREAT,
-             * 1-2 = PASS, 0 = FAIL) เอามาเก็บใน level_result_messages
-             * แทน
-             */
             const messageStatus =
                 firstTryCorrectCount === totalQuestions
                     ? "PERFECT"
@@ -2130,12 +1803,6 @@ exports.completeGame = async (req, res) => {
                 });
             }
 
-            // ---------------------------------------------------
-            // UPDATE USER LEVEL PROGRESS
-            //   ต้องใช้ isPass ตัดสิน ไม่ใช่ messageStatus
-            //   เช่น messageStatus = FAIL (first try 0 ข้อ)
-            //   แต่สุดท้ายตอบถูกครบ → isPass = true → Progress PASS
-            // ---------------------------------------------------
             await saveLevelProgress({
                 userId,
                 levelId: play.level_id,
@@ -2144,8 +1811,6 @@ exports.completeGame = async (req, res) => {
                 passed: isPass,
             });
 
-            // IP รวม = ผลรวม earned_ip ที่ดีที่สุดของแต่ละ level
-            // (เล่นซ้ำไม่บวกเพิ่ม นับเฉพาะรอบที่ดีที่สุด)
             const userStats = {
                 integrity_points:
                     await recalcIntegrityPoints(userId),
@@ -2192,26 +1857,10 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 2 Final Level : level_id = 7
-        // ========================================================
-
         if (play.level_id === 7) {
-            /*
-             * เดิม branch นี้บันทึกแค่ score/total แล้วปิดเป็น
-             * "COMPLETED" เสมอ — money คงเหลือ, isPassed, เหรียญ
-             * (gold/silver/bronze), expBonus/coinBonus ทั้งหมดคำนวณ
-             * แค่ฝั่ง Frontend เท่านั้น ไม่เคยถูกตรวจกับ DB เลย และ
-             * "เล่นครั้งแรก" (เงื่อนไขได้เหรียญ) ใช้ playCount ที่เป็น
-             * state ในเครื่อง refresh หน้าเว็บก็รีเซ็ตได้ — ตอนนี้ย้าย
-             * ทุกอย่างมาคำนวณที่ backend จากข้อมูลจริงในตาราง
-             */
             const INITIAL_MONEY = 500;
             const PASS_SCORE = 8;
-            // IP (สเกลใหม่) — ให้เฉพาะตอน PASS (เงื่อนไขเดิม)
-            //   ตอบถูก ข้อละ 10 (10 ข้อ = 100)
-            //   + เหรียญครั้งแรก: 10/10 +50 / 9/10 +25 / 8/10 +5
-            //   เต็ม 150
             const IP_PER_CORRECT = 10;
             const MEDAL_BONUS_IP = {
                 GOLD: 50,
@@ -2241,11 +1890,6 @@ exports.completeGame = async (req, res) => {
                     },
                 });
 
-            // ---------------------------------------------------
-            // money คงเหลือ = เงินตั้งต้น - ผลรวม cost ของทุกตัวเลือก
-            // ที่เลือกไปจริง (เอาจาก choice.cost ผ่านคำตอบที่บันทึกไว้
-            // ไม่เชื่อ money ที่ client ส่งมาเอง)
-            // ---------------------------------------------------
             const answersWithCost =
                 await prisma.game_play_answers.findMany({
                     where: {
@@ -2273,18 +1917,8 @@ exports.completeGame = async (req, res) => {
                 INITIAL_MONEY - totalSpent;
 
             const isBankrupt = moneyRemaining <= 0;
-
-            // หมดเวลา (Frontend ส่ง is_timeout: true ตอนเวลาเหลือ 0)
-            // เชื่อค่าจาก client ได้ เพราะหมดเวลา = FAIL + 0 IP เสมอ
-            // (อย่างมากก็แค่จบเกมแบบแพ้เร็วขึ้น ไม่มีทางได้เปรียบ)
             const isTimeout = is_timeout === true;
 
-            // ---------------------------------------------------
-            // จบภารกิจได้ 3 ทาง: ตอบครบทุกข้อ / เงินหมด / หมดเวลา
-            // (เกมฝั่ง Frontend จะเรียก complete ทันทีที่เงินหมด แม้
-            // ตอบยังไม่ครบทุกข้อ ต้องอนุญาตเคสนี้ด้วย ไม่งั้นจะจบเกม
-            // ไม่ได้เลยตอนเงินหมด)
-            // ---------------------------------------------------
             if (
                 answeredQuestions.length <
                 totalQuestions &&
@@ -2315,12 +1949,6 @@ exports.completeGame = async (req, res) => {
                 correctAnswers >= PASS_SCORE;
 
             const status = isPassed ? "PASS" : "FAIL";
-
-            // ---------------------------------------------------
-            // "เล่นครั้งแรก" (เงื่อนไขได้เหรียญ) นับจากประวัติการเล่น
-            // จริงใน DB ไม่ใช่ playCount ฝั่ง Frontend — ต้องไม่เคยมี
-            // play ที่ completed ของ level นี้มาก่อนเลย
-            // ---------------------------------------------------
             const priorCompletedCount =
                 await prisma.game_play_history.count({
                     where: {
@@ -2402,11 +2030,6 @@ exports.completeGame = async (req, res) => {
                 });
             }
 
-            // ---------------------------------------------------
-            // UPDATE USER LEVEL PROGRESS
-            //   isPassed = true → Level 7 PASS → Unit 2 = 100%
-            //   → Unlock Unit 3
-            // ---------------------------------------------------
             await saveLevelProgress({
                 userId,
                 levelId: play.level_id,
@@ -2415,8 +2038,6 @@ exports.completeGame = async (req, res) => {
                 passed: isPassed,
             });
 
-            // IP รวม = ผลรวม earned_ip ที่ดีที่สุดของแต่ละ level
-            // (เล่นซ้ำไม่บวกเพิ่ม นับเฉพาะรอบที่ดีที่สุด)
             const userStats = {
                 integrity_points:
                     await recalcIntegrityPoints(userId),
@@ -2429,61 +2050,31 @@ exports.completeGame = async (req, res) => {
 
                 data: {
                     play_id: playId,
-
                     status: status,
-
                     is_pass: isPassed,
-
                     score: correctAnswers,
-
                     max_score: totalQuestions,
-
-                    answered:
-                        answeredQuestions.length,
-
+                    answered: answeredQuestions.length,
                     total: totalQuestions,
-
-                    money_remaining:
-                        moneyRemaining,
-
+                    money_remaining: moneyRemaining,
                     is_bankrupt: isBankrupt,
-
                     is_timeout: isTimeout,
-
                     medal: medal,
-
                     is_first_try: isFirstTry,
 
                     // base_ip = IP จากข้อที่ตอบถูก (ข้อละ 10)
                     base_ip: answerIP,
                     answer_ip: answerIP,
-
                     medal_bonus_ip: medalBonusIP,
-
                     earned_ip: earnedIP,
-
                     total_integrity_points:
                         userStats?.integrity_points ??
                         0,
-
                     completed_at: completedAt,
-
                     is_perfect: allCorrect,
                 },
             });
         }
-
-        // ========================================================
-        // Unit 4 Level 1 : Slip Hunt (จับสลิปปลอม)
-        // ========================================================
-        //
-        // คำตอบแต่ละใบถูกบันทึกไว้แล้วใน game_play_slip_hunt
-        // (POST /api/slip-hunt/answer) ตรงนี้แค่นับจาก DB แล้วตัดสินผล
-        // ไม่เชื่อคะแนนที่ Frontend ส่งมา
-        //
-        // กติกา (ปรับได้ใน gamePlayService.js):
-        //   ถูก 5/5 → PERFECT / ถูก 3-4 → PASS / ถูก < 3 → FAIL
-        // ========================================================
 
         if (gamePlayService.isSlipHuntLevel(play.level_id)) {
             const stats =
@@ -2574,14 +2165,6 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
-        // Unit 6 Level 2 : Good Network
-        // ========================================================
-        //
-        // จบได้ 2 ทาง: ตอบคำถามที่ศาลแล้ว (PASS) / หัวใจหมด (FAIL)
-        // นับจาก game_play_answers ที่ backend บันทึกเอง
-        // ========================================================
-
         if (await gamePlayService.isGoodNetworkLevel(play.level_id)) {
             const stats =
                 await gamePlayService.getGoodNetworkStats(
@@ -2664,14 +2247,7 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 6 Level 1 : Crisis Response
-        // ========================================================
-        //
-        // จบได้เมื่อเล่นครบเวลา (นับจาก started_at ของรอบนี้)
-        // คะแนน / Integrity คิดจากทุกเหตุการณ์ที่บันทึกไว้ เรียงตามเวลา
-        // ========================================================
-
         if (await gamePlayService.isCrisisLevel(play.level_id)) {
             const elapsed = gamePlayService.crisisElapsed(play);
 
@@ -2752,15 +2328,7 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 5 Level 3 : Integrity Inspector
-        // ========================================================
-        //
-        // จบได้ 2 ทาง: ตัดสินครบทุกโครงการ / หมดเวลา (is_timeout)
-        // หมดเวลาเชื่อค่าจาก client ได้ เพราะโครงการที่ไม่ได้ตัดสิน
-        // ไม่ได้คะแนน (จบเร็วขึ้นก็ไม่ได้เปรียบ)
-        // ========================================================
-
         if (gamePlayService.isInspectorLevel(play.level_id)) {
             const stats =
                 await gamePlayService.getInspectorStats(
@@ -2846,14 +2414,7 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 5 Level 2 : จัดสรรงบประมาณให้เมือง
-        // ========================================================
-        //
-        // ต้องส่งการจัดสรรมาก่อน (POST /api/budget-game/submit)
-        // backend คิดคะแนน/Rank/IP เองจาก game_play_budget_allocations
-        // ========================================================
-
         if (gamePlayService.isBudgetLevel(play.level_id)) {
             const budgets =
                 await gamePlayService.getBudgetAllocations(playId);
@@ -2928,15 +2489,7 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 5 Level 1 : ตามหาคำจากคำใบ้
-        // ========================================================
-        //
-        // ต้องหาคำครบทุกคำ (นับจาก game_play_word_answers)
-        // ไม่เคยพิมพ์ผิด → PERFECT / เคยผิด → PASS
-        // IP = ผลรวม level_words.ip_reward ของคำที่หาเจอ
-        // ========================================================
-
         if (gamePlayService.isWordClueLevel(play.level_id)) {
             const stats =
                 await gamePlayService.getWordStats(
@@ -2954,27 +2507,23 @@ exports.completeGame = async (req, res) => {
                 });
             }
 
-            const result =
-                gamePlayService.calcWordResult(stats);
-
+            const result = gamePlayService.calcWordResult(stats);
             const completedAt = new Date();
-
-            const updated =
-                await prisma.game_play_history.updateMany({
-                    where: {
-                        play_id: playId,
-                        completed_at: null,
-                    },
-                    data: {
-                        score: stats.solved,
-                        max_score: stats.total,
-                        correct_count: stats.solved,
-                        wrong_count: stats.wrong,
-                        earned_ip: result.earnedIP,
-                        completed_at: completedAt,
-                        status: result.status,
-                    },
-                });
+            const updated = await prisma.game_play_history.updateMany({
+                where: {
+                    play_id: playId,
+                    completed_at: null,
+                },
+                data: {
+                    score: stats.solved,
+                    max_score: stats.total,
+                    correct_count: stats.solved,
+                    wrong_count: stats.wrong,
+                    earned_ip: result.earnedIP,
+                    completed_at: completedAt,
+                    status: result.status,
+                },
+            });
 
             if (updated.count === 0) {
                 return res.status(200).json({
@@ -3017,15 +2566,7 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 4 Level 3 : Firewall Defender
-        // ========================================================
-        //
-        // จบได้ 2 ทาง: ตอบครบทุกข้อ / ตอบผิดครบ 4 ครั้ง (หัวใจหมด)
-        // นับจาก game_play_answers ที่ backend บันทึกเอง
-        // กติกา + IP ปรับได้ใน gamePlayService.js
-        // ========================================================
-
         if (gamePlayService.isFirewallLevel(play.level_id)) {
             const stats =
                 await gamePlayService.getFirewallStats(
@@ -3114,16 +2655,7 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 4 Level 2 : Slot (กับดักพนัน)
-        // ========================================================
-        //
-        // ไม่มีถูก/ผิด — จบบทได้เมื่อ "เครดิตหมด" (เห็นกลลวงครบวงจร)
-        // เครดิตนับจาก game_play_slot_rounds ที่ backend บันทึกเอง
-        // ไม่เชื่อค่าที่ Frontend ส่งมา
-        //   เครดิตหมด → PASS + SLOT_PASS_IP (ปรับได้ใน gamePlayService.js)
-        // ========================================================
-
         if (gamePlayService.isSlotLevel(play.level_id)) {
             const summary =
                 await gamePlayService.getSlotSummary(playId);
@@ -3201,10 +2733,7 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Level อื่น ๆ ที่ใช้ question + choice
-        // ========================================================
-
         const questionCount =
             await prisma.question.count({
                 where: {
@@ -3238,10 +2767,7 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 1 Level 1 : Mirror Quiz
-        // ========================================================
-
         if (play.level_id === 1) {
             // ดึงคำตอบทั้งหมดของการเล่นรอบนี้
             const answers =
@@ -3256,10 +2782,6 @@ exports.completeGame = async (req, res) => {
                     },
                 });
 
-            // ====================================================
-            // นับถูก / ผิด
-            // ====================================================
-
             const correctCount =
                 answers.filter(
                     (answer) =>
@@ -3271,15 +2793,6 @@ exports.completeGame = async (req, res) => {
                     (answer) =>
                         answer.is_correct === false
                 ).length;
-
-            // ====================================================
-            // คำนวณ IP (สเกลใหม่)
-            //   - ตอบถูกได้ข้อละ 50 IP (ถูกหมด 5 ข้อ = 250)
-            //   - โบนัส +50 ถ้าถูกครบตั้งแต่ "ครั้งแรก"
-            //     (ไม่เคยมี play ที่จบแล้วของ level นี้มาก่อน) → 300
-            //   - สถานะ: ผิด > 3 = FAIL / ถูกหมด = PERFECT / อื่น ๆ = PASS
-            //     (เกณฑ์ผ่าน / ปลดล็อกเหมือนเดิม)
-            // ====================================================
 
             const priorCompletedCount =
                 await prisma.game_play_history.count({
@@ -3313,13 +2826,8 @@ exports.completeGame = async (req, res) => {
 
             const earnedIP = answerIP + perfectBonusIP;
 
-            const completedAt =
-                new Date();
+            const completedAt = new Date();
 
-            // ====================================================
-            // บันทึกผลการเล่น — updateMany + completed_at:null
-            // กันกดจบซ้ำพร้อมกันแล้วได้ IP ซ้ำ
-            // ====================================================
 
             const updated =
                 await prisma.game_play_history.updateMany({
@@ -3329,26 +2837,13 @@ exports.completeGame = async (req, res) => {
                     },
 
                     data: {
-                        score:
-                            correctCount,
-
-                        max_score:
-                            questionCount,
-
-                        correct_count:
-                            correctCount,
-
-                        wrong_count:
-                            wrongCount,
-
-                        earned_ip:
-                            earnedIP,
-
-                        completed_at:
-                            completedAt,
-
-                        status:
-                            status,
+                        score: correctCount,
+                        max_score: questionCount,
+                        correct_count: correctCount,
+                        wrong_count: wrongCount,
+                        earned_ip: earnedIP,
+                        completed_at: completedAt,
+                        status: status,
                     },
                 });
 
@@ -3365,10 +2860,7 @@ exports.completeGame = async (req, res) => {
                 completed_at: completedAt,
             };
 
-            // ====================================================
             // UPDATE USER LEVEL PROGRESS
-            // ====================================================
-
             await saveLevelProgress({
                 userId,
                 levelId: play.level_id,
@@ -3379,10 +2871,7 @@ exports.completeGame = async (req, res) => {
                     status === "PERFECT",
             });
 
-            // ====================================================
             // เพิ่ม IP ให้ User
-            // ====================================================
-
             // IP รวม = ผลรวม earned_ip ที่ดีที่สุดของแต่ละ level
             // (เล่นซ้ำไม่บวกเพิ่ม นับเฉพาะรอบที่ดีที่สุด)
             const userStats = {
@@ -3390,35 +2879,20 @@ exports.completeGame = async (req, res) => {
                     await recalcIntegrityPoints(userId),
             };
 
-            // ====================================================
             // ส่งผลกลับ Frontend
-            // ====================================================
-
             return res.status(200).json({
                 message:
                     "จบเกม Mirror Quiz สำเร็จ",
 
                 data: {
-                    play_id:
-                        completedPlay.play_id,
-
-                    score:
-                        completedPlay.score,
-
-                    max_score:
-                        completedPlay.max_score,
-
-                    correct_count:
-                        correctCount,
-
-                    wrong_count:
-                        wrongCount,
-
-                    answer_ip:
-                        answerIP,
-
-                    perfect_bonus_ip:
-                        perfectBonusIP,
+                    play_id: completedPlay.play_id,
+                    score: completedPlay.score,
+                    max_score: completedPlay.max_score,
+                    correct_count: correctCount,
+                    wrong_count: wrongCount,
+                    answer_ip: answerIP,
+                    perfect_bonus_ip: perfectBonusIP,
+                    perfectBonusIP,
 
                     is_first_try:
                         isFirstTry,
@@ -3452,27 +2926,7 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
         // Unit 1 FinalLevel : level_id = 3
-        // ========================================================
-        //
-        // Rank (เก็บใน status ตรง ๆ ไม่เพิ่มคอลัมน์ใหม่):
-        //   hasAnyTimeout = true                → TRAINEE  (ต่ำสุด ทับทุกกรณี)
-        //   ไม่ timeout, retryCaseCount = 0     → MASTER   (สูงสุด)
-        //   ไม่ timeout, retryCaseCount 1-2     → EXPERT
-        //   ไม่ timeout, retryCaseCount >= 3    → NOVICE
-        //
-        // retryCaseCount = จำนวน Case ที่ attempt_number สูงสุด > 1
-        //   (ครอบคลุมทั้ง Retry หลักฐานเกิน/ผิด, Timeout, และ Restart
-        //    หลัง Verdict ผิด เพราะทั้งสามทางเรียก
-        //    /api/game-play/case/retry เหมือนกันหมด)
-        //
-        // IP (สเกลใหม่) = caseAnswerIP (รวม choice.ip_reward จากคำตอบ
-        //      Verdict 5 คดี — ตัวเลือกที่ถูกคดีละ 50 → 250)
-        //      + โบนัสตาม Rank: MASTER +50 / EXPERT +20 / NOVICE +0 / TRAINEE +0
-        //      → เต็ม 300
-        // ========================================================
-
         if (play.level_id === 3) {
             const RANK_BONUS_IP = {
                 MASTER: 50,
@@ -3481,9 +2935,6 @@ exports.completeGame = async (req, res) => {
                 TRAINEE: 0,
             };
 
-            // ----------------------------------------------------
-            // 1. ต้องผ่านทุก Case ก่อนถึงจะจบเกมได้
-            // ----------------------------------------------------
             const activeCases = await prisma.final_cases.findMany({
                 where: { level_id: play.level_id, is_active: true },
                 select: { case_id: true },
@@ -3507,9 +2958,6 @@ exports.completeGame = async (req, res) => {
                 });
             }
 
-            // ----------------------------------------------------
-            // 2. ดึง Attempt ทั้งหมด เพื่อคำนวณ Rank
-            // ----------------------------------------------------
             const allAttempts = await prisma.game_play_case_attempts.findMany({
                 where: { play_id: playId },
                 select: {
@@ -3550,9 +2998,6 @@ exports.completeGame = async (req, res) => {
                 rank = "NOVICE";
             }
 
-            // ----------------------------------------------------
-            // 3. รวม IP จากคำตอบ Verdict ทั้ง 5 Case (ip_reward จริงจาก choice)
-            // ----------------------------------------------------
             const answerIpResult = await prisma.game_play_answers.aggregate({
                 where: { play_id: playId },
                 _sum: { ip_reward: true },
@@ -3562,9 +3007,6 @@ exports.completeGame = async (req, res) => {
             const bonusIP = RANK_BONUS_IP[rank] ?? 0;
             const earnedIP = caseAnswerIP + bonusIP;
 
-            // ----------------------------------------------------
-            // 4. max_score = ผลรวม ip_reward ของตัวเลือกที่ถูกของทุก Case
-            // ----------------------------------------------------
             const correctChoices = await prisma.choice.findMany({
                 where: {
                     is_correct: true,
@@ -3583,9 +3025,6 @@ exports.completeGame = async (req, res) => {
 
             const completedAt = new Date();
 
-            // ----------------------------------------------------
-            // 5. บันทึกผล (updateMany + completed_at: null กันจบเกมซ้ำ)
-            // ----------------------------------------------------
             const updated = await prisma.game_play_history.updateMany({
                 where: { play_id: playId, completed_at: null },
                 data: {
@@ -3601,12 +3040,6 @@ exports.completeGame = async (req, res) => {
                 return res.status(200).json({ message: "เกมนี้จบไปแล้ว" });
             }
 
-            // ----------------------------------------------------
-            // 5.1 UPDATE USER LEVEL PROGRESS
-            //     status ของเกมคือ Rank (MASTER/EXPERT/NOVICE/TRAINEE)
-            //     ไม่ใช่ PASS/FAIL — มาถึงจุดนี้ได้แปลว่าผ่าน Case ครบแล้ว
-            //     จึงส่ง passed: true → user_level_progress.status = PASS
-            // ----------------------------------------------------
             await saveLevelProgress({
                 userId,
                 levelId: play.level_id,
@@ -3615,19 +3048,11 @@ exports.completeGame = async (req, res) => {
                 passed: true,
             });
 
-            // ----------------------------------------------------
-            // 6. เพิ่ม IP ให้ User
-            // ----------------------------------------------------
-            // IP รวม = ผลรวม earned_ip ที่ดีที่สุดของแต่ละ level
-            // (เล่นซ้ำไม่บวกเพิ่ม นับเฉพาะรอบที่ดีที่สุด)
             const userStats = {
                 integrity_points:
                     await recalcIntegrityPoints(userId),
             };
 
-            // ----------------------------------------------------
-            // 7. ส่งผลกลับ Frontend (ใช้ทำหน้า Summary)
-            // ----------------------------------------------------
             return res.status(200).json({
                 message: "จบ Final Level สำเร็จ",
                 data: {
@@ -3645,36 +3070,24 @@ exports.completeGame = async (req, res) => {
             });
         }
 
-        // ========================================================
-        // Final Score
-        // ========================================================
 
-        const completedAt =
-            new Date();
+        const completedAt = new Date();
 
-        const parsedFinalScore =
-            Number(final_score);
+        const parsedFinalScore = Number(final_score);
 
-        const finalScore =
-            Number.isFinite(
-                parsedFinalScore
-            )
-                ? Math.max(
-                    0,
-                    Math.min(
-                        100,
-                        parsedFinalScore
-                    )
+        const finalScore = Number.isFinite(parsedFinalScore)
+            ? Math.max(
+                0,
+                Math.min(
+                    100,
+                    parsedFinalScore
                 )
-                : play.score;
+            )
+            : play.score;
 
-        const finalMaxScore =
-            play.max_score;
+        const finalMaxScore = play.max_score;
 
-        // ========================================================
         // บันทึกผลการเล่น
-        // ========================================================
-
         const completedPlay =
             await prisma.game_play_history.update({
                 where: {
@@ -3696,10 +3109,7 @@ exports.completeGame = async (req, res) => {
                 },
             });
 
-        // ========================================================
         // ส่งผลกลับ
-        // ========================================================
-
         return res.status(200).json({
             message:
                 "จบเกมสำเร็จ",
@@ -3744,10 +3154,7 @@ exports.completeGame = async (req, res) => {
     }
 };
 
-// ============================================================
 // Level 2 : ยิง Bubble
-// ============================================================
-
 exports.shootBubble = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -3763,10 +3170,7 @@ exports.shootBubble = async (req, res) => {
             });
         }
 
-        // ========================================================
         // ค้นหา Bubble ของ Play นี้
-        // ========================================================
-
         const playBubble =
             await prisma.game_play_bubbles.findUnique({
                 where: {
@@ -3790,10 +3194,7 @@ exports.shootBubble = async (req, res) => {
             });
         }
 
-        // ========================================================
         // ตรวจสอบ User
-        // ========================================================
-
         if (
             playBubble
                 .game_play_history
@@ -3805,10 +3206,7 @@ exports.shootBubble = async (req, res) => {
             });
         }
 
-        // ========================================================
         // ตรวจสอบว่าเกมยังเล่นอยู่
-        // ========================================================
-
         if (
             playBubble
                 .game_play_history
@@ -3821,10 +3219,7 @@ exports.shootBubble = async (req, res) => {
             });
         }
 
-        // ========================================================
         // ตรวจสอบว่า Bubble ถูกยิงไปแล้วหรือยัง
-        // ========================================================
-
         if (playBubble.is_destroyed) {
             return res.status(400).json({
                 message:
@@ -3832,10 +3227,7 @@ exports.shootBubble = async (req, res) => {
             });
         }
 
-        // ========================================================
         // ตรวจสอบว่า Bubble เป็น Good หรือ Bad
-        // ========================================================
-
         const bubbleType =
             String(
                 playBubble
@@ -3848,10 +3240,7 @@ exports.shootBubble = async (req, res) => {
         const isCorrect =
             bubbleType === "bad";
 
-        // ========================================================
         // อัปเดตประวัติ Bubble
-        // ========================================================
-
         const updatedBubble =
             await prisma.game_play_bubbles.update({
                 where: {
@@ -3873,10 +3262,7 @@ exports.shootBubble = async (req, res) => {
                 },
             });
 
-        // ========================================================
         // ถ้ายิง Good → เกมผิด (FAILED ต้อง Retry)
-        // ========================================================
-
         if (!isCorrect) {
             await prisma.game_play_history.update({
                 where: {
@@ -3927,12 +3313,6 @@ exports.shootBubble = async (req, res) => {
             });
         }
 
-        // ========================================================
-        // ถ้ายิง Bad ถูกต้อง
-        // Level 2 ไม่มี Score แล้ว (IP คำนวณตอน completeGame)
-        // จึงไม่บวกคะแนนตรงนี้อีกต่อไป (ตัด +5 เดิมออก)
-        // ========================================================
-
         return res.status(200).json({
             message:
                 "ยิง Bubble ถูกต้อง",
@@ -3981,10 +3361,7 @@ exports.shootBubble = async (req, res) => {
     }
 };
 
-// ============================================================
 // Unit 1 : Final Level START CASE ATTEMPT
-// ============================================================
-
 exports.startCaseAttempt = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -4138,10 +3515,7 @@ exports.startCaseAttempt = async (req, res) => {
     }
 };
 
-// ============================================================
 // COMPLETE CASE ATTEMPT
-// ============================================================
-
 exports.completeCaseAttempt = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -4277,10 +3651,7 @@ exports.completeCaseAttempt = async (req, res) => {
     }
 };
 
-// ============================================================
 // SAVE CASE ITEMS
-// ============================================================
-
 exports.saveCaseItems = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -4369,21 +3740,13 @@ exports.saveCaseItems = async (req, res) => {
                     "พบหลักฐานที่ไม่อยู่ใน Case นี้",
             });
         }
-
-        // ====================================================
         // ป้องกันการบันทึกซ้ำ
-        // ====================================================
-
         await prisma.game_play_items.deleteMany({
             where: {
                 attempt_id:
                     attemptId,
             },
         });
-
-        // ====================================================
-        // ตรวจว่าแต่ละหลักฐานเป็น key evidence หรือไม่
-        // ====================================================
 
         const records =
             attempt
@@ -4441,10 +3804,7 @@ exports.saveCaseItems = async (req, res) => {
     }
 };
 
-// ============================================================
 // RETRY CASE ATTEMPT
-// ============================================================
-
 exports.retryCaseAttempt = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -4540,19 +3900,6 @@ exports.retryCaseAttempt = async (req, res) => {
                     )
                 );
 
-        // ====================================================
-        // ล้างคำตอบเดิมของคำถามในคดีนี้ (ถ้าเคยตอบมาก่อน)
-        //
-        // endpoint นี้ใช้ร่วมกันทั้ง 3 ทาง: Retry หลักฐานเอง,
-        // Timeout, และ Restart หลังตอบ Verdict ผิด — เฉพาะทางหลัง
-        // เท่านั้นที่จะมีคำตอบเดิมค้างอยู่จริง (อีกสองทางยังไม่ถึง
-        // ขั้นตอบคำถาม deleteMany จึงไม่พบอะไรให้ลบ ไม่กระทบ)
-        //
-        // ถ้าไม่ลบ ตอน submitAnswer() รอบใหม่จะชนกับ existingAnswer
-        // check ใน answerGame (มี game_play_answers ของคำถามนี้
-        // อยู่แล้วจากรอบก่อน) ทำให้กด "ยืนยันคำตอบ" แล้วเงียบ/ไม่ไปต่อ
-        // ====================================================
-
         const caseQuestion =
             await prisma.question.findFirst({
                 where: {
@@ -4572,10 +3919,6 @@ exports.retryCaseAttempt = async (req, res) => {
                 },
             });
         }
-
-        // ====================================================
-        // ปิด Attempt ปัจจุบัน
-        // ====================================================
 
         await prisma.game_play_case_attempts.update({
             where: {
@@ -4600,13 +3943,8 @@ exports.retryCaseAttempt = async (req, res) => {
             },
         });
 
-        // ====================================================
-        // สร้าง Attempt ใหม่
-        // ====================================================
 
-        const nextAttemptNumber =
-            currentAttempt.attempt_number +
-            1;
+        const nextAttemptNumber = currentAttempt.attempt_number + 1;
 
         const newAttempt =
             await prisma.game_play_case_attempts.create({

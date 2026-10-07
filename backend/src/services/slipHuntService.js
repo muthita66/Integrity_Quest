@@ -175,8 +175,6 @@ const getSlipHuntAnswer = async (playSlipId) => {
  */
 const getSlipHuntSummary = async (playId) => {
     try {
-        // รวม earned_ip / status จาก game_play_history ด้วย
-        // (หน้า Result ใช้แสดง IP ที่ได้จริงจาก backend)
         const summary = await prisma.$queryRaw`
             SELECT
                 gph.play_id,
@@ -267,8 +265,6 @@ const checkGameComplete = async (playId) => {
  */
 const getUserSlipHuntStats = async (userId, levelId = null) => {
     try {
-        // ใช้ $queryRaw แบบมีพารามิเตอร์ (เดิมต่อ string แล้วใช้
-        // $queryRawUnsafe → เสี่ยง SQL injection)
         const levelFilter = levelId
             ? Prisma.sql`AND gph.level_id = ${Number(levelId)}`
             : Prisma.empty;

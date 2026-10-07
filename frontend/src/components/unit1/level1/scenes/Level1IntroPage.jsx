@@ -109,7 +109,7 @@ export default function Level1IntroPage() {
 
     return (
         <main
-            className="mirror-scene min-h-screen relative overflow-hidden"
+            className="mirror-scene min-h-dvh relative overflow-hidden"
             style={{ cursor: hasStarted ? "default" : "pointer" }}
             onClick={!hasStarted ? handleInitialClick : undefined}
         >

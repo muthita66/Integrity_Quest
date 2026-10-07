@@ -45,13 +45,12 @@ export default function Tutorial() {
     return (
         <div
             className="
-            min-h-screen
+            h-dvh
             flex
-            items-center
-            justify-center
-            p-6
+            p-6 [@media(max-height:820px)]:p-3
             relative
-            overflow-hidden
+            overflow-x-hidden
+            overflow-y-auto
             bg-cover
             bg-center
             "
@@ -60,10 +59,10 @@ export default function Tutorial() {
             }}
         >
             {/* Overlay */}
-            <div className="absolute inset-0 bg-[#3a2115]/72 backdrop-blur-[3px]" />
+            <div className="pointer-events-none fixed inset-0 bg-[#3a2115]/72 backdrop-blur-[3px]" />
 
             {/* Floating Particles */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 {PARTICLES.map(([left, top, duration], i) => (
                     <motion.div
                         key={i}
@@ -89,6 +88,7 @@ export default function Tutorial() {
                 className="
                 relative
                 z-10
+                m-auto
                 max-w-5xl
                 w-full
                 bg-[#2b1a12]/95
@@ -108,7 +108,7 @@ export default function Tutorial() {
                     backdrop-blur-md
                     border-b
                     border-white/10
-                    p-8
+                    p-8 [@media(max-height:820px)]:p-4
                     "
                 >
                     <div className="text-center">
@@ -128,7 +128,7 @@ export default function Tutorial() {
                             font-bold
                             tracking-[3px]
                             shadow-[3px_3px_0_rgba(15,23,42,.25)]
-                            mb-4
+                            mb-4 [@media(max-height:820px)]:mb-2
                             "
                         >
                             คู่มือภารกิจ
@@ -158,8 +158,8 @@ export default function Tutorial() {
                 </div>
 
                 {/* Content */}
-                <div className="p-8 md:p-10">
-                    <div className="grid md:grid-cols-2 gap-5">
+                <div className="p-8 md:p-10 [@media(max-height:820px)]:p-5 [@media(max-height:820px)]:md:p-5">
+                    <div className="grid md:grid-cols-2 gap-5 [@media(max-height:820px)]:gap-3">
                         {steps.map((step, index) => (
                             <motion.div
                                 key={index}
@@ -173,7 +173,7 @@ export default function Tutorial() {
                                 border-2
                                 border-white/50
                                 rounded-[24px]
-                                p-6
+                                p-6 [@media(max-height:820px)]:px-4 [@media(max-height:820px)]:pb-4 [@media(max-height:820px)]:pt-7
                                 shadow-[6px_7px_0_rgba(15,23,42,.22),inset_0_1px_0_rgba(255,255,255,.25)]
                                 transition-transform
                                 hover:rotate-1
@@ -207,7 +207,7 @@ export default function Tutorial() {
                                     items-center
                                     justify-center
                                     font-bold
-                                    mb-4
+                                    mb-4 [@media(max-height:820px)]:mb-2
                                     shadow-[3px_3px_0_rgba(154,103,25,.35)]
                                     "
                                 >
@@ -244,17 +244,17 @@ export default function Tutorial() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4 }}
                         className="
-                        mt-6
+                        mt-6 [@media(max-height:820px)]:mt-3
                         rounded-2xl
                         bg-white/[0.12]
                         backdrop-blur-md
                         border
                         border-white/40
                         shadow-[6px_7px_0_rgba(15,23,42,.22),inset_0_1px_0_rgba(255,255,255,.2)]
-                        p-6
+                        p-6 [@media(max-height:820px)]:p-4
                         "
                     >
-                        <div className="flex items-center gap-3 mb-3">
+                        <div className="flex items-center gap-3 mb-3 [@media(max-height:820px)]:mb-1">
                             <FaFolderOpen className="text-amber-300 text-2xl drop-shadow-sm" />
 
                             <h2 className="font-black text-2xl text-[#fff4cf]">
@@ -269,7 +269,7 @@ export default function Tutorial() {
                     </motion.div>
 
                     {/* Button */}
-                    <div className="text-center mt-10">
+                    <div className="text-center mt-10 [@media(max-height:820px)]:mt-5">
                         <motion.button
                             whileHover={{
                                 scale: 1.05,
@@ -283,7 +283,7 @@ export default function Tutorial() {
                             group
                             overflow-hidden
                             px-12
-                            py-4
+                            py-4 [@media(max-height:820px)]:py-3
                             rounded-[20px]
                             border-2 border-amber-200/70
                             bg-gradient-to-r

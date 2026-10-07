@@ -681,7 +681,7 @@ export default function GoodNetworkGame() {
                         <circle cx={n.x + NODE_R * 0.68} cy={n.y - NODE_R * 0.68} r="13" fill="#2fae5c" stroke="#0d1428" strokeWidth="2" />
                       )}
                       {isDone && (
-                        <text x={n.x + NODE_R * 0.68} y={n.y - NODE_R * 0.68 + 4} textAnchor="middle" fontSize="14" fill="#fff">
+                        <text x={n.x + NODE_R * 0.68} y={n.y - NODE_R * 0.68 + 4} textAnchor="middle" fontSize="16" fill="#fff">
                           ⚑
                         </text>
                       )}
@@ -695,9 +695,9 @@ export default function GoodNetworkGame() {
                       </text>
 
                       {isAvail && (
-                        <g className="gng-help-badge"><rect x={n.x - 48} y={n.y - 87} width="96" height="22" rx="11" fill="#ffe1a0" /><text x={n.x} y={n.y - 71} textAnchor="middle" fill="#49321c" fontSize="14" fontWeight="700">ช่วยเหลือ</text></g>
+                        <g className="gng-help-badge"><rect x={n.x - 64} y={n.y - 96} width="128" height="32" rx="16" fill="#ffe1a0" /><text x={n.x} y={n.y - 74} textAnchor="middle" fill="#49321c" fontSize="20" fontWeight="700">ช่วยเหลือ</text></g>
                       )}
-                      {isGoal && !isAvail && !isDone && <text x={n.x} y={n.y - 77} textAnchor="middle" fill="#ffe2a0" fontSize="18" fontWeight="700">★ เป้าหมายสุดท้าย</text>}
+                      {isGoal && !isAvail && !isDone && <text x={n.x} y={n.y - 74} textAnchor="middle" fill="#ffe2a0" fontSize="24" fontWeight="700">★ เป้าหมายสุดท้าย</text>}
 
                     </g>
                   );
@@ -726,9 +726,9 @@ export default function GoodNetworkGame() {
                   onClick={() => navigate("/unit6/game3")}
                   style={{ marginLeft: 10 }}
                 >
-                  ด่านต่อไป
+                  ด่านถัดไป
                 </button>
-                <button className="gng-btn" onClick={() => navigate('/map')} style={{ marginLeft: 10 }}>กลับหน้าแมพ</button>
+                <button className="gng-btn" onClick={() => navigate('/map')} style={{ marginLeft: 10 }}>กลับหน้าหลัก</button>
               </div>
             </div>
 
@@ -745,7 +745,7 @@ export default function GoodNetworkGame() {
                 <button className="gng-btn primary" onClick={resetGame}>
                   เล่นใหม่
                 </button>
-                <button className="gng-btn" onClick={() => navigate('/map')} style={{ marginLeft: 10 }}>กลับหน้าแมพ</button>
+                <button className="gng-btn" onClick={() => navigate('/map')} style={{ marginLeft: 10 }}>กลับหน้าหลัก</button>
               </div>
             </div>
 

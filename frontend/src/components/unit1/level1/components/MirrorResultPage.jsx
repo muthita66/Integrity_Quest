@@ -183,7 +183,7 @@ export default function MirrorResultPage() {
     // Loading
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black">
+            <div className="min-h-dvh flex items-center justify-center bg-black">
                 <p className="text-2xl sarabun-bold text-white">
                     กำลังโหลดผลการเล่น...
                 </p>
@@ -195,7 +195,7 @@ export default function MirrorResultPage() {
     if (error || !result || !resultMessage) {
         return (
             <div
-                className="min-h-screen flex flex-col items-center justify-center bg-cover bg-center gap-5"
+                className="min-h-dvh flex flex-col items-center justify-center bg-cover bg-center gap-5"
                 style={{
                     backgroundImage: `url(${bgGame})`,
                     fontFamily: "'Sarabun', sans-serif",
@@ -257,7 +257,7 @@ export default function MirrorResultPage() {
 
     return (
         <div
-            className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed relative overflow-hidden sarabun-bold"
+            className="min-h-dvh flex items-center justify-center bg-cover bg-center bg-fixed relative overflow-hidden sarabun-bold"
             style={{
                 backgroundImage: `url(${bgGame})`,
                 fontFamily: "'Sarabun', sans-serif",

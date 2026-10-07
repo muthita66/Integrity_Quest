@@ -3,12 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 function UnitNode({ unit, locked = false }) {
     const navigate = useNavigate();
-
     const handleClick = (event) => {
-        // ============================================================
-        // ถ้า Unit ถูก Lock → ไม่ให้เข้า
-        // ============================================================
-
         if (locked) {
             event.preventDefault();
             event.stopPropagation();
@@ -19,11 +14,6 @@ function UnitNode({ unit, locked = false }) {
 
             return;
         }
-
-        // ============================================================
-        // Unit ถูก Unlock → เข้า Unit ได้
-        // ============================================================
-
         navigate(`/unit/unit${unit.id}`);
     };
 
@@ -51,10 +41,6 @@ function UnitNode({ unit, locked = false }) {
                 transition: "opacity 0.2s ease",
             }}
         >
-            {/* ========================================================
-                CSS
-            ======================================================== */}
-
             <style>{`
 
                 .castle-img {
@@ -77,9 +63,7 @@ function UnitNode({ unit, locked = false }) {
                         filter 0.2s;
                 }
 
-                /* ====================================================
-                   Hover เฉพาะ Unit ที่ปลดล็อก
-                ==================================================== */
+                /* Hover เฉพาะ Unit ที่ปลดล็อก */
 
                 .unit-node-container:not(.locked):hover
                     .castle-img {
@@ -93,9 +77,7 @@ function UnitNode({ unit, locked = false }) {
                         brightness(1.05);
                 }
 
-                /* ====================================================
-                   Banner
-                ==================================================== */
+                /*Banner*/
 
                 .game-banner {
                     margin-top: -5px;
@@ -153,19 +135,11 @@ function UnitNode({ unit, locked = false }) {
 
             `}</style>
 
-            {/* ========================================================
-                ป้อม
-            ======================================================== */}
-
             <img
                 src={castle}
                 alt={`Unit ${unit.id}`}
                 className="castle-img"
             />
-
-            {/* ========================================================
-                ป้ายชื่อ Unit
-            ======================================================== */}
 
             <span className="game-banner">
                 Unit {unit.id}: {unit.title}

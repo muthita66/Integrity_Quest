@@ -11,7 +11,7 @@ export default function CaseSelect({
     onRestart,
 }) {
     return (
-        <div className="w-full min-h-screen relative overflow-hidden">
+        <div className="w-full min-h-dvh relative overflow-hidden">
             {/* Background */}
             <div
                 className="absolute inset-0 bg-cover bg-center"
@@ -24,7 +24,7 @@ export default function CaseSelect({
             <div className="absolute inset-0 bg-black/70 z-0" />
 
             {/* Main Content */}
-            <div className="relative z-10 w-full min-h-screen flex flex-col items-center justify-center px-8 pt-16 pb-12">
+            <div className="relative z-10 w-full min-h-dvh flex flex-col items-center justify-center px-8 pt-16 pb-12">
 
                 {/* Progress 1 - 2 - 3 - 4 - 5 */}
                 <div className="w-full max-w-7xl mb-8">

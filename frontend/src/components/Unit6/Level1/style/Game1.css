@@ -81,6 +81,7 @@
 }
 
 .crisis-stage .title-icon {
+    flex-shrink: 0;
     color: #c8102e;
     margin-right: 8px;
     vertical-align: -2px;
@@ -88,6 +89,9 @@
 }
 
 .crisis-stage .intro-card h1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-top: 14px;
     font-family: 'Kanit', sans-serif;
     font-size: clamp(22px, 3.4vh, 28px);
@@ -154,7 +158,7 @@
 
 /* ───────── HUD: chalkboard chips ───────── */
 .crisis-stage .hud {
-    width: min(96vw, 900px);
+    width: min(calc(100vw - 136px), 900px);
     flex-shrink: 0;
     display: flex;
     gap: 8px;
@@ -198,7 +202,7 @@
 
 /* ───────── School map: locker bay ───────── */
 .crisis-stage .map-frame {
-    width: min(96vw, 900px);
+    width: min(calc(100vw - 136px), 900px);
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
@@ -376,12 +380,12 @@
 .crisis-stage .event-modal-wrap {
     position: relative;
     width: min(94vw, 420px);
-    max-height: 90vh;
+    max-height: calc(100dvh - 32px);
 }
 
 .crisis-stage .event-modal {
     width: 100%;
-    max-height: 90vh;
+    max-height: calc(100dvh - 32px);
     overflow: auto;
     background:
         repeating-linear-gradient(180deg, transparent 0 27px, rgba(28, 58, 95, .13) 27px 28px),
@@ -529,7 +533,7 @@
 /* ───────── Summary: report card ───────── */
 .crisis-stage .summary-card {
     width: min(94vw, 520px);
-    max-height: 96vh;
+    max-height: calc(100dvh - 24px);
     overflow: auto;
     background:
         repeating-linear-gradient(180deg, transparent 0 37px, rgba(28, 58, 95, .12) 37px 38px),
@@ -760,6 +764,7 @@
     gap: clamp(12px, 2vh, 20px);
     padding: clamp(14px, 2.4vh, 24px);
 }
+
 .crisis-stage .map-tile {
     border-radius: 13px;
     border-color: #9db9d7;
@@ -768,21 +773,316 @@
     box-shadow: inset 0 1px 0 #ffffffb3, inset 0 -5px 10px #31557924, 0 6px 12px #08162d55;
     gap: 12px;
 }
-.crisis-stage .map-tile:nth-child(2), .crisis-stage .map-tile:nth-child(5) {
+
+.crisis-stage .map-tile:nth-child(2),
+.crisis-stage .map-tile:nth-child(5) {
     background: repeating-linear-gradient(180deg, #263e5b26 0 2px, transparent 2px 7px) top 14px center / 65% 20px no-repeat,
         linear-gradient(145deg, #d8e3f5, #b5c3e0 55%, #8e9ebf);
 }
-.crisis-stage .map-tile::after { inset: 8px; border-radius: 9px; border-color: #28496730; }
-.crisis-stage .map-tile svg { color: #254567; filter: drop-shadow(0 2px 0 #ffffff55); }
-.crisis-stage .map-tile span { font-size: clamp(12px, 1.8vh, 16px); color: #203a58; }
+
+.crisis-stage .map-tile::after {
+    inset: 8px;
+    border-radius: 9px;
+    border-color: #28496730;
+}
+
+.crisis-stage .map-tile svg {
+    color: #254567;
+    filter: drop-shadow(0 2px 0 #ffffff55);
+}
+
+.crisis-stage .map-tile span {
+    font-size: clamp(12px, 1.8vh, 16px);
+    color: #203a58;
+}
+
 .crisis-stage .map-tile.active {
     background: repeating-linear-gradient(180deg, #7e1b3926 0 2px, transparent 2px 7px) top 14px center / 65% 20px no-repeat,
         linear-gradient(145deg, #ff967f, #e95a67 55%, #b73157);
     border-color: #ffc7a2;
 }
-.crisis-stage .map-tile.active span { color: #fffaf0; }
-.crisis-stage .map-tile.active:hover { transform: translateY(-3px); filter: brightness(1.08); }
-.crisis-stage .map-tile.active:focus-visible { outline: 3px solid #ffe59b; outline-offset: 3px; }
+
+.crisis-stage .map-tile.active span {
+    color: #fffaf0;
+}
+
+.crisis-stage .map-tile.active:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.08);
+}
+
+.crisis-stage .map-tile.active:focus-visible {
+    outline: 3px solid #ffe59b;
+    outline-offset: 3px;
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .crisis-stage .map-tile.active { animation: none; }
+    .crisis-stage .map-tile.active {
+        animation: none;
+    }
+}
+
+/* ============================================================
+   RESPONSIVE (1024x768 ... 1920x1080)  — เพิ่มท้ายไฟล์
+   ============================================================ */
+
+/* จอใหญ่: ขยายพื้นที่เล่นให้พอดีจอ */
+@media (min-width: 1400px) and (min-height: 880px) {
+
+    .crisis-stage .hud,
+    .crisis-stage .map-frame {
+        width: min(calc(100vw - 136px), 1100px);
+    }
+
+    .crisis-stage .hud-chip {
+        font-size: 16px;
+        padding: 10px 14px;
+    }
+
+    .crisis-stage .map-signage {
+        font-size: 16px;
+        padding: 10px 18px;
+    }
+
+    .crisis-stage .map-tile svg {
+        font-size: clamp(28px, 5vh, 48px);
+    }
+
+    .crisis-stage .map-tile span {
+        font-size: clamp(14px, 2vh, 19px);
+    }
+
+    .crisis-stage .intro-card {
+        width: 540px;
+    }
+
+    .crisis-stage .summary-card {
+        width: 560px;
+    }
+
+    .crisis-stage .event-modal-wrap {
+        width: 480px;
+    }
+}
+
+/* จอเตี้ย (โน้ตบุ๊ก / iPad แนวนอน ~ สูงไม่เกิน 820px) — ไม่ให้เกิด scrollbar */
+@media (max-height: 820px) {
+    .crisis-stage .intro-card {
+        padding: 22px 28px;
+    }
+
+    .crisis-stage .intro-badge {
+        width: 68px;
+        height: 68px;
+        font-size: 32px;
+    }
+
+    .crisis-stage .intro-card h1 {
+        margin-top: 10px;
+    }
+
+    .crisis-stage .intro-card p {
+        margin-top: 10px;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .crisis-stage .intro-goals {
+        margin-top: 14px;
+    }
+
+    .crisis-stage .intro-start {
+        margin-top: 20px;
+        height: 48px;
+    }
+
+    .crisis-stage .event-modal {
+        padding: 16px 20px;
+    }
+
+    .crisis-stage .event-choices {
+        margin-top: 12px;
+        gap: 8px;
+    }
+
+    .crisis-stage .event-choice-btn {
+        padding: 10px 12px;
+    }
+
+    .crisis-stage .summary-card {
+        padding: 18px 24px;
+    }
+
+    .crisis-stage .summary-badge {
+        font-size: 28px;
+    }
+
+    .crisis-stage .summary-grid {
+        margin-top: 14px;
+        gap: 8px;
+    }
+
+    .crisis-stage .summary-item {
+        padding: 8px 4px;
+    }
+
+    .crisis-stage .summary-item strong {
+        font-size: 18px;
+    }
+
+    .crisis-stage .summary-rank {
+        margin-top: 14px;
+        gap: 6px;
+    }
+
+    .crisis-stage .rank-shield {
+        width: 64px;
+        height: 64px;
+        font-size: 34px;
+    }
+
+    .crisis-stage .summary-flavor {
+        margin-top: 10px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .crisis-stage .summary-buttons {
+        margin-top: 16px;
+        gap: 10px;
+    }
+
+    .crisis-stage .btn {
+        height: 50px;
+    }
+}
+
+@media (max-height: 700px) {
+    .crisis-stage .intro-card {
+        padding: 16px 24px;
+    }
+
+    .crisis-stage .intro-badge {
+        width: 56px;
+        height: 56px;
+        font-size: 26px;
+    }
+
+    .crisis-stage .intro-card p {
+        margin-top: 8px;
+        font-size: 12.5px;
+        line-height: 1.5;
+    }
+
+    .crisis-stage .intro-goals {
+        margin-top: 10px;
+        gap: 8px;
+    }
+
+    .crisis-stage .intro-goal {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .crisis-stage .intro-start {
+        margin-top: 14px;
+        height: 44px;
+        font-size: 15px;
+    }
+
+    .crisis-stage .event-modal p.event-desc {
+        margin-top: 8px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .crisis-stage .event-choice-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .crisis-stage .summary-card {
+        padding: 12px 20px;
+    }
+
+    .crisis-stage .summary-badge {
+        font-size: 22px;
+        margin-bottom: 0;
+    }
+
+    .crisis-stage .summary-sub {
+        margin-top: 2px;
+        font-size: 13px;
+    }
+
+    .crisis-stage .summary-grid {
+        margin-top: 10px;
+    }
+
+    .crisis-stage .summary-item {
+        padding: 6px 4px;
+        font-size: 11px;
+    }
+
+    .crisis-stage .summary-item strong {
+        font-size: 16px;
+    }
+
+    .crisis-stage .summary-rank {
+        margin-top: 10px;
+        gap: 4px;
+    }
+
+    .crisis-stage .rank-shield {
+        width: 52px;
+        height: 52px;
+        font-size: 28px;
+    }
+
+    .crisis-stage .rank-text {
+        font-size: 14px;
+    }
+
+    .crisis-stage .summary-flavor {
+        margin-top: 6px;
+        font-size: 12px;
+    }
+
+    .crisis-stage .summary-buttons {
+        margin-top: 12px;
+    }
+
+    .crisis-stage .btn {
+        height: 44px;
+        font-size: 13px;
+    }
+
+    .crisis-stage .school-map {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .crisis-stage .map-tile {
+        gap: 6px;
+    }
+}
+
+/* แท็บเล็ตแนวตั้ง / จอแคบ: ให้ปุ่ม ☰ ไม่ทับ HUD */
+@media (max-width: 640px) {
+    .crisis-stage {
+        padding-top: 56px;
+    }
+
+    .crisis-stage .hud,
+    .crisis-stage .map-frame {
+        width: 96vw;
+    }
+
+    .crisis-stage .summary-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .crisis-stage .btn {
+        height: 48px;
+    }
 }

@@ -341,12 +341,11 @@ export default function GameLevel2() {
 
             <div
                 className="
-    unit5-game-content min-h-screen
+    unit5-embedded-menu h-dvh
     bg-cover
     bg-center
     bg-no-repeat
     p-4
-    pt-5
     overflow-x-hidden
     overflow-y-auto
   "
@@ -355,15 +354,15 @@ export default function GameLevel2() {
                 }}
             >
 
-                <div className="mx-auto mb-4 flex max-w-[1540px] items-center justify-between rounded-[22px] border-2 border-amber-200/55 bg-[#2b170e]/80 px-6 py-3 text-[#fff1c7] shadow-[0_6px_0_rgba(48,22,9,.3)] backdrop-blur-md">
+                <div className="mx-auto mr-[56px] mb-4 [@media(max-height:820px)]:mb-2 flex max-w-[1540px] items-center justify-between rounded-[22px] border-2 border-amber-200/55 bg-[#2b170e]/80 px-6 py-3 [@media(max-height:820px)]:py-2 text-[#fff1c7] shadow-[0_6px_0_rgba(48,22,9,.3)] backdrop-blur-md">
                     <div>
                         <div className="text-xs font-black tracking-[0.3em] text-amber-200/80">INTEGRITY TOWN · CITY PLAN</div>
-                        <h1 className="mt-1 text-2xl font-black drop-shadow-[2px_2px_0_rgba(0,0,0,.25)]">ภารกิจจัดสรรงบประมาณ</h1>
+                        <h1 className="mt-1 text-2xl [@media(max-height:820px)]:text-xl font-black drop-shadow-[2px_2px_0_rgba(0,0,0,.25)]">ภารกิจจัดสรรงบประมาณ</h1>
                     </div>
                     <div className="hidden rounded-full border border-amber-200/40 bg-amber-100/10 px-5 py-2 text-sm font-bold md:block">วางแผนเมืองให้สมดุลที่สุด</div>
                 </div>
 
-                <div className="mx-auto grid w-full max-w-[1540px] min-w-0 grid-cols-1 gap-5 xl:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(240px,300px)]">
+                <div className="mx-auto grid w-full max-w-[1540px] min-w-0 grid-cols-1 gap-5 [@media(max-height:820px)]:gap-3 [@media(min-width:1000px)]:grid-cols-[minmax(190px,220px)_minmax(0,1fr)_minmax(210px,240px)] [@media(min-width:1280px)]:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(240px,300px)]">
 
                     {/* Left */}
 
@@ -379,7 +378,7 @@ export default function GameLevel2() {
 
                     <div className="min-w-0">
 
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="grid grid-cols-1 gap-4 [@media(max-height:820px)]:gap-3 md:grid-cols-2">
 
                             {buildingList.map((building) => (
 

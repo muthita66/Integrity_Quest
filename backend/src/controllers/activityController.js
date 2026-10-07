@@ -23,15 +23,11 @@ exports.heartbeat = async (req, res) => {
             orderBy: { started_at: "desc" },
         });
 
-        // ----------------------------------------------------
-        // ยังอยู่ในรอบเดิม
-        // ----------------------------------------------------
         if (
             current &&
             now.getTime() - current.last_seen_at.getTime() <= SESSION_GAP_MS
         ) {
             // นับเฉพาะเมื่อห่างจากครั้งก่อน >= 50 วินาที
-            // (updateMany + เงื่อนไขเวลา = กันหลายแท็บยิงพร้อมกัน)
             const updated = await prisma.user_sessions.updateMany({
                 where: {
                     session_id: current.session_id,
@@ -52,9 +48,6 @@ exports.heartbeat = async (req, res) => {
             });
         }
 
-        // ----------------------------------------------------
-        // หายไปนาน → ปิดรอบเก่า (จบที่ heartbeat สุดท้าย)
-        // ----------------------------------------------------
         if (current) {
             await prisma.user_sessions.update({
                 where: { session_id: current.session_id },
@@ -62,9 +55,6 @@ exports.heartbeat = async (req, res) => {
             });
         }
 
-        // ----------------------------------------------------
-        // เปิดรอบใหม่ (heartbeat แรก = ใช้งานมาแล้ว 1 นาที)
-        // ----------------------------------------------------
         const session = await prisma.user_sessions.create({
             data: {
                 user_id: userId,

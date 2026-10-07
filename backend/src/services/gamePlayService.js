@@ -1,66 +1,14 @@
 const prisma = require("../lib/prisma");
-
-// ============================================================
-// gamePlayService.js
-// ============================================================
-//
-// Logic ของ Unit 4 Level 1 : Slip Hunt (จับสลิปปลอม)
-//          Unit 4 Level 2 : Slot (กับดักพนัน)
-//          Unit 4 Level 3 : Firewall Defender
-//          Unit 5 Level 1 : ตามหาคำจากคำใบ้
-//          Unit 5 Level 2 : จัดสรรงบประมาณให้เมือง
-//          Unit 5 Level 3 : ตัดสินใจเพื่อประชาชน
-//          และ Unit 6 Level 1 : รับมือวิกฤตในโรงเรียน
-// ที่ gamePlayController ใช้ตอน startGame / completeGame
-//
-// หน้าที่ของไฟล์นี้: คำนวณอย่างเดียว (นับคำตอบ + ตัดสินผล + IP)
-// ส่วนการบันทึก game_play_history / Progress / IP รวม ยังอยู่ใน
-// controller เหมือน Level อื่น ๆ เพื่อใช้ helper ชุดเดียวกัน
-// (recalcIntegrityPoints, saveLevelProgress)
-//
-// คำตอบแต่ละใบถูกบันทึกลง game_play_slip_hunt ผ่าน
-// POST /api/slip-hunt/answer (slipHuntService.recordSlipHuntAnswer)
-// ============================================================
-
-// ------------------------------------------------------------
-// ค่าคงที่ (แก้ตรงนี้จุดเดียว)
-// ------------------------------------------------------------
-
-// level_id ของ Unit 4 Level 1 (ตรงกับ /api/slips/level/11 ใน Game.jsx)
 const SLIP_HUNT_LEVEL_ID = 11;
-
-// 1 รอบมีสลิป 5 ใบเสมอ
 const SLIP_HUNT_TOTAL_SLIPS = 5;
-
-// ตอบถูกอย่างน้อยกี่ใบถึงนับว่า "ผ่าน" (ปลดล็อก Level ถัดไป)
 const SLIP_HUNT_PASS_SCORE = 3;
-
-// กติกา IP : ตอบถูกได้ใบละ 50 IP (ไม่ขึ้นกับ PASS/FAIL)
-//   ถูก 0 ใบ → 0 IP
-//   ถูก 3 ใบ → 150 IP
-//   ถูก 5 ใบ → 250 IP (สูงสุด)
-// PASS/FAIL ใช้แค่ตัดสินปลดล็อก Level ถัดไป (ถูก >= 3)
-// ถ้าอยากให้ PERFECT ได้โบนัสเพิ่ม ใส่ PERFECT_BONUS ได้เลย
 const SLIP_HUNT_IP = {
     PER_CORRECT: 50,
     PERFECT_BONUS: 0,
 };
 
-// ------------------------------------------------------------
-// Helper
-// ------------------------------------------------------------
-
 const isSlipHuntLevel = (levelId) =>
     Number(levelId) === SLIP_HUNT_LEVEL_ID;
-
-// ============================================================
-// นับคำตอบของรอบนี้จาก game_play_slip_hunt
-// ============================================================
-//
-// ใช้ $queryRaw เพราะตาราง game_play_slip_hunt สร้างด้วย SQL
-// (อาจยังไม่มี model ใน schema.prisma)
-// ::int เพื่อให้ได้ number ไม่ใช่ BigInt
-// ============================================================
 
 const getSlipHuntAnswerStats = async (playId) => {
     const rows = await prisma.$queryRaw`
@@ -81,10 +29,6 @@ const getSlipHuntAnswerStats = async (playId) => {
         total: SLIP_HUNT_TOTAL_SLIPS,
     };
 };
-
-// ============================================================
-// ตัดสินผล + คำนวณ IP
-// ============================================================
 
 const calcSlipHuntResult = (correctCount) => {
     const correct = Number(correctCount) || 0;
@@ -115,10 +59,6 @@ const calcSlipHuntResult = (correctCount) => {
     };
 };
 
-// ============================================================
-// ดึงคำตอบรายใบ (ส่งกลับไปพร้อมผล completeGame)
-// ============================================================
-
 const getSlipHuntAnswers = async (playId) => {
     return prisma.$queryRaw`
         SELECT
@@ -134,22 +74,6 @@ const getSlipHuntAnswers = async (playId) => {
         ORDER BY gsh.slip_order ASC
     `;
 };
-
-// ============================================================
-// Unit 4 Level 2 : Slot (กับดักพนัน)
-// ============================================================
-//
-// ตู้สล็อต "ถูกล็อกผล" ไว้เพื่อสอนกลไกของเว็บพนัน:
-//   หมุนครั้งที่ 1 → 💎💎💎 ชนะ 5 เท่า (เหยื่อล่อ)
-//   หมุนครั้งที่ 2 → 7️⃣7️⃣7️⃣ ชนะ 3 เท่า (สร้างความหวัง)
-//   ครั้งต่อ ๆ ไป → เกือบชนะแต่แพ้ตลอด จนเครดิตหมด
-//
-// Backend เป็นคนตัดสินผล + คุมเครดิต (Frontend ส่งมาแค่ bet)
-// ทุกครั้งที่หมุนบันทึก 1 แถวใน game_play_slot_rounds
-// (ตารางสร้างด้วย SQL → ใช้ $queryRaw เหมือน game_play_slip_hunt)
-//
-// จบบท = เครดิตหมด (เหลือน้อยกว่าเดิมพันขั้นต่ำ) → PASS + SLOT_PASS_IP
-// ============================================================
 
 // level_id ของ Unit 4 Level 2 (ด่านถัดจาก Slip Hunt)
 const SLOT_LEVEL_ID = 12;
@@ -232,11 +156,6 @@ const getSlotSummary = async (playId) => {
     };
 };
 
-/**
- * หมุน 1 ครั้ง: ตรวจ bet + เครดิต → ตัดสินผล → บันทึก
- * คืน { ok: true, round, is_broke } หรือ { ok: false, status, message }
- * (ตรวจสิทธิ์/สถานะของ play ที่ controller ก่อนเรียก)
- */
 const recordSlotSpin = async (playId, bet) => {
     const amount = Number(bet);
 
@@ -303,21 +222,7 @@ const recordSlotSpin = async (playId, bet) => {
     }
 };
 
-// ============================================================
 // Unit 4 Level 3 : Firewall Defender (ภารกิจสุดท้าย)
-// ============================================================
-//
-// คำถาม/ตัวเลือกเก็บในตาราง question / choice (เหมือน Unit 1-2)
-// คำตอบบันทึกผ่าน POST /api/game-play/answer → game_play_answers
-//
-// กติกา (ตามต้นฉบับของเพื่อน):
-//   Firewall มี 4 หัวใจ — ตอบผิดครบ 4 ครั้ง = จบเกมทันที
-//   คะแนน = ข้อถูก × 10 (เต็ม 100)
-//   ถูก 10/10 → PERFECT / ถูก >= 6 → PASS / น้อยกว่า → FAIL
-//   IP = ผลรวม choice.ip_reward ของข้อที่ตอบ (ข้อถูก = 16 → เต็ม 160)
-//        ได้ทุกข้อที่ถูก แม้รอบนั้นจะ FAIL (แนวเดียวกับ Slip Hunt)
-// ============================================================
-
 const FIREWALL_LEVEL_ID = 13;
 const FIREWALL_HEARTS = 4;
 const FIREWALL_PASS_CORRECT = 6;
@@ -393,23 +298,7 @@ const calcFirewallResult = (stats) => {
     };
 };
 
-// ============================================================
 // Unit 5 Level 1 : ตามหาคำจากคำใบ้ (Word Clue)
-// ============================================================
-//
-// โจทย์อยู่ในตาราง level_words (คำตอบ + คำใบ้ + จำนวนตัวที่เปิดให้)
-// ทุกครั้งที่กด Enter บันทึก 1 แถวใน game_play_word_answers
-// (ตารางสร้างด้วย SQL → ใช้ $queryRaw เหมือน slot / slip hunt)
-//
-// กติกา:
-//   ต้องหาคำครบทุกคำถึงจะจบด่าน (ตามต้นฉบับของเพื่อน)
-//   ไม่เคยพิมพ์ผิดเลย → PERFECT / เคยผิด → PASS
-//   IP = ผลรวม ip_reward ของคำที่หาเจอ (ตอนนี้คำละ 10 → เต็ม 60)
-//
-// แบ่งตัวอักษรไทยด้วย Intl.Segmenter (grapheme) — ตรงกับ WordCard.jsx
-// เช่น "ใต้โต๊ะ" = ใ|ต้|โ|ต๊|ะ = 5 ช่อง
-// ============================================================
-
 const WORD_CLUE_LEVEL_ID = 14;
 const WORD_MAX_LENGTH = 100;
 const WORD_CLUE_IP = 280;
@@ -470,11 +359,6 @@ const getSolvedWordIds = async (playId) => {
     return rows.map((r) => r.word_id);
 };
 
-/**
- * ตรวจ + บันทึก 1 ครั้ง (กด Enter)
- * ยอมรับทั้ง "พิมพ์ทั้งคำ" และ "พิมพ์เฉพาะตัวที่เหลือ" (เหมือนต้นฉบับ)
- * คืน { ok: true, ... } หรือ { ok: false, status, message }
- */
 const recordWordAnswer = async (play, wordId, text) => {
     const typed = normalizeWord(text);
 
@@ -583,21 +467,7 @@ const calcWordResult = (stats) => {
     };
 };
 
-// ============================================================
 // Unit 5 Level 2 : จัดสรรงบประมาณให้เมือง (Budget Allocation)
-// ============================================================
-//
-// ผู้เล่นแบ่งงบ 100 เหรียญ (ครั้งละ 5) ให้ 6 ด้าน
-// บันทึกการจัดสรรสุดท้ายใน game_play_budget_allocations (1 แถว/ด้าน)
-// แล้ว backend คิดคะแนนเอง (สูตรเดียวกับ ResultPopup เดิมของเพื่อน):
-//   ความสุข   = 100 - (ส่วนเบี่ยงเบนมาตรฐานของงบ × 2)   (ยิ่งกระจายยิ่งดี)
-//   ต้องใช้งบครบ 100 ก่อนสรุปผล (BUDGET_REQUIRE_FULL)
-//   ความครอบคลุม = ใช้งบ >= 80% → 20 / ไม่งั้นตามสัดส่วน (เต็ม 20)
-//   คะแนน     = ความสุข × 0.8 + ความครอบคลุม            (เต็ม 100)
-//   Rank S/A/B/C/D → IP 50/40/30/20/10 (ตาม hpReward เดิม)
-// ไม่มีถูก/ผิด → จบแล้ว PASS เสมอ (Rank S = PERFECT)
-// ============================================================
-
 const BUDGET_LEVEL_ID = 15;
 const BUDGET_TOTAL = 100;
 const BUDGET_STEP = 5;
@@ -714,24 +584,7 @@ const calcBudgetResult = (budgets) => {
     };
 };
 
-// ============================================================
 // Unit 5 Level 3 : ตัดสินใจเพื่อประชาชน (Integrity Inspector)
-// ============================================================
-//
-// โจทย์อยู่ใน level_projects (เอกสารโครงการ + correct_action + สินบน)
-// ทุกการตัดสินใจบันทึก 1 แถวใน game_play_project_decisions
-//
-// กติกาคะแนน (ตามต้นฉบับของเพื่อน — คิดที่ backend ทั้งหมด):
-//   อนุมัติถูก +10 / ปฏิเสธถูก +15
-//   อนุมัติโครงการมีพิรุธ -20 (Integrity -15) / ปฏิเสธโครงการดี -10
-//   รับสินบน -15 (Integrity -20) นับเป็นผิดเสมอ
-//   คะแนนไม่ติดลบ (สะสมทีละข้อ) / Integrity 0-100 / คะแนนเต็ม 100
-//   Rank: S (>=90 และ Integrity >=85) / A >=75 / B >=55 / C >=35 / D
-//   IP ตาม Rank: S 50 / A 40 / B 30 / C 20 / D 10 (แนวเดียวกับด่าน 2)
-//   จบได้ 2 ทาง: ตัดสินครบทุกโครงการ / หมดเวลา (is_timeout)
-//   ไม่มีตก (ต้นฉบับให้ไปด่านต่อได้เสมอ) — Rank S = PERFECT
-// ============================================================
-
 const INSPECTOR_LEVEL_ID = 16;
 const INSPECTOR_SECONDS = 120;
 
@@ -907,28 +760,7 @@ const calcInspectorResult = (stats) => {
     };
 };
 
-// ============================================================
 // Unit 6 Level 1 : รับมือวิกฤตในโรงเรียน (Crisis Response)
-// ============================================================
-//
-// โจทย์อยู่ใน level_crisis_events / level_crisis_choices
-// หน้าเว็บสุ่มว่าเหตุการณ์ไหนเกิดที่ห้องไหน แต่คะแนนคิดที่ backend:
-//   เลือกตัวเลือก / หลุดมือ / ครูเวรมาช่วย → game_play_crisis_responses
-//   ข่าวปลอม / วันคุณธรรม / ครูเวรมาช่วย  → game_play_crisis_specials
-//
-// กติกา (ตามต้นฉบับของเพื่อน):
-//   คะแนนสะสมไม่ติดลบ / Integrity 0-100 (เริ่ม 100) — เรียงตามเวลาที่เกิด
-//   ข่าวปลอม Integrity -5 / วันคุณธรรม +10
-//   ครูเวรมาช่วย = แก้เหตุการณ์แรกให้ด้วยตัวเลือกที่ Integrity สูงสุด
-//   Rank: S (Integrity >= 90 และคะแนน >= 150) / A >= 110 / B >= 70 / C >= 30 / D
-//   IP = คะแนนที่ได้ในรอบนั้น (ไม่มีเพดาน เกิน 100 ได้)
-//   Rank ใช้แสดงผล + ตัดสิน PERFECT (Rank S) — ไม่มีตก
-//
-// กันโกง: เหตุการณ์พิเศษเกิดได้ไม่เกิน 1 ครั้งต่อ 12 วินาทีของเวลาเล่น
-//         จำนวนเหตุการณ์ไม่เกินจำนวนวินาทีที่เล่น + 3
-//         จบเกมได้เมื่อเล่นครบเวลา (CRISIS_SECONDS)
-// ============================================================
-
 const CRISIS_LEVEL_ORDER = 1; // Unit 6 ด่านที่ 1
 const CRISIS_UNIT_ID = 6;
 const CRISIS_SECONDS = 30;
@@ -1078,10 +910,6 @@ const loadCrisisChoices = async (eventId) =>
 const isUniqueViolation = (error) =>
     /23505|unique|uq_crisis_spawn/i.test(String(error.message));
 
-/**
- * บันทึกผลของเหตุการณ์ 1 ครั้ง
- * outcome: "choice" (ต้องมี choiceId) / "timeout" / "auto" (ครูเวร — ใช้ตัวเลือกที่ดีที่สุด)
- */
 const recordCrisisResponse = async (play, { spawnNo, eventId, choiceId, outcome, responseSeconds }) => {
     const spawn = Number(spawnNo);
     const elapsed = crisisElapsed(play);
@@ -1161,10 +989,7 @@ const recordCrisisResponse = async (play, { spawnNo, eventId, choiceId, outcome,
     };
 };
 
-/**
- * เหตุการณ์พิเศษ — เกิดได้ไม่เกิน 1 ครั้งต่อ 12 วินาทีของเวลาเล่น
- * teacherHelp: ส่ง { eventId, spawnNo } ของเหตุการณ์ที่จะให้ครูแก้ (ถ้ามี)
- */
+
 const recordCrisisSpecial = async (play, { specialCode, eventId, spawnNo }) => {
     const special = CRISIS_SPECIALS[specialCode];
     if (!special) {
@@ -1224,20 +1049,7 @@ const calcCrisisResult = (totals) => {
     };
 };
 
-// ============================================================
 // Unit 6 Level 2 : เครือข่ายความดี (Good Network)
-// ============================================================
-//
-// คำถามอยู่ในตาราง question / choice (question_order = จุดบนแผนที่)
-// ตอบผ่าน POST /api/game-play/answer เหมือน Firewall
-//
-// กติกา (ตามต้นฉบับของเพื่อน):
-//   มี 3 หัวใจ — ตอบผิดไม่หยุดเส้นทาง แต่เสีย 1 หัวใจ
-//   ผิดครบ 3 ครั้ง → FAIL ทันที (ตอบต่อไม่ได้)
-//   ไปถึง "ศาลยุติธรรม" (คำถามข้อสุดท้าย) ได้ → PASS / ไม่ผิดเลย → PERFECT
-//   IP ตามหัวใจที่เสีย: 0 → 200, 1 → 150, 2 → 100, 3 → 50 (ได้แม้ FAIL)
-// ============================================================
-
 const NETWORK_UNIT_ID = 6;
 const NETWORK_LEVEL_ORDER = 2;
 const NETWORK_LIVES = 3;
@@ -1317,25 +1129,7 @@ const calcSlotResult = () => ({
     earnedIP: SLOT_PASS_IP,
 });
 
-// ============================================================
 // Unit 6 Level 3 : ShadowMirror (กระจกสะท้อนใจ)
-// คำถามปลายเปิด 6 ข้อ ให้ AI (Gemini) วิเคราะห์เป็นคะแนน 4 trait
-// (logic / empathy / responsibility / consistency) — คำถาม hardcode
-// อยู่ฝั่ง frontend (ShadowMirror.jsx) ไม่ได้ดึงจากตาราง question
-// ไม่มีคำตอบถูก/ผิด จึงไม่มีเงื่อนไข FAIL — เล่นจบ = ได้ผลเสมอ
-//
-// *** ไม่แจก Integrity Points (IP) ***
-// เป็นกิจกรรมสะท้อนตัวตน ไม่ใช่แบบทดสอบที่มีคะแนนนับ IP — เก็บคะแนน/
-// badge ไว้แค่ให้ "อาจารย์" ดูย้อนหลังในหน้า TeacherPage เท่านั้น
-// (ดู buildShadowMirrorSection ใน teacherController.js)
-// earned_ip ของ game_play_history แถวนี้จะเป็น 0 เสมอ ไม่ถูกนับรวมใน
-// recalcIntegrityPoints ของผู้เล่น
-//
-// คำนวณ/บันทึกผลจริงที่ controllers/reflectController.js
-// (POST /api/reflect) ไม่ใช่ที่ gamePlayController.completeGame
-// เพราะ flow ต่างจาก Level อื่น
-// ============================================================
-
 const SHADOW_MIRROR_UNIT_ID = 6;
 const SHADOW_MIRROR_LEVEL_ORDER = 3;
 
@@ -1352,8 +1146,6 @@ const isShadowMirrorLevel = async (levelId) => {
     return Number(levelId) === shadowMirrorLevelIdCache;
 };
 
-// เกณฑ์ badge จากคะแนนเฉลี่ย 4 trait — ใช้แค่ "แสดงผล" (ไม่มี IP ผูกอยู่
-// แล้ว) เกณฑ์ตรงกับ badgeFromScore() ฝั่ง frontend (ShadowMirror.jsx)
 const SHADOW_MIRROR_RANKS = [
     { key: "LEGEND", th: "ตำนานแห่งกระจก", test: (avg) => avg >= 90 },
     { key: "PLATINUM", th: "ตรารางวัลระดับแพลทินัม", test: (avg) => avg >= 78 },

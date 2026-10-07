@@ -1,20 +1,6 @@
 const prisma = require("../lib/prisma");
 const gamePlayService = require("../services/gamePlayService");
 
-// ============================================================
-// Crisis Response (Unit 6 Level 1 : รับมือวิกฤตในโรงเรียน)
-// ------------------------------------------------------------
-// ทุก route ต้อง login (authenticateToken ใน crisisGameRoutes)
-//
-// Flow:
-// 1. POST /api/game-play/start       { level_id } → play_id + events
-// 2. POST /api/crisis-game/respond   ทุกครั้งที่เลือกตัวเลือก / เหตุการณ์หลุดมือ
-//    body: { playId, spawnNo, eventId, choiceId | null, responseSeconds }
-// 3. POST /api/crisis-game/special   เมื่อเกิดเหตุการณ์พิเศษ
-//    body: { playId, specialCode, eventId?, spawnNo? }  (teacherHelp ส่งเหตุการณ์ที่จะแก้)
-// 4. หมดเวลา → POST /api/game-play/complete { play_id } → Rank / IP
-// ============================================================
-
 const parseId = (value) => {
     const id = Number(value);
     return Number.isInteger(id) && id > 0 ? id : null;

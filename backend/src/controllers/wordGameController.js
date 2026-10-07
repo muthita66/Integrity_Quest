@@ -1,28 +1,10 @@
 const prisma = require("../lib/prisma");
 const gamePlayService = require("../services/gamePlayService");
-
-// ============================================================
-// Word Clue Game (Unit 5 Level 1 : ตามหาคำจากคำใบ้)
-// ------------------------------------------------------------
-// ทุก route ต้อง login (authenticateToken ใน wordGameRoutes)
-//
-// Flow:
-// 1. POST /api/game-play/start    { level_id: 14 } → play_id + words
-//    (words มีแค่คำใบ้ + ตัวอักษรที่เปิดให้ ไม่มีคำตอบเต็ม)
-// 2. POST /api/word-game/answer   { playId, wordId, text } ทุกครั้งที่กด Enter
-//    → backend ตรวจ + บันทึกลง game_play_word_answers
-// 3. หาครบทุกคำ (all_solved) → POST /api/game-play/complete { play_id }
-// ============================================================
-
 const parseId = (value) => {
     const id = Number(value);
     return Number.isInteger(id) && id > 0 ? id : null;
 };
 
-/**
- * POST /api/word-game/answer
- * body: { playId, wordId, text }
- */
 const answer = async (req, res) => {
     try {
         const playId = parseId(req.body.playId);

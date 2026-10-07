@@ -275,14 +275,14 @@ export default function GameLevel1() {
 
     if (loading) {
         return (
-            <div className="h-screen flex items-center justify-center bg-[#241408] text-[#f4eae1] text-lg">
+            <div className="h-dvh flex items-center justify-center bg-[#241408] text-[#f4eae1] text-lg">
                 กำลังเปิดแฟ้มหลักฐาน...
             </div>
         );
     }
 
     return (
-        <div className="unit5-game-content h-screen flex flex-col p-4 bg-[#241408] text-[#f4eae1] select-none overflow-hidden relative">
+        <div className="unit5-game-content h-dvh flex flex-col p-4 bg-[#241408] text-[#f4eae1] select-none overflow-hidden relative">
 
             {/* พื้นผิวไม้/คอร์กบอร์ดแบบ subtle เพิ่มมิติให้พื้นหลัง */}
             <div className="pointer-events-none absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_20%_10%,rgba(255,180,80,0.06),transparent_40%),radial-gradient(circle_at_80%_90%,rgba(255,140,60,0.05),transparent_45%)]" />
@@ -293,20 +293,20 @@ export default function GameLevel1() {
                 <motion.div
                     initial={{ y: -20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="relative bg-[#362116] rounded-[20px] px-10 py-4 mb-3 shadow-[0_4px_20px_rgba(0,0,0,0.4)] border border-[#4a3022]"
+                    className="relative bg-[#362116] rounded-[20px] px-5 lg:px-10 py-3 lg:py-4 [@media(max-height:820px)]:py-2 mb-3 [@media(max-height:820px)]:mb-2 shadow-[0_4px_20px_rgba(0,0,0,0.4)] border border-[#4a3022]"
                 >
                     <div className="absolute top-2 left-2 w-3 h-3 bg-amber-600 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
 
-                    <div className="flex items-center gap-8 px-4 font-mono">
-                        <div className="text-xl tracking-widest text-[#c2b0a2]">
+                    <div className="flex items-center gap-4 lg:gap-8 px-2 lg:px-4 font-mono">
+                        <div className="whitespace-nowrap text-lg lg:text-xl tracking-wider lg:tracking-widest text-[#c2b0a2]">
                             TIME: <span className="font-bold text-amber-400 tabular-nums">{formatTime()}</span>
                         </div>
 
-                        <div className="text-xl tracking-widest text-[#c2b0a2]">
+                        <div className="whitespace-nowrap text-lg lg:text-xl tracking-wider lg:tracking-widest text-[#c2b0a2]">
                             EVIDENCE: <span className="font-bold text-amber-500 tabular-nums">{correctCount}/{words.length}</span>
                         </div>
 
-                        <div className="flex-1">
+                        <div className="min-w-[60px] flex-1">
                             <div className="h-3 bg-[#21130c] rounded-full overflow-hidden border border-[#4a3022]">
                                 <motion.div
                                     animate={{ width: `${progress}%` }}
@@ -316,7 +316,7 @@ export default function GameLevel1() {
                             </div>
                         </div>
 
-                        <div className="text-lg font-bold tracking-widest text-amber-600 border border-amber-600 px-4 py-0.5 rounded bg-[#21130c]/50">
+                        <div className="hidden lg:block text-lg font-bold tracking-widest text-amber-600 border border-amber-600 px-4 py-0.5 rounded bg-[#21130c]/50">
                             CONFIDENTIAL
                         </div>
                     </div>
@@ -324,7 +324,7 @@ export default function GameLevel1() {
 
                 {/* --- Board Area --- */}
                 <div
-                    className="w-full flex-1 relative overflow-hidden rounded-[20px] shadow-[inset_0_0_60px_rgba(0,0,0,0.7)] border-4 border-[#261710]"
+                    className="w-full flex-1 min-h-0 relative overflow-x-hidden overflow-y-auto rounded-[20px] shadow-[inset_0_0_60px_rgba(0,0,0,0.7)] border-4 border-[#261710]"
                     style={{
                         backgroundColor: "#3a251a",
                         backgroundImage:
@@ -332,7 +332,7 @@ export default function GameLevel1() {
                             "radial-gradient(circle at 15% 15%, rgba(255,255,255,0.04), transparent 30%)",
                     }}
                 >
-                    <div ref={boardRef} className="relative w-full h-full min-w-0 px-5 py-4 flex flex-col">
+                    <div ref={boardRef} className="relative w-full min-h-full min-w-0 px-5 py-4 [@media(max-height:820px)]:py-2 flex flex-col">
 
                         {/* vignette ด้านใน ให้ความรู้สึกเหมือนสปอตไลท์กลางกระดาน */}
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_35%,rgba(20,10,5,0.55)_100%)] pointer-events-none z-10" />
@@ -368,23 +368,23 @@ export default function GameLevel1() {
                         </svg>
 
                         {/* หัวข้อ */}
-                        <div className="relative z-20 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-700/30 bg-[#ecdcc9]/95 px-4 py-2 text-sm font-bold text-[#4a2b17] shadow-sm">
+                        <div className="relative z-20 mb-3 [@media(max-height:820px)]:mb-2 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-700/30 bg-[#ecdcc9]/95 px-4 py-2 [@media(max-height:820px)]:py-1 text-sm [@media(max-height:820px)]:text-xs font-bold text-[#4a2b17] shadow-sm">
                             <span>พิมพ์คำตอบจากคำใบ้ให้ครบทุกช่อง</span>
                             <span className="text-amber-800">ตัวเข้ม = หลักฐานที่เปิดให้แล้ว</span>
                         </div>
-                        <div className="relative z-20 flex flex-wrap justify-between items-start gap-3 mb-4">
-                            <h2 className="text-2xl font-black text-[#1a0c02] bg-[#ecdcc9] px-5 py-2 rounded shadow-md border border-[#cfbfa8] -rotate-1">
+                        <div className="relative z-20 flex flex-wrap justify-between items-start gap-3 mb-4 [@media(max-height:820px)]:mb-2">
+                            <h2 className="text-2xl [@media(max-height:820px)]:text-xl font-black text-[#1a0c02] bg-[#ecdcc9] px-5 py-2 [@media(max-height:820px)]:py-1 rounded shadow-md border border-[#cfbfa8] -rotate-1">
                                 หลักฐานที่พบ
                             </h2>
-                            <h2 className="text-2xl font-black text-[#1a0c02] bg-[#ecdcc9] px-5 py-2 rounded shadow-md border border-[#cfbfa8] rotate-1">
+                            <h2 className="text-2xl [@media(max-height:820px)]:text-xl font-black text-[#1a0c02] bg-[#ecdcc9] px-5 py-2 [@media(max-height:820px)]:py-1 rounded shadow-md border border-[#cfbfa8] rotate-1">
                                 เบาะแสคดี
                             </h2>
                         </div>
 
                         {/* การ์ดตัวช่วย + เบาะแส จัดด้วย grid ที่ยืดหยุ่นตามหน้าจอ */}
-                        <div className="relative z-20 flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-2 items-center gap-5 xl:gap-8 overflow-hidden">
+                        <div className="relative z-20 flex-1 grid grid-cols-2 items-center gap-4 lg:gap-6 xl:gap-8 pb-2">
 
-                            <div className="min-w-0 grid grid-cols-2 justify-items-center gap-x-3 gap-y-3">
+                            <div className="min-w-0 grid grid-cols-2 justify-items-center gap-x-3 gap-y-3 [@media(max-height:820px)]:gap-y-2">
                                 {words.map((word, i) => (
                                     <motion.div
                                         key={word.id}
@@ -398,7 +398,7 @@ export default function GameLevel1() {
                                 ))}
                             </div>
 
-                            <div className="min-w-0 grid grid-cols-2 justify-items-center gap-x-3 gap-y-3">
+                            <div className="min-w-0 grid grid-cols-2 justify-items-center gap-x-3 gap-y-3 [@media(max-height:820px)]:gap-y-2">
                                 {words.map((word, i) => (
                                     <motion.div
                                         key={`clue-${word.id}`}

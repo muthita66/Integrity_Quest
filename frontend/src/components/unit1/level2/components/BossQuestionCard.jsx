@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 
 import bossBubble from "../../../../assets/unit1/level2/bossBubble.jpg";
 
+import FitToViewport from "../../../common/FitToViewport";
 import BossChoiceButton from "./BossChoiceButton";
 
 export default function BossQuestionCard({
@@ -83,90 +84,94 @@ export default function BossQuestionCard({
         };
     };
 
+    // FitToViewport: การ์ดกว้าง 590px ตามเดิมบนจอปกติ
+    // ย่อทั้งใบ (รวมข้อความและปุ่ม) เฉพาะเมื่อจอเล็ก/เตี้ยจนล้น
     return (
-        <motion.div
-            className="relative"
-            animate={getAnimation()}
-            transition={getTransition()}
-            exit={{
-                scale: 1.5,
-                opacity: 0,
-                filter:
-                    "brightness(1.5) blur(10px)",
-                transition: {
-                    duration: 0.5,
-                    ease: "easeOut",
-                },
-            }}
-            style={{
-                filter:
-                    "drop-shadow(0 0 20px rgba(255,255,255,0.8))",
-            }}
-        >
-            <img
-                src={bossBubble}
-                alt="บอสฟองข้ออ้าง"
-                className="w-[590px]"
-            />
-
-            <div
-                className="
-                    absolute
-                    inset-0
-                    flex
-                    flex-col
-                    items-center
-                    justify-center
-                    px-10
-                "
+        <FitToViewport padding={24}>
+            <motion.div
+                className="relative"
+                animate={getAnimation()}
+                transition={getTransition()}
+                exit={{
+                    scale: 1.5,
+                    opacity: 0,
+                    filter:
+                        "brightness(1.5) blur(10px)",
+                    transition: {
+                        duration: 0.5,
+                        ease: "easeOut",
+                    },
+                }}
+                style={{
+                    filter:
+                        "drop-shadow(0 0 20px rgba(255,255,255,0.8))",
+                }}
             >
-                <h2
-                    className="
-                        mb-6
-                        text-center
-                        text-xl
-                        font-bold
-                        text-black
-                    "
-                >
-                    {question}
-                </h2>
+                <img
+                    src={bossBubble}
+                    alt="บอสฟองข้ออ้าง"
+                    className="w-[590px]"
+                />
 
                 <div
                     className="
-                        mt-2
+                        absolute
+                        inset-0
                         flex
-                        w-full
+                        flex-col
+                        items-center
                         justify-center
-                        gap-5
+                        px-10
                     "
                 >
-                    {choices.map(
-                        (choice) => (
-                            <BossChoiceButton
-                                key={
-                                    choice.value
-                                }
-                                text={
-                                    choice.text
-                                }
-                                value={
-                                    choice.value
-                                }
-                                disabled={
-                                    disabled
-                                }
-                                onAnswer={
-                                    onAnswer
-                                }
-                                onHover={
-                                    onHover
-                                }
-                            />
-                        )
-                    )}
+                    <h2
+                        className="
+                            mb-6
+                            text-center
+                            text-xl
+                            font-bold
+                            text-black
+                        "
+                    >
+                        {question}
+                    </h2>
+
+                    <div
+                        className="
+                            mt-2
+                            flex
+                            w-full
+                            justify-center
+                            gap-5
+                        "
+                    >
+                        {choices.map(
+                            (choice) => (
+                                <BossChoiceButton
+                                    key={
+                                        choice.value
+                                    }
+                                    text={
+                                        choice.text
+                                    }
+                                    value={
+                                        choice.value
+                                    }
+                                    disabled={
+                                        disabled
+                                    }
+                                    onAnswer={
+                                        onAnswer
+                                    }
+                                    onHover={
+                                        onHover
+                                    }
+                                />
+                            )
+                        )}
+                    </div>
                 </div>
-            </div>
-        </motion.div>
+            </motion.div>
+        </FitToViewport>
     );
 }

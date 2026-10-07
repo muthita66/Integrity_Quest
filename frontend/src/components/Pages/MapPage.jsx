@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../MapPage/Header";
 import UnitNode from "../MapPage/GameMap/UnitNode";
@@ -18,6 +18,26 @@ import mapMusic from '../../assets/sounds/Map/magical-storytime.mp3';
 
 const API_BASE_URL = "http://localhost:5000";
 
+// ------------------------------------------------------------
+// Responsive: ปราสาท/ป้ายชื่อบทมีขนาดเป็นพิกเซลคงที่ แต่ตำแหน่งเป็น %
+// พอพื้นที่แผนที่เล็กลง (iPad / หน้าต่างแคบ) ปราสาทจึงซ้อนกัน
+// → คำนวณสัดส่วนจากขนาดพื้นที่แผนที่จริง แล้วย่อ/ขยายปราสาททั้งชุดตามนั้น
+//
+// MAP_REF_* = ขนาดพื้นที่แผนที่ที่ถือว่า "ขนาดปกติ" (scale = 1)
+// ถ้าอยากให้ปราสาทใหญ่ขึ้น/เล็กลงทั้งระบบ ให้ปรับสองค่านี้
+// (ลดค่า = ปราสาทใหญ่ขึ้น, เพิ่มค่า = ปราสาทเล็กลง)
+// ------------------------------------------------------------
+const MAP_REF_WIDTH = 1100;
+const MAP_REF_HEIGHT = 600;
+const MAP_SCALE_MIN = 0.4;
+const MAP_SCALE_MAX = 1.4;
+
+// ขนาดพื้นฐานของแต่ละบท (ค่าเดิมที่เคยตั้งไว้) และระยะเผื่อจากขอบแผนที่
+// นอกจากย่อตามขนาดพื้นที่แล้ว ยังวัดตำแหน่งจริงของทุกบท แล้วย่อเพิ่มเท่าที่จำเป็น
+// เพื่อไม่ให้ปราสาท/ป้ายชื่อบทล้นขอบแผนที่แล้วโดนตัด (เช่น บท 6 ที่อยู่ชิดขอบล่าง)
+const UNIT_NODE_BASE_SCALE = 1.15;
+const MAP_EDGE_MARGIN = 0.96;
+
 function MapPage() {
     useMapHoverSound();
     const [muted] = useGameMuted();
@@ -32,6 +52,42 @@ function MapPage() {
     const location = useLocation();
     const navigate = useNavigate();
 
+    const mapRef = useRef(null);
+    const [mapScale, setMapScale] = useState(1);
+
+    const recalcMapScale = useCallback(() => {
+        const el = mapRef.current;
+        if (!el) return;
+
+        // clientWidth/Height และ offsetLeft/Top/Width/Height ไม่รวม transform
+        // จึงวัดได้ตรงโดยไม่ขึ้นกับ scale ที่ใช้อยู่ตอนนี้
+        const mapW = el.clientWidth;
+        const mapH = el.clientHeight;
+        if (!mapW || !mapH) return;
+
+        // 1) ขนาดตามพื้นที่แผนที่
+        let next = Math.min(mapW / MAP_REF_WIDTH, mapH / MAP_REF_HEIGHT);
+
+        // 2) ย่อเพิ่มถ้ามีบทไหนจะล้นขอบ
+        //    ศูนย์กลางของแต่ละบทอยู่ที่ (offsetLeft, offsetTop) เพราะใช้ translate(-50%, -50%)
+        el.querySelectorAll("[data-map-node]").forEach((node) => {
+            const w = node.offsetWidth;
+            const h = node.offsetHeight;
+            if (!w || !h) return;
+
+            const cx = node.offsetLeft;
+            const cy = node.offsetTop;
+
+            const fitX = Math.min(cx, mapW - cx) / (w / 2);
+            const fitY = Math.min(cy, mapH - cy) / (h / 2);
+            const fit = Math.min(fitX, fitY);
+
+            next = Math.min(next, (fit / UNIT_NODE_BASE_SCALE) * MAP_EDGE_MARGIN);
+        });
+
+        setMapScale(Math.min(MAP_SCALE_MAX, Math.max(MAP_SCALE_MIN, next)));
+    }, []);
+
     const [progressUnits, setProgressUnits] = useState([]);
     const [loadingProgress, setLoadingProgress] = useState(true);
     const [progressError, setProgressError] = useState("");
@@ -41,10 +97,6 @@ function MapPage() {
     const rewardReady = !loadingProgress && !progressError && progressUnits.length > 0 && progressUnits.every((unit) =>
         unit.levels?.length > 0 && unit.levels.every((level) => ['PASS', 'PERFECT'].includes(level.status))
     );
-
-    // รางวัลความขยัน: ถ้า Login ครั้งนี้เพิ่งครบ 7 วัน (เก็บไว้ตอน Login
-    // ใน sessionStorage) ให้เด้ง popup ครั้งเดียวตอนเปิดหน้า /map ครั้งแรก
-    // แล้วลบทิ้งทันที จะได้ไม่เด้งซ้ำตอน refresh/เข้าหน้านี้รอบถัดไป
     useEffect(() => {
         try {
             const raw = sessionStorage.getItem("streakReward");
@@ -155,11 +207,6 @@ function MapPage() {
         );
     }, [progressUnits]);
 
-    /*
-     * API /api/user-progress ส่งเฉพาะ Unit ที่ is_active = true
-     * ดังนั้นเมื่อโหลดสำเร็จ เราใช้ข้อมูลจาก API เป็นตัวกำหนด
-     * ว่า Unit ใดจะแสดงบน Map
-     */
     const visibleUnits = useMemo(() => {
         if (loadingProgress) {
             return units;
@@ -175,6 +222,22 @@ function MapPage() {
         progressByUnitId,
     ]);
 
+    // คำนวณ scale ใหม่เมื่อ: ขนาดแผนที่เปลี่ยน, รายการบทเปลี่ยน, หรือขนาดของบทเปลี่ยน (เช่นรูปโหลดเสร็จ)
+    useEffect(() => {
+        const el = mapRef.current;
+        if (!el) return;
+
+        recalcMapScale();
+
+        const observer = new ResizeObserver(recalcMapScale);
+        observer.observe(el);
+        el.querySelectorAll("[data-map-node]").forEach((node) =>
+            observer.observe(node)
+        );
+
+        return () => observer.disconnect();
+    }, [recalcMapScale, visibleUnits]);
+
     const getUnitProgress = (unitId) => {
         return (
             progressByUnitId.get(
@@ -187,19 +250,10 @@ function MapPage() {
         const progress =
             getUnitProgress(unitId);
 
-        /*
-         * ระหว่าง Loading ให้ยังไม่ตัดสินจากข้อมูล
-         * แต่จะกันการกดไว้จนกว่า API จะตอบกลับ
-         */
         if (loadingProgress) {
             return true;
         }
 
-        /*
-         * ถ้าไม่มี Progress:
-         * ถือว่า Locked เพื่อไม่ให้ Frontend
-         * เปิด Unit ที่ Backend ยังไม่ได้ Unlock
-         */
         if (!progress) {
             return true;
         }
@@ -207,16 +261,6 @@ function MapPage() {
         return progress.is_locked === true;
     };
 
-    /*
-     * Unit ที่ "เล่นแล้ว" = completion_percentage > 0
-     *
-     * ตัวอย่าง:
-     *
-     * Unit 1 = 100% -> สี
-     * Unit 2 = 100% -> สี
-     * Unit 3 = 0%   -> เทา
-     * Unit 4 = LOCKED -> เทา
-     */
     const hasPlayedUnit = (unitId) => {
         const progress =
             getUnitProgress(unitId);
@@ -241,7 +285,7 @@ function MapPage() {
             event.stopPropagation();
 
             alert(
-                "🔒 Unit นี้ยังไม่ปลดล็อก\nกรุณาผ่าน Unit ก่อนหน้าก่อน"
+                "Unit นี้ยังไม่ปลดล็อก\nกรุณาผ่าน Unit ก่อนหน้าก่อน"
             );
         }
     };
@@ -265,7 +309,6 @@ function MapPage() {
                     backgroundPosition: "center",
                     display: "flex",
                     flexDirection: "column",
-                    height: "100vh",
                     fontFamily:
                         "'Prompt', sans-serif",
                 }}
@@ -283,6 +326,7 @@ function MapPage() {
                     {/* Game Map Board */}
                     <div
                         className="game-map"
+                        ref={mapRef}
                         style={{
                             position: "relative",
                             flex: 1,
@@ -309,12 +353,6 @@ function MapPage() {
                                     unit.id
                                 );
 
-                            /*
-                             * 3 สถานะ:
-                             * Locked                   -> เทาจาง
-                             * ปลดล็อกแล้ว แต่ยังไม่เล่น -> สีปกติ + เรืองแสงสีทอง
-                             * เล่นแล้ว                  -> สีปกติ
-                             */
                             const isReadyToPlay =
                                 !locked && !played;
 
@@ -327,6 +365,7 @@ function MapPage() {
                             return (
                                 <div
                                     key={unit.id}
+                                    data-map-node
                                     onClickCapture={(event) =>
                                         handleLockedUnitClick(
                                             event,
@@ -341,7 +380,7 @@ function MapPage() {
                                         top:
                                             unit.top,
                                         transform:
-                                            "translate(-50%, -50%) scale(1.15)",
+                                            `translate(-50%, -50%) scale(${UNIT_NODE_BASE_SCALE * mapScale})`,
                                         zIndex: 10,
                                         cursor:
                                             locked
@@ -454,8 +493,6 @@ function MapPage() {
                     <div
                         className="sidebar"
                         style={{
-                            width: "280px",
-                            padding: "20px",
                             zIndex: 20,
                         }}
                     >
@@ -483,13 +520,6 @@ function MapPage() {
                 {/* Footer */}
                 <div
                     className="footer"
-                    style={{
-                        height: "2vh",
-                        width: "19vw",
-                        left: "81.7%",
-                        zIndex: 20,
-                        position: "relative",
-                    }}
                 >
                     <a href="#about">
                         About Project

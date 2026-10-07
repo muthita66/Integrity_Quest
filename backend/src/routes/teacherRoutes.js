@@ -9,6 +9,7 @@ const {
     getLevelPlayDetail,
     addGroup,
     deleteGroup,
+    deleteStudent,
 } = require("../controllers/teacherController");
 
 const authenticateToken = require("../../middleware/authMiddleware");
@@ -30,5 +31,8 @@ router.get("/students/:id/progress", getStudentProgress);
 
 // GET /api/teacher/students/:id/levels/:levelId/latest (คำตอบรอบล่าสุด)
 router.get("/students/:id/levels/:levelId/latest", getLevelPlayDetail);
+
+// DELETE /api/teacher/students/:userId (ลบนิสิต 1 คนออกจากระบบ — ปุ่มถังขยะท้ายแถวในตาราง)
+router.delete("/students/:userId", deleteStudent);
 
 module.exports = router;

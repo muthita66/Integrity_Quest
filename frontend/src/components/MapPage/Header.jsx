@@ -12,22 +12,12 @@ import {
 
 import elephant from "../../assets/elephant.png";
 import { getProfile } from "../services/profileService";
-
 import "../../styles/MapPage/header.css";
 
-
 function Header() {
-
     const navigate = useNavigate();
-
     const [showMenu, setShowMenu] = useState(false);
-
     const [profile, setProfile] = useState(null);
-
-
-    // ==============================
-    // โหลดข้อมูลผู้ใช้จาก DB
-    // ==============================
 
     useEffect(() => {
         let isMounted = true;
@@ -62,17 +52,11 @@ function Header() {
     const score = profile?.stats?.integrity_points ?? 0;
     const progress = profile?.stats?.progress_percent ?? 0;
 
-
-    // ==============================
-    // Logout
-    // ==============================
-
     const handleLogout = async () => {
 
         try {
 
             const token = localStorage.getItem("token");
-
 
             // ไม่มี Token
             if (!token) {
@@ -83,11 +67,6 @@ function Header() {
 
                 return;
             }
-
-
-            // ==============================
-            // เรียก API Logout
-            // ==============================
 
             const response = await fetch(
                 "http://localhost:5000/api/auth/logout",
@@ -110,44 +89,19 @@ function Header() {
                 );
             }
 
-
-            // ==============================
-            // ลบข้อมูล Login
-            // ==============================
-
             localStorage.removeItem("token");
-
             localStorage.removeItem("user");
-
-
-            // ปิด Dropdown
             setShowMenu(false);
-
-
-            // ==============================
-            // กลับหน้า Auth
-            // ==============================
-
             navigate("/");
-
-
         } catch (error) {
 
             console.error(
                 "Logout error:",
                 error
             );
-
-
-            // ถึง API Error
-            // ก็ลบ Login ฝั่ง Client
             localStorage.removeItem("token");
-
             localStorage.removeItem("user");
-
-
             setShowMenu(false);
-
             navigate("/");
         }
     };
@@ -155,44 +109,18 @@ function Header() {
 
     return (
         <div className="header">
-
-
-            {/* =========================
-                Logo
-            ========================= */}
-
             <div className="logo">
-
                 <img
                     src={elephant}
                     alt="Elephant"
-                    style={{
-                        width: "60px",
-                        height: "auto",
-                    }}
+                    className="logo-img"
                 />
-
                 <span className="logo-text no-sarabun">
                     INTEGRITY QUEST
                 </span>
-
             </div>
-
-
-
-            {/* =========================
-                Header Right
-            ========================= */}
-
             <div className="header-right">
-
-
-                {/* =========================
-                    Streak
-                ========================= */}
-
                 <div className="sarabun-bold">
-
                     <FaFire
                         style={{
                             color: "#f97316",
@@ -200,19 +128,11 @@ function Header() {
                                 "drop-shadow(0 0 4px rgba(249,115,22,0.4))",
                         }}
                     />
-
                     <span>
                         {streak} Day Streak
                     </span>
 
                 </div>
-
-
-
-                {/* =========================
-                    User
-                ========================= */}
-
                 <div
                     className="user-dropdown"
                     onClick={() =>
@@ -226,17 +146,9 @@ function Header() {
                             fontSize: "24px",
                         }}
                     />
-
                     <span>
                         {displayName}
                     </span>
-
-
-
-                    {/* =========================
-                        Dropdown
-                    ========================= */}
-
                     {showMenu && (
 
                         <div
@@ -245,10 +157,6 @@ function Header() {
                                 e.stopPropagation()
                             }
                         >
-
-
-                            {/* Name → หน้าความคืบหน้า */}
-
                             <div
                                 className="dropdown-item"
                                 style={{ cursor: "pointer" }}
@@ -258,60 +166,31 @@ function Header() {
                                     navigate("/progress");
                                 }}
                             >
-
                                 <FaUserCircle />
-
                                 <span>
                                     {displayName}
                                 </span>
-
                             </div>
 
-
-
-                            {/* Score */}
-
                             <div className="dropdown-item">
-
                                 <FaTrophy />
-
                                 <span>
                                     Score : {score}
                                 </span>
 
                             </div>
-
-
-
-                            {/* Streak */}
-
                             <div className="dropdown-item">
-
                                 <FaFire />
-
                                 <span>
                                     Streak : {streak} {streak === 1 ? "Day" : "Days"}
                                 </span>
-
                             </div>
-
-
-
-                            {/* Progress */}
-
                             <div className="dropdown-item">
-
                                 <FaBook />
-
                                 <span>
                                     Progress : {progress}%
                                 </span>
-
                             </div>
-
-
-
-                            {/* Settings */}
 
                             <div
                                 className="dropdown-item"
@@ -321,46 +200,29 @@ function Header() {
                                     navigate("/settings");
                                 }}
                             >
-
                                 <FaCog />
-
                                 <span>
                                     ตั้งค่าบัญชี
                                 </span>
-
                             </div>
-
                         </div>
-
                     )}
-
                 </div>
-
-
-
-                {/* =========================
-                    Logout
-                ========================= */}
 
                 <button
                     className="logout-button sarabun-bold"
+                    aria-label="Logout"
+                    title="Logout"
                     onClick={handleLogout}
                 >
-
                     <FaSignOutAlt />
-
                     <span>
                         Logout
                     </span>
-
                 </button>
-
-
             </div>
-
         </div>
     );
 }
-
 
 export default Header;

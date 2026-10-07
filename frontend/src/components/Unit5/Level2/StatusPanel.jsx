@@ -121,7 +121,7 @@ export default function StatusPanel({
         border-2
         border-[#e0a33d]
         rounded-[22px]
-        p-4
+        p-4 [@media(max-height:820px)]:p-3
         shadow-[5px_6px_0_rgba(70,38,15,.18)]
       "
         >
@@ -140,13 +140,13 @@ export default function StatusPanel({
 
                 </div>
 
-                <span className="font-black text-2xl text-[#2b1b12]">
+                <span className="font-black text-2xl [@media(max-height:820px)]:text-xl text-[#2b1b12]">
                     {value}%
                 </span>
 
             </div>
 
-            <div className="mt-3 h-3 rounded-full bg-gray-200 overflow-hidden">
+            <div className="mt-3 [@media(max-height:820px)]:mt-2 h-3 rounded-full bg-gray-200 overflow-hidden">
 
                 <motion.div
                     animate={{
@@ -172,7 +172,7 @@ export default function StatusPanel({
         max-w-[320px]
         flex
         flex-col
-        gap-3
+        gap-3 [@media(max-height:820px)]:gap-2
       "
         >
 
@@ -233,13 +233,13 @@ export default function StatusPanel({
                 onClick={onSummary}
                 className={`
         w-full
-        py-5
+        py-5 [@media(max-height:820px)]:py-3
         rounded-[20px]
         bg-gradient-to-r
         from-amber-500
         to-yellow-400
         text-[#2b1b12]
-        text-2xl
+        text-2xl [@media(max-height:820px)]:text-xl
         font-black
         shadow-[6px_7px_0_rgba(70,38,15,.28),0_12px_20px_rgba(50,25,8,.2)]
 
@@ -249,7 +249,7 @@ export default function StatusPanel({
                     }
     `}
             >
-                <ChartColumnBig className="inline" size={50} />
+                <ChartColumnBig className="inline" size={36} />
 
                 {remainingBudget > 0
                     ? ` เหลืองบอีก ${remainingBudget}`

@@ -11,13 +11,7 @@ const {
     syncLatestPlay,
 } = require("../controllers/levelSyncController");
 
-// level_id ของ Unit 3 FinalLevel (Treasurer)
 const TREASURER_LEVEL_ID = 10;
-
-// =====================================================
-// หลังส่งผล /complete สำเร็จ → sync Progress + IP
-// (ใช้ res.on("finish") เพราะ completeTreasurerGame ส่ง response เอง)
-// =====================================================
 const syncAfterComplete = (req, res, next) => {
     res.on("finish", () => {
         if (res.statusCode >= 400) return;
@@ -34,44 +28,29 @@ const syncAfterComplete = (req, res, next) => {
     next();
 };
 
-// =====================================================
-// โหลดข้อมูล FinalLevel จาก Database
-// =====================================================
 router.get(
     "/data",
     finalLevelController.getFinalLevelData
 );
 
-// =====================================================
-// Unit 3 FinalLevel : Treasurer
-// เดิมมีแค่ POST /result ที่เชื่อค่าจาก client ทั้งหมด — เปลี่ยนเป็น
-// 4 endpoint นี้แทน ทุก action ที่กระทบเงิน/คะแนน/ผลจบเกม คำนวณที่
-// backend จากข้อมูลจริงใน DB เท่านั้น (ดู finalLevelController.js)
-// =====================================================
-
-// ชำระเงิน (checkout ตะกร้า) — ตรวจราคา/งบ/เงินสำรองจาก DB ทั้งหมด
 router.post(
     "/checkout",
     authMiddleware,
     finalLevelController.checkoutCart
 );
 
-// เก็บ/ไม่เก็บใบเสร็จ แล้วสุ่ม Event ต่อ (ถ้ามี)
 router.post(
     "/receipt/decide",
     authMiddleware,
     finalLevelController.decideReceipt
 );
 
-// ตอบ Event — รับแค่ event_id/choice_id ผลกระทบอ่านจาก DB เท่านั้น
 router.post(
     "/event/apply",
     authMiddleware,
     finalLevelController.applyEventChoice
 );
 
-// จบเกม — คำนวณ score/grade/success/IP จากข้อมูลจริงใน DB เท่านั้น
-// (แทนที่ POST /result เดิม) + sync Progress/IP หลังจบ
 router.post(
     "/complete",
     authMiddleware,
@@ -79,9 +58,6 @@ router.post(
     finalLevelController.completeTreasurerGame
 );
 
-// =====================================================
-// โหลดข้อมูล Final Case เดิม (Unit 1 FinalLevel)
-// =====================================================
 router.get("/:levelId", async (req, res) => {
     try {
         const levelId = Number(req.params.levelId);

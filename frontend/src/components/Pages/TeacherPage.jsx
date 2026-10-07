@@ -1,5 +1,4 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
     FiSearch,
@@ -8,8 +7,6 @@ import {
     FiChevronUp,
     FiChevronDown,
     FiChevronRight,
-    FiX,
-    FiCheck,
     FiMinus,
     FiArrowUp,
     FiArrowDown,
@@ -22,20 +19,18 @@ import {
 import {
     getTeacherDashboard,
     getStudentProgress,
-    getLevelPlayDetail,
-    addTeacherGroup,
     deleteTeacherGroup,
+    deleteStudent,
 } from "../services/teacherService";
 import { getFaculties } from "../services/masterService";
 import bgGame from "../../assets/bg_game.png";
 
-// ============================================================
-// Teacher Dashboard (ขั้นที่ 1)
-// ------------------------------------------------------------
-// - ขอบเขต: กลุ่มนักเรียนที่อาจารย์ดูแล (เลือกตอนสมัคร/เพิ่มทีหลัง) / ทั้งหมด
-// - การ์ดสรุป + เทียบ Pre-Test / Post-Test
-// - ตารางนิสิต: ค้นหา / กรอง / เรียง / Export CSV
-// ============================================================
+// Popup/modal ของหน้าอาจารย์ แยกออกไปอยู่ในโฟลเดอร์ components/ ที่อยู่ข้างๆ
+// ไฟล์นี้ (src/pages/teacher/components/) — TeacherPage.jsx เองยังอยู่ที่เดิม
+import LevelAnswersModal from "./components/LevelAnswersModal";
+import AddGroupModal from "./components/AddGroupModal";
+import DeleteStudentModal from "./components/DeleteStudentModal";
+import { formatDateTime } from "./components/teacherFormatters";
 
 const STATUS = {
     no_pretest: { label: "ยังไม่ทำ Pre-Test", className: "bg-gray-100 text-gray-600" },
@@ -59,6 +54,26 @@ const COLUMNS = [
 ];
 
 const ALIGN_CLASS = { left: "text-left", center: "text-center", right: "text-right" };
+const BREAKDOWN_META = {
+    improved: {
+        label: "ดีขึ้น",
+        icon: FiArrowUp,
+        badgeClass: "bg-emerald-50 text-emerald-700",
+        ringClass: "ring-emerald-300",
+    },
+    same: {
+        label: "เท่าเดิม",
+        icon: FiMinus,
+        badgeClass: "bg-gray-100 text-gray-500",
+        ringClass: "ring-gray-300",
+    },
+    declined: {
+        label: "แย่ลง",
+        icon: FiArrowDown,
+        badgeClass: "bg-red-50 text-red-600",
+        ringClass: "ring-red-300",
+    },
+};
 
 const fullName = (s) =>
     `${s.first_name || ""} ${s.last_name || ""}`.trim() || s.username;
@@ -79,11 +94,6 @@ const formatDate = (key) => {
 };
 
 const percentText = (value) => (value === null || value === undefined ? "-" : `${value}%`);
-
-// ------------------------------------------------------------
-// Export CSV (ตามแถวที่กรองอยู่)
-// ------------------------------------------------------------
-
 const exportCsv = (rows) => {
     const header = [
         "username", "ชื่อ", "นามสกุล", "email", "คณะ", "สาขา", "ชั้นปี",
@@ -114,14 +124,6 @@ const exportCsv = (rows) => {
     link.click();
     URL.revokeObjectURL(url);
 };
-
-// ============================================================
-// ชิ้นส่วน UI
-// ============================================================
-
-// การ์ดสรุป (พื้นขาวเหมือนเดิม) จัดเนื้อหาแบบ:
-//   center = หัวข้อ + ตัวเลขใหญ่กลางการ์ด
-//   split  = หัวข้ออยู่ซ้าย / ตัวเลขใหญ่อยู่ขวา
 function StatCard({ label, value, sub, layout = "split", tone = "text-gray-800" }) {
     if (layout === "center") {
         return (
@@ -179,23 +181,6 @@ function CompareBar({ label, value, color }) {
     );
 }
 
-// ============================================================
-// รายละเอียดนิสิต (สไลด์ลงมาใต้แถว)
-// ------------------------------------------------------------
-// รายบท → รายด่าน: สถานะ, คะแนนครั้งล่าสุด, คะแนนดีที่สุด,
-// จำนวนครั้งที่เล่น, เล่นล่าสุดเมื่อไหร่
-// ============================================================
-
-const formatDateTime = (value) => {
-    if (!value) return "-";
-    return new Date(value).toLocaleString("th-TH", {
-        day: "numeric",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-};
-
 const getLevelBadge = (level) => {
     if (level.state === "passed") {
         return level.status === "PERFECT"
@@ -210,15 +195,6 @@ const getLevelBadge = (level) => {
     }
     return { label: "ยังไม่เล่น", className: "bg-blue-50 text-blue-600" };
 };
-
-// ============================================================
-// การเข้าใช้งาน + ตัวกรองช่วงเวลา
-// ------------------------------------------------------------
-// วันนี้ / 7 วัน / 30 วัน / ทั้งหมด
-//   - สรุป: เวลารวม, จำนวนครั้ง, เฉลี่ยต่อครั้ง, จำนวนวันที่เข้า
-//   - รายการรอบการใช้งานในช่วงนั้น
-// กรองฝั่งหน้าเว็บจาก sessions ที่ backend ส่งมา (เวลาไทยตามเครื่อง)
-// ============================================================
 
 const ACTIVITY_RANGES = [
     { key: "today", label: "วันนี้", days: 1 },
@@ -354,10 +330,6 @@ function ActivitySection({ activity }) {
     );
 }
 
-// ============================================================
-// เปลี่ยนแปลง IP: ครั้งแรก → ล่าสุด
-// ============================================================
-
 function IpChange({ first, last }) {
     if (first === null || first === undefined || last === null || last === undefined) {
         return null;
@@ -380,235 +352,6 @@ function IpChange({ first, last }) {
             {up ? "+" : ""}
             {diff}
         </span>
-    );
-}
-
-// ============================================================
-// Popup: คำตอบของนิสิตในรอบล่าสุดของด่าน
-// ============================================================
-
-const formatDuration = (seconds) => {
-    if (seconds === null || seconds === undefined) return "-";
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return m ? `${m} นาที ${s} วินาที` : `${s} วินาที`;
-};
-
-function ResultIcon({ value }) {
-    if (value === true) {
-        return (
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                <FiCheck size={14} strokeWidth={3} />
-            </span>
-        );
-    }
-    if (value === false) {
-        return (
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-500">
-                <FiX size={14} strokeWidth={3} />
-            </span>
-        );
-    }
-    return (
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-            <FiMinus size={14} strokeWidth={3} />
-        </span>
-    );
-}
-
-function LevelAnswersModal({ userId, studentName, level, onClose }) {
-    const [state, setState] = useState({ loading: true });
-
-    useEffect(() => {
-        let isMounted = true;
-
-        getLevelPlayDetail(userId, level.level_id)
-            .then((data) => isMounted && setState({ data }))
-            .catch(
-                (err) =>
-                    isMounted &&
-                    setState({ error: err.message || "โหลดคำตอบไม่สำเร็จ" })
-            );
-
-        return () => {
-            isMounted = false;
-        };
-    }, [userId, level.level_id]);
-
-    // ปิดด้วย Esc
-    useEffect(() => {
-        const onKey = (e) => e.key === "Escape" && onClose();
-        window.addEventListener("keydown", onKey);
-        return () => window.removeEventListener("keydown", onKey);
-    }, [onClose]);
-
-    const play = state.data?.play;
-    const sections = state.data?.sections || [];
-    const treasurer = state.data?.treasurer;
-
-    const totalRows = sections.reduce((n, s) => n + s.rows.length, 0);
-    const correctRows = sections.reduce(
-        (n, s) => n + s.rows.filter((r) => r.is_correct === true).length,
-        0
-    );
-    const wrongRows = sections.reduce(
-        (n, s) => n + s.rows.filter((r) => r.is_correct === false).length,
-        0
-    );
-
-    // ใช้ portal ไปไว้ที่ document.body โดยตรง เพราะ <main> ที่ครอบตารางอยู่มี
-    // backdrop-blur-md (ใช้ backdrop-filter) ซึ่งทำให้ลูกที่เป็น position:fixed
-    // (เช่น popup นี้) ยึดตำแหน่ง/ขนาดตาม <main> แทนที่จะเต็มจอจริง ๆ
-    return createPortal(
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-            onClick={onClose}
-        >
-            <div
-                className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* หัว popup */}
-                <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-5">
-                    <div>
-                        <p className="text-xs text-gray-400">{studentName} · คำตอบรอบล่าสุด</p>
-                        <h3 className="text-lg font-bold text-gray-800">
-                            ด่าน {level.order_no}
-                            {level.title ? ` · ${level.title}` : ""}
-                        </h3>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                    >
-                        <FiX size={18} />
-                    </button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-5">
-                    {state.loading && (
-                        <p className="py-10 text-center text-sm text-gray-400">กำลังโหลดคำตอบ...</p>
-                    )}
-
-                    {state.error && (
-                        <p className="py-10 text-center text-sm text-red-500">{state.error}</p>
-                    )}
-
-                    {state.data && !play && (
-                        <p className="py-10 text-center text-sm text-gray-400">
-                            นิสิตยังไม่เคยเล่นด่านนี้จนจบ
-                        </p>
-                    )}
-
-                    {play && (
-                        <>
-                            {/* สรุปรอบนี้ */}
-                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                                <div className="rounded-xl bg-gray-50 p-3">
-                                    <p className="text-[11px] text-gray-400">เล่นเมื่อ</p>
-                                    <p className="text-sm font-semibold text-gray-800">
-                                        {formatDateTime(play.completed_at)}
-                                    </p>
-                                    <p className="text-[11px] text-gray-400">ครั้งที่ {play.attempt_number}</p>
-                                </div>
-                                <div className="rounded-xl bg-gray-50 p-3">
-                                    <p className="text-[11px] text-gray-400">ผล</p>
-                                    <p className="text-sm font-semibold text-gray-800">{play.status}</p>
-                                    <p className="text-[11px] text-gray-400">
-                                        คะแนน {play.score}/{play.max_score}
-                                    </p>
-                                </div>
-                                <div className="rounded-xl bg-emerald-50 p-3">
-                                    <p className="text-[11px] text-emerald-600">Integrity Point</p>
-                                    <p className="text-sm font-bold text-emerald-700">{play.earned_ip}</p>
-                                </div>
-                                <div className="rounded-xl bg-gray-50 p-3">
-                                    <p className="text-[11px] text-gray-400">ใช้เวลา</p>
-                                    <p className="text-sm font-semibold text-gray-800">
-                                        {formatDuration(play.duration_seconds)}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {totalRows > 0 && (
-                                <p className="mt-3 text-xs text-gray-500">
-                                    ถูก <b className="text-emerald-600">{correctRows}</b> · ผิด{" "}
-                                    <b className="text-red-500">{wrongRows}</b> จาก {totalRows} รายการ
-                                </p>
-                            )}
-
-                            {/* สรุปของ Treasurer (Unit 3 Final) */}
-                            {treasurer && (
-                                <div className="mt-4 rounded-xl border border-gray-200 p-3 text-sm">
-                                    <p className="font-semibold text-gray-800">
-                                        เกรด {treasurer.grade || "-"} ·{" "}
-                                        {treasurer.success ? "ภารกิจสำเร็จ" : "ภารกิจไม่สำเร็จ"}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        ใช้เงิน {Number(treasurer.spent_amount).toLocaleString()} บาท · คงเหลือ{" "}
-                                        {Number(treasurer.final_balance).toLocaleString()} บาท
-                                    </p>
-                                    {(treasurer.fail_reason || treasurer.feedback) && (
-                                        <p className="mt-1 text-xs text-gray-500">
-                                            {treasurer.fail_reason || treasurer.feedback}
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* คำตอบแต่ละส่วน */}
-                            {sections.length === 0 && (
-                                <p className="py-8 text-center text-sm text-gray-400">
-                                    ด่านนี้ไม่มีรายละเอียดคำตอบที่บันทึกไว้
-                                </p>
-                            )}
-
-                            {sections.map((section) => (
-                                <div key={section.key} className="mt-5">
-                                    <p className="mb-2 text-sm font-semibold text-gray-700">
-                                        {section.title}
-                                    </p>
-
-                                    <ul className="divide-y divide-gray-100 rounded-xl border border-gray-200">
-                                        {section.rows.map((row, index) => (
-                                            <li key={index} className="flex gap-3 p-3">
-                                                <ResultIcon value={row.is_correct} />
-
-                                                <div className="min-w-0 flex-1 text-sm">
-                                                    <p className="font-medium text-gray-800">{row.title}</p>
-                                                    <p className="mt-0.5 text-gray-600">
-                                                        ตอบ:{" "}
-                                                        <span
-                                                            className={
-                                                                row.is_correct === false
-                                                                    ? "font-semibold text-red-500"
-                                                                    : "font-semibold text-gray-800"
-                                                            }
-                                                        >
-                                                            {row.answer}
-                                                        </span>
-                                                    </p>
-                                                    {row.correct_answer && (
-                                                        <p className="text-emerald-700">
-                                                            คำตอบที่ถูก: <b>{row.correct_answer}</b>
-                                                        </p>
-                                                    )}
-                                                    {row.note && (
-                                                        <p className="mt-0.5 text-xs text-gray-400">{row.note}</p>
-                                                    )}
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </>
-                    )}
-                </div>
-            </div>
-        </div>,
-        document.body
     );
 }
 
@@ -746,171 +489,23 @@ function StudentDetail({ detail, userId, studentName }) {
     );
 }
 
-// ============================================================
-// Popup: เพิ่มกลุ่มนักเรียนที่ดูแล (ปุ่ม "+ เพิ่มกลุ่ม" บนแดชบอร์ด)
-// ------------------------------------------------------------
-// เว้นว่างช่องไหน = ทุกค่าของช่องนั้น แต่ต้องเลือก/กรอกอย่างน้อย 1 อย่าง
-// เพิ่มสำเร็จแล้วเรียก onAdded(กลุ่มที่สร้าง) ให้หน้าแดชบอร์ดสลับไปดูกลุ่มนั้นทันที
-// ============================================================
-
-function AddGroupModal({ faculties, onClose, onAdded }) {
-    const [faculty, setFaculty] = useState("");
-    const [major, setMajor] = useState("");
-    const [year, setYear] = useState("");
-    const [note, setNote] = useState("");
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState("");
-
-    const majorOptions = faculty
-        ? faculties.find((f) => String(f.faculty_id) === String(faculty))?.majors || []
-        : [];
-
-    // ปิดด้วย Esc
-    useEffect(() => {
-        const onKey = (e) => e.key === "Escape" && onClose();
-        window.addEventListener("keydown", onKey);
-        return () => window.removeEventListener("keydown", onKey);
-    }, [onClose]);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!faculty && !major && !year && !note.trim()) {
-            setError("กรุณาเลือกหรือกรอกอย่างน้อย 1 เงื่อนไข");
-            return;
-        }
-
-        setSaving(true);
-        setError("");
-
-        try {
-            const created = await addTeacherGroup({
-                faculty: faculty || null,
-                major: major || null,
-                year: year || null,
-                note: note.trim() || null,
-            });
-            onAdded(created);
-        } catch (err) {
-            setError(err.message || "เพิ่มกลุ่มไม่สำเร็จ");
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-            onClick={onClose}
-        >
-            <div
-                className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-gray-800">เพิ่มกลุ่มนักเรียน</h3>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-red-500"
-                        aria-label="ปิด"
-                    >
-                        <FiX size={18} />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-3">
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                        <select
-                            value={faculty}
-                            onChange={(e) => {
-                                setFaculty(e.target.value);
-                                setMajor("");
-                            }}
-                            className="rounded-lg border border-gray-200 px-2 py-2 text-sm outline-none focus:border-emerald-500"
-                        >
-                            <option value="">ทุกคณะ</option>
-                            {faculties.map((f) => (
-                                <option key={f.faculty_id} value={f.faculty_id}>
-                                    {f.faculty_name}
-                                </option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={major}
-                            onChange={(e) => setMajor(e.target.value)}
-                            className="rounded-lg border border-gray-200 px-2 py-2 text-sm outline-none focus:border-emerald-500"
-                        >
-                            <option value="">{faculty ? "ทุกสาขา" : "ทุกสาขา (เลือกคณะก่อน)"}</option>
-                            {majorOptions.map((m) => (
-                                <option key={m.major_id} value={m.major_id}>
-                                    {m.major_name}
-                                </option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={year}
-                            onChange={(e) => setYear(e.target.value)}
-                            className="rounded-lg border border-gray-200 px-2 py-2 text-sm outline-none focus:border-emerald-500"
-                        >
-                            <option value="">ทุกชั้นปี</option>
-                            <option value="1">ปี 1</option>
-                            <option value="2">ปี 2</option>
-                            <option value="3">ปี 3</option>
-                            <option value="4">ปี 4</option>
-                            <option value="5">ปี 5</option>
-                            <option value="6">ปี 6</option>
-                        </select>
-                    </div>
-
-                    <input
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                        placeholder="รายละเอียดกลุ่ม เช่น วิชาที่สอน (ไม่บังคับ)"
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                    />
-
-                    {error && <p className="text-xs text-red-500">{error}</p>}
-
-                    <button
-                        type="submit"
-                        disabled={saving}
-                        className="w-full rounded-lg bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
-                    >
-                        {saving ? "กำลังบันทึก..." : "เพิ่มกลุ่ม"}
-                    </button>
-                </form>
-            </div>
-        </div>
-    );
-}
-
-// ============================================================
-// Page
-// ============================================================
-
 export default function TeacherPage() {
     const navigate = useNavigate();
-
-    // scope: null = ยังไม่ได้เลือกเอง (ให้ backend เลือกกลุ่มแรกให้อัตโนมัติ)
-    // "all" = นิสิตทั้งหมด, "group:<id>" = เฉพาะกลุ่มนั้น
     const [scope, setScope] = useState(null);
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
     const [faculties, setFaculties] = useState([]);
     const [showAddGroup, setShowAddGroup] = useState(false);
-
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [sort, setSort] = useState({ key: "integrity_points", dir: "desc" });
-
-    // แถวที่เปิดดูรายละเอียด + cache ข้อมูลที่โหลดแล้ว
     const [expandedId, setExpandedId] = useState(null);
     const [details, setDetails] = useState({});
+    const [breakdownView, setBreakdownView] = useState(null);
+    const [studentToDelete, setStudentToDelete] = useState(null);
+    const [deletingStudent, setDeletingStudent] = useState(false);
+    const [deleteStudentError, setDeleteStudentError] = useState("");
 
     const toggleRow = (userId) => {
         const opening = expandedId !== userId;
@@ -932,19 +527,11 @@ export default function TeacherPage() {
             );
     };
 
-    // --------------------------------------------------------
-    // คณะ/สาขา (ใช้ตอนเปิด popup เพิ่มกลุ่ม)
-    // --------------------------------------------------------
-
     useEffect(() => {
         getFaculties()
             .then(setFaculties)
             .catch((err) => console.log(err));
     }, []);
-
-    // --------------------------------------------------------
-    // โหลดข้อมูล (โหลดใหม่เมื่อเปลี่ยนขอบเขต)
-    // --------------------------------------------------------
 
     useEffect(() => {
         if (!localStorage.getItem("token")) {
@@ -960,11 +547,10 @@ export default function TeacherPage() {
             .then((result) => {
                 if (!isMounted) return;
                 setData(result);
-                // ครั้งแรกที่ยังไม่ได้เลือก scope เอง → ใช้ค่าเริ่มต้นจาก backend
-                // (กลุ่มแรกของอาจารย์) มาไฮไลท์ปุ่มให้ตรงกัน
                 if (!scope) setScope(result.scope);
                 setExpandedId(null);
                 setDetails({});
+                setBreakdownView(null);
             })
             .catch((err) => {
                 console.error("Load teacher dashboard error:", err);
@@ -977,7 +563,6 @@ export default function TeacherPage() {
                     return;
                 }
 
-                // 403 = ไม่ใช่อาจารย์ → กลับหน้าแผนที่
                 if (err.status === 403) {
                     navigate("/map", { replace: true });
                     return;
@@ -1004,10 +589,6 @@ export default function TeacherPage() {
         setShowAddGroup(false);
         setScope(`group:${newGroup.group_id}`);
     };
-
-    // --------------------------------------------------------
-    // เมนูสามจุด → "ลบกลุ่มนี้" (แสดงเฉพาะตอนเลือกดูกลุ่มใดกลุ่มหนึ่งอยู่)
-    // --------------------------------------------------------
 
     const [groupMenuOpen, setGroupMenuOpen] = useState(false);
     const [deletingGroup, setDeletingGroup] = useState(false);
@@ -1047,9 +628,34 @@ export default function TeacherPage() {
         }
     };
 
-    // --------------------------------------------------------
-    // กรอง + เรียง
-    // --------------------------------------------------------
+    const handleConfirmDeleteStudent = async () => {
+        if (!studentToDelete) return;
+
+        setDeletingStudent(true);
+        setDeleteStudentError("");
+
+        try {
+            await deleteStudent(studentToDelete.user_id);
+
+            // ตัดนิสิตที่ลบแล้วออกจากรายการที่แสดงอยู่ทันที โดยไม่ต้องรอโหลดใหม่ทั้งหน้า
+            setData((prev) =>
+                prev
+                    ? {
+                        ...prev,
+                        students: prev.students.filter(
+                            (s) => s.user_id !== studentToDelete.user_id
+                        ),
+                    }
+                    : prev
+            );
+            setExpandedId((prev) => (prev === studentToDelete.user_id ? null : prev));
+            setStudentToDelete(null);
+        } catch (err) {
+            setDeleteStudentError(err.message || "ลบข้อมูลนิสิตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+        } finally {
+            setDeletingStudent(false);
+        }
+    };
 
     const visibleRows = useMemo(() => {
         const keyword = search.trim().toLowerCase();
@@ -1092,10 +698,6 @@ export default function TeacherPage() {
                 : { key, dir: key === "name" || key === "major_name" ? "asc" : "desc" }
         );
 
-    // --------------------------------------------------------
-    // Logout
-    // --------------------------------------------------------
-
     const handleLogout = async () => {
         const token = localStorage.getItem("token");
 
@@ -1120,9 +722,12 @@ export default function TeacherPage() {
             ? summary.avg_post_test - summary.avg_pre_test
             : null;
 
-    // ========================================================
-    // UI
-    // ========================================================
+    const gainLabel = (g) => {
+        if (g === null || g === undefined) return "";
+        if (g < 0.3) return "พัฒนาการต่ำ (Low gain)";
+        if (g < 0.7) return "พัฒนาการปานกลาง (Medium gain)";
+        return "พัฒนาการสูง (High gain)";
+    };
 
     return (
         <div
@@ -1132,7 +737,6 @@ export default function TeacherPage() {
                 backgroundAttachment: "fixed",
             }}
         >
-            {/* ================= TOP BAR ================= */}
             <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/90 backdrop-blur">
                 <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3">
                     <div>
@@ -1176,7 +780,6 @@ export default function TeacherPage() {
             </header>
 
             <main className="mx-auto my-6 w-[calc(100%-2rem)] max-w-7xl space-y-6 rounded-3xl border border-white/50 bg-white/30 p-6 shadow-xl backdrop-blur-md">
-                {/* ================= SCOPE ================= */}
                 <div className="space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex flex-wrap items-center gap-2">
@@ -1221,9 +824,6 @@ export default function TeacherPage() {
                             <span className="text-sm text-gray-400">กำลังโหลด...</span>
                         )}
                     </div>
-
-                    {/* บรรทัดถัดมา: เงื่อนไขของกลุ่มที่เลือกอยู่ (คณะ/สาขา/ชั้นปี/รายละเอียด)
-                        + เมนูสามจุดมุมขวาสำหรับลบกลุ่มนี้ */}
                     {activeGroup && (
                         <div className="flex items-start justify-between gap-3 rounded-xl bg-white/60 px-3 py-2">
                             <p className="text-sm text-gray-600">
@@ -1294,7 +894,7 @@ export default function TeacherPage() {
                                 sub={`เล่นครบทุกด่าน ${summary.completed_all} คน`}
                             />
                             <PairStatCard
-                                label="ทำ Pre / Post-Test"
+                                label="ทำแบบประเมินตนเอง"
                                 items={[
                                     { label: "Pre-test", value: summary.pre_test_done },
                                     { label: "Post-test", value: summary.post_test_done },
@@ -1302,7 +902,7 @@ export default function TeacherPage() {
                                 sub="จำนวนคน"
                             />
                             <StatCard
-                                label="Progress เฉลี่ย"
+                                label="ความคืบหน้าเฉลี่ย"
                                 value={`${summary.avg_progress}%`}
                                 sub="ภาพรวมทุกบท"
                             />
@@ -1318,12 +918,16 @@ export default function TeacherPage() {
                         {/* ================= PRE vs POST ================= */}
                         <section className="grid gap-4 lg:grid-cols-3">
                             <div className="rounded-2xl bg-white p-6 shadow-sm lg:col-span-2">
-                                <h2 className="text-lg font-semibold text-gray-800">
-                                    ผลประเมินตนเอง ก่อน - หลังเล่น
-                                </h2>
+                                <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                                    <h2 className="text-lg font-semibold text-gray-800">
+                                        ผลประเมินตนเอง ก่อน - หลังเล่น
+                                    </h2>
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+                                        จำนวน {summary.paired_count}/{summary.total_students} คน
+                                    </span>
+                                </div>
                                 <p className="mb-5 text-xs text-gray-400">
-                                    เฉลี่ยจากนิสิตที่ทำครบทั้ง Pre-Test และ Post-Test ({summary.paired_count} คน)
-                                    · ข้อเชิงลบกลับคะแนนแล้ว
+                                    เฉลี่ยจากนิสิตที่ทำครบทั้ง Pre-Test และ Post-Test
                                 </p>
 
                                 {summary.paired_count === 0 ? (
@@ -1331,10 +935,74 @@ export default function TeacherPage() {
                                         ยังไม่มีนิสิตที่ทำ Post-Test
                                     </p>
                                 ) : (
-                                    <div className="space-y-4">
-                                        <CompareBar label="Pre-Test" value={summary.avg_pre_test} color="bg-gray-400" />
-                                        <CompareBar label="Post-Test" value={summary.avg_post_test} color="bg-emerald-500" />
-                                    </div>
+                                    <>
+                                        <div className="space-y-4">
+                                            <CompareBar label="Pre-Test" value={summary.avg_pre_test} color="bg-gray-400" />
+                                            <CompareBar label="Post-Test" value={summary.avg_post_test} color="bg-emerald-500" />
+                                        </div>
+                                        <div className="mt-5 flex flex-wrap gap-2">
+                                            {Object.entries(BREAKDOWN_META).map(([key, meta]) => {
+                                                const list = summary.paired_breakdown?.[key] || [];
+                                                const Icon = meta.icon;
+                                                const active = breakdownView === key;
+
+                                                return (
+                                                    <button
+                                                        key={key}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setBreakdownView((prev) => (prev === key ? null : key))
+                                                        }
+                                                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${meta.badgeClass
+                                                            } ${active ? `ring-2 ${meta.ringClass}` : "hover:opacity-75"}`}
+                                                    >
+                                                        <Icon />
+                                                        {meta.label} {list.length} คน
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* รายชื่อของกลุ่มที่เลือกดู */}
+                                        {breakdownView && (
+                                            <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3">
+                                                {(summary.paired_breakdown?.[breakdownView] || []).length === 0 ? (
+                                                    <p className="py-2 text-center text-xs text-gray-400">
+                                                        ไม่มีนิสิตในกลุ่มนี้
+                                                    </p>
+                                                ) : (
+                                                    <ul className="divide-y divide-gray-100">
+                                                        {[...summary.paired_breakdown[breakdownView]]
+                                                            .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
+                                                            .map((s) => (
+                                                                <li
+                                                                    key={s.user_id}
+                                                                    className="flex items-center justify-between gap-3 py-1.5 text-sm"
+                                                                >
+                                                                    <span className="text-gray-700">{s.name}</span>
+                                                                    <span className="flex shrink-0 items-center gap-2 text-xs">
+                                                                        <span className="text-gray-400">
+                                                                            {s.pre_test}% → {s.post_test}%
+                                                                        </span>
+                                                                        <span
+                                                                            className={`font-semibold ${s.diff > 0
+                                                                                ? "text-emerald-600"
+                                                                                : s.diff < 0
+                                                                                    ? "text-red-500"
+                                                                                    : "text-gray-400"
+                                                                                }`}
+                                                                        >
+                                                                            {s.diff > 0 ? "+" : ""}
+                                                                            {s.diff}%
+                                                                        </span>
+                                                                    </span>
+                                                                </li>
+                                                            ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
 
@@ -1350,11 +1018,20 @@ export default function TeacherPage() {
                                 >
                                     {gain === null ? "-" : `${gain > 0 ? "+" : ""}${gain}%`}
                                 </p>
-                                <p className="mt-2 text-xs text-gray-400">Post-Test เทียบกับ Pre-Test</p>
+                                <p className="mt-2 text-md text-gray-800">
+                                    หลังเล่นเทียบกับก่อนเล่น <br />
+                                    {summary.normalized_gain !== null &&
+                                        summary.normalized_gain !== undefined &&
+                                        ` ${gainLabel(summary.normalized_gain)}`}
+                                </p>
+                                {summary.normalized_gain !== null &&
+                                    summary.normalized_gain !== undefined && (
+                                        <p className="mt-0.5 text-sm text-gray-600">
+                                            g = {summary.normalized_gain.toFixed(2)} (Normalized Gain, Hake 1998)
+                                        </p>
+                                    )}
                             </div>
                         </section>
-
-                        {/* ================= ตารางนิสิต ================= */}
                         <section className="rounded-2xl bg-white shadow-sm">
                             <div className="flex flex-wrap items-center gap-3 border-b border-gray-100 p-4">
                                 <h2 className="mr-auto text-lg font-semibold text-gray-800">
@@ -1413,13 +1090,16 @@ export default function TeacherPage() {
                                                     </span>
                                                 </th>
                                             ))}
+                                            <th className="whitespace-nowrap px-4 py-3 text-center font-medium">
+                                                ลบ
+                                            </th>
                                         </tr>
                                     </thead>
 
                                     <tbody>
                                         {visibleRows.length === 0 && (
                                             <tr>
-                                                <td colSpan={COLUMNS.length} className="py-12 text-center text-gray-400">
+                                                <td colSpan={COLUMNS.length + 1} className="py-12 text-center text-gray-400">
                                                     ไม่พบนิสิตตามเงื่อนไข
                                                 </td>
                                             </tr>
@@ -1498,11 +1178,29 @@ export default function TeacherPage() {
                                                                 </p>
                                                             )}
                                                         </td>
+                                                        <td className="px-4 py-3 text-center">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setDeleteStudentError("");
+                                                                    setStudentToDelete({
+                                                                        user_id: s.user_id,
+                                                                        name: fullName(s),
+                                                                    });
+                                                                }}
+                                                                className="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+                                                                aria-label={`ลบข้อมูลของ ${fullName(s)}`}
+                                                                title="ลบนิสิตรายนี้"
+                                                            >
+                                                                <FiTrash2 size={16} />
+                                                            </button>
+                                                        </td>
                                                     </tr>
 
                                                     {/* แถวรายละเอียด: สไลด์ลงมาเมื่อกด */}
                                                     <tr>
-                                                        <td colSpan={COLUMNS.length} className="p-0">
+                                                        <td colSpan={COLUMNS.length + 1} className="p-0">
                                                             <div
                                                                 className={`grid transition-all duration-300 ease-out ${isOpen
                                                                     ? "grid-rows-[1fr] opacity-100"
@@ -1539,6 +1237,16 @@ export default function TeacherPage() {
                     faculties={faculties}
                     onClose={() => setShowAddGroup(false)}
                     onAdded={handleGroupAdded}
+                />
+            )}
+
+            {studentToDelete && (
+                <DeleteStudentModal
+                    student={studentToDelete}
+                    deleting={deletingStudent}
+                    error={deleteStudentError}
+                    onClose={() => !deletingStudent && setStudentToDelete(null)}
+                    onConfirm={handleConfirmDeleteStudent}
                 />
             )}
         </div>

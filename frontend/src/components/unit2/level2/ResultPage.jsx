@@ -134,7 +134,7 @@ export default function ResultPage({
 
     if (!result || !resultText) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black sarabun-bold">
+            <div className="min-h-dvh flex items-center justify-center bg-black sarabun-bold">
                 <p className="text-xl text-white">
                     {messageError
                         ? "ไม่สามารถโหลดข้อมูลผลลัพธ์ได้"
@@ -146,7 +146,7 @@ export default function ResultPage({
 
     return (
         <div
-            className="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden sarabun-bold bg-cover bg-center bg-no-repeat"
+            className="min-h-dvh flex items-center justify-center px-4 py-8 relative overflow-hidden sarabun-bold bg-cover bg-center bg-no-repeat"
             style={{
                 backgroundImage: `url(${BackgroundImg})`,
                 backgroundSize: "cover",

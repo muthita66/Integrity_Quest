@@ -1,29 +1,10 @@
 const prisma = require("../lib/prisma");
 const gamePlayService = require("../services/gamePlayService");
 const { buildOverview } = require("./profileController");
-
-// ============================================================
-// Teacher Dashboard API
-// ------------------------------------------------------------
-// GET /api/teacher/dashboard?scope=all|group:<group_id>
-//
-// scope = group:<id> → เฉพาะนิสิตที่ตรงเงื่อนไขของกลุ่มนั้น (ค่าเริ่มต้น
-//                        ถ้าไม่ระบุ scope มา จะใช้กลุ่มแรกของอาจารย์)
-// scope = all        → นิสิตทั้งหมด
-//
-// ทุก route ต้องผ่าน authenticateToken + requireTeacher
-// ============================================================
-
 const PASSED_STATUSES = ["PASS", "PERFECT"];
 const STUDENT_ROLE_ID = 1;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// ------------------------------------------------------------
-// Pre/Post-Test เป็นแบบประเมินตนเอง 1–5 (ไม่มีถูก/ผิด)
-// ข้อที่เป็น "พฤติกรรมเชิงลบ" ต้องกลับคะแนน (5 → 1, 4 → 2, ...)
-// จับจากข้อความคำถาม เพื่อให้ใช้ได้ทั้ง pre_test และ post_test
-// ถ้ามีข้อเชิงลบเพิ่ม ให้เพิ่มคำในรายการนี้
-// ------------------------------------------------------------
 const REVERSE_KEYWORDS = ["ตามอารมณ์", "โดยไม่จำเป็น"];
 
 const isReverseItem = (questionText = "") =>
@@ -49,9 +30,11 @@ const average = (values) => {
     return Math.round(list.reduce((sum, v) => sum + v, 0) / list.length);
 };
 
-// ============================================================
-// Middleware: อนุญาตเฉพาะอาจารย์ (เช็กจาก DB ไม่เชื่อ token อย่างเดียว)
-// ============================================================
+const normalizedGain = (pre, post) => {
+    if (pre === null || post === null) return null;
+    if (pre >= 100) return post >= 100 ? 0 : null; // ไม่เหลือช่องว่างให้พัฒนาแล้ว
+    return (post - pre) / (100 - pre);
+};
 
 exports.requireTeacher = async (req, res, next) => {
     try {
@@ -80,17 +63,9 @@ exports.requireTeacher = async (req, res, next) => {
     }
 };
 
-// ============================================================
-// GET /api/teacher/dashboard
-// ============================================================
-
 exports.getDashboard = async (req, res) => {
     try {
         const teacher = req.teacher;
-
-        // --------------------------------------------------------
-        // 1. ข้อมูลอาจารย์ + คณะ
-        // --------------------------------------------------------
 
         const department = teacher.dept_id
             ? await prisma.departments.findUnique({
@@ -112,16 +87,6 @@ exports.getDashboard = async (req, res) => {
 
         const facultyById = new Map(faculties.map((f) => [f.faculty_id, f]));
         const majorById = new Map(majors.map((m) => [m.major_id, m]));
-
-        // --------------------------------------------------------
-        // 2. กลุ่มนักเรียนที่อาจารย์คนนี้ดูแล + เลือก scope ที่ใช้งานอยู่
-        // ------------------------------------------------------------
-        // scope: "all" (นิสิตทั้งหมด) หรือ "group:<group_id>" (เฉพาะกลุ่มนั้น)
-        // ค่าเริ่มต้น = กลุ่มแรกของอาจารย์ (ไม่ใช่ "all" อีกต่อไป เพราะอาจารย์
-        // ต้องเห็นเฉพาะนิสิตในกลุ่มที่ตัวเองรับผิดชอบเป็นค่าเริ่มต้น) — ถ้า
-        // อาจารย์เก่ายังไม่มีกลุ่มเลย (ข้อมูลก่อนฟีเจอร์นี้) ค่อย fallback เป็น all
-        // --------------------------------------------------------
-
         const teacherGroupRows = await prisma.teacher_student_groups.findMany({
             where: { teacher_id: teacher.teacher_id },
             orderBy: { group_id: "asc" },
@@ -148,15 +113,6 @@ exports.getDashboard = async (req, res) => {
                 : null;
 
         const scope = activeGroup ? `group:${activeGroup.group_id}` : "all";
-
-        // --------------------------------------------------------
-        // 3. นิสิตตามกลุ่มที่เลือก
-        // ------------------------------------------------------------
-        // ไม่มีช่องไหนระบุในกลุ่ม (เว้นว่าง) = ทุกค่าของช่องนั้น
-        // เลือก "นิสิตทั้งหมด" (activeGroup = null) = รวมนิสิตของ "ทุกกลุ่ม
-        // ที่อาจารย์คนนี้ดูแล" เท่านั้น (ไม่ใช่นิสิตทั้งระบบ) — ถ้าอาจารย์
-        // ดูแลหลายกลุ่ม จะ union เงื่อนไขของทุกกลุ่มเข้าด้วยกันแบบ OR
-        // --------------------------------------------------------
 
         // เงื่อนไข Prisma where สำหรับนิสิตที่ตรงกับกลุ่มเดียว
         const buildGroupWhere = (group) => {
@@ -199,11 +155,6 @@ exports.getDashboard = async (req, res) => {
         });
 
         const userIds = students.map((s) => s.user_id);
-
-        // --------------------------------------------------------
-        // 4. ดึงข้อมูลประกอบทั้งหมดแบบ batch (ไม่ query ทีละคน)
-        // --------------------------------------------------------
-
         const [
             users,
             stats,
@@ -331,10 +282,6 @@ exports.getDashboard = async (req, res) => {
         const toPercent = (entry) =>
             entry && entry.max ? Math.round((entry.score / entry.max) * 100) : null;
 
-        // --------------------------------------------------------
-        // 5. แถวของนิสิตแต่ละคน
-        // --------------------------------------------------------
-
         const today = todayInBangkok();
 
         const rows = students
@@ -350,15 +297,11 @@ exports.getDashboard = async (req, res) => {
 
                 const lastLoginKey = toDateKey(stat?.last_login_date);
                 const session = sessionByUser.get(student.user_id);
-
-                // ใช้งานล่าสุด (มีเวลา) = ล่าสุดระหว่าง heartbeat กับเล่นจบด่าน
                 const lastActiveAt =
                     [session?._max.last_seen_at, play?._max.completed_at]
                         .filter(Boolean)
                         .map((d) => new Date(d))
                         .sort((a, b) => b - a)[0] || null;
-
-                // วันที่ใช้งานล่าสุด (ตามเวลาไทย) — ถ้าไม่มีเลยใช้วันที่ login
                 const lastActiveKey = lastActiveAt
                     ? [toBangkokKey(lastActiveAt), lastLoginKey]
                         .filter(Boolean)
@@ -409,18 +352,33 @@ exports.getDashboard = async (req, res) => {
             })
             .sort((a, b) => b.integrity_points - a.integrity_points);
 
-        // --------------------------------------------------------
-        // 6. สรุปภาพรวม
-        // --------------------------------------------------------
-
         const activeIn7Days = rows.filter(
             (r) => r.last_active && daysBetween(r.last_active, today) <= 6
         ).length;
 
-        // เทียบ Pre/Post เฉพาะคนที่ทำครบทั้ง 2 ครั้ง (paired)
         const paired = rows.filter(
             (r) => r.pre_test !== null && r.post_test !== null
         );
+
+        const pairedBreakdown = { improved: [], same: [], declined: [] };
+
+        paired.forEach((r) => {
+            const diff = r.post_test - r.pre_test;
+            const entry = {
+                user_id: r.user_id,
+                name: `${r.first_name || ""} ${r.last_name || ""}`.trim() || r.username,
+                pre_test: r.pre_test,
+                post_test: r.post_test,
+                diff,
+            };
+
+            if (diff > 0) pairedBreakdown.improved.push(entry);
+            else if (diff < 0) pairedBreakdown.declined.push(entry);
+            else pairedBreakdown.same.push(entry);
+        });
+
+        const avgPreTest = average(paired.map((r) => r.pre_test));
+        const avgPostTest = average(paired.map((r) => r.post_test));
 
         const summary = {
             total_students: rows.length,
@@ -432,8 +390,10 @@ exports.getDashboard = async (req, res) => {
             avg_time_spent: average(rows.map((r) => r.time_spent)) ?? 0,
             avg_integrity_points: average(rows.map((r) => r.integrity_points)) ?? 0,
             paired_count: paired.length,
-            avg_pre_test: average(paired.map((r) => r.pre_test)),
-            avg_post_test: average(paired.map((r) => r.post_test)),
+            avg_pre_test: avgPreTest,
+            avg_post_test: avgPostTest,
+            normalized_gain: normalizedGain(avgPreTest, avgPostTest),
+            paired_breakdown: pairedBreakdown,
         };
 
         return res.json({
@@ -457,13 +417,6 @@ exports.getDashboard = async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 };
-
-// ============================================================
-// POST /api/teacher/groups
-// ------------------------------------------------------------
-// เพิ่มกลุ่มนักเรียนที่อาจารย์คนนี้ดูแล (ปุ่ม "+ เพิ่มกลุ่ม" บนแดชบอร์ด)
-// เว้นว่างช่องไหน = ทุกค่าของช่องนั้น แต่ต้องมีอย่างน้อย 1 เงื่อนไข/รายละเอียด
-// ============================================================
 
 exports.addGroup = async (req, res) => {
     try {
@@ -496,13 +449,6 @@ exports.addGroup = async (req, res) => {
     }
 };
 
-// ============================================================
-// DELETE /api/teacher/groups/:id
-// ------------------------------------------------------------
-// ลบกลุ่มนักเรียนที่อาจารย์ดูแล (ปุ่มสามจุด → "ลบกลุ่มนี้" บนแดชบอร์ด)
-// เช็กว่ากลุ่มนั้นเป็นของอาจารย์คนที่ login อยู่จริงก่อนลบ
-// ============================================================
-
 exports.deleteGroup = async (req, res) => {
     try {
         const teacher = req.teacher;
@@ -530,14 +476,106 @@ exports.deleteGroup = async (req, res) => {
     }
 };
 
-// ============================================================
-// เวลาใช้งานของนิสิต 1 คน (จาก user_sessions)
-// ------------------------------------------------------------
-// total / วันนี้ / 7 วันล่าสุด (นาที) + รอบการใช้งานย้อนหลัง
-// ============================================================
+exports.deleteStudent = async (req, res) => {
+    try {
+        const teacher = req.teacher;
+        const userId = Number(req.params.userId);
 
-// ส่งรอบการใช้งานย้อนหลังให้หน้าเว็บกรองเอง (วันนี้ / 7 วัน / 30 วัน / ทั้งหมด)
-// จำกัดไว้กันข้อมูลใหญ่เกิน — นิสิต 1 คนมีไม่ถึงหลักร้อยรอบในเทอมเดียว
+        if (!Number.isInteger(userId)) {
+            return res.status(400).json({ message: "รหัสนิสิตไม่ถูกต้อง" });
+        }
+
+        const student = await prisma.students.findFirst({
+            where: { user_id: userId },
+            select: { user_id: true, major_id: true, entry_year: true },
+        });
+
+        if (!student) {
+            return res.status(404).json({ message: "ไม่พบนิสิตรายนี้" });
+        }
+
+        const [teacherGroupRows, majors] = await Promise.all([
+            prisma.teacher_student_groups.findMany({
+                where: { teacher_id: teacher.teacher_id },
+            }),
+            prisma.majors.findMany({ select: { major_id: true, faculty_id: true } }),
+        ]);
+
+        if (teacherGroupRows.length > 0) {
+            const groupMatchesStudent = (group) => {
+                const majorIds = majors
+                    .filter((m) => {
+                        if (group.faculty_id && m.faculty_id !== group.faculty_id) {
+                            return false;
+                        }
+                        if (group.major_id && m.major_id !== group.major_id) {
+                            return false;
+                        }
+                        return true;
+                    })
+                    .map((m) => m.major_id);
+
+                if (!majorIds.includes(student.major_id)) return false;
+                if (group.year && student.entry_year !== group.year) return false;
+                return true;
+            };
+
+            const belongsToSomeGroup = teacherGroupRows.some(groupMatchesStudent);
+
+            if (!belongsToSomeGroup) {
+                return res.status(403).json({
+                    message: "ไม่มีสิทธิ์ลบนิสิตรายนี้ เนื่องจากไม่อยู่ในกลุ่มที่ท่านดูแล",
+                });
+            }
+        }
+
+        await prisma.$transaction(async (tx) => {
+            const plays = await tx.game_play_history.findMany({
+                where: { user_id: userId },
+                select: { play_id: true },
+            });
+            const playIds = plays.map((p) => p.play_id);
+
+            if (playIds.length > 0) {
+                const attempts = await tx.game_play_case_attempts.findMany({
+                    where: { play_id: { in: playIds } },
+                    select: { attempt_id: true },
+                });
+                const attemptIds = attempts.map((a) => a.attempt_id);
+
+                if (attemptIds.length > 0) {
+                    await tx.game_play_items.deleteMany({
+                        where: { attempt_id: { in: attemptIds } },
+                    });
+                }
+
+                await tx.game_play_case_attempts.deleteMany({
+                    where: { play_id: { in: playIds } },
+                });
+                await tx.game_play_answers.deleteMany({
+                    where: { play_id: { in: playIds } },
+                });
+                await tx.game_play_bubbles.deleteMany({
+                    where: { play_id: { in: playIds } },
+                });
+            }
+
+            await tx.game_play_history.deleteMany({ where: { user_id: userId } });
+            await tx.feedback.deleteMany({ where: { user_id: userId } });
+            await tx.user_earned_rewards.deleteMany({ where: { user_id: userId } });
+            await tx.user_quiz_answers.deleteMany({ where: { user_id: userId } });
+            await tx.user_stats.deleteMany({ where: { user_id: userId } });
+            await tx.students.deleteMany({ where: { user_id: userId } });
+            await tx.users.deleteMany({ where: { id: userId } });
+        });
+
+        return res.json({ message: "ลบข้อมูลนิสิตสำเร็จ" });
+    } catch (error) {
+        console.error("Delete student error:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
 const RECENT_SESSIONS = 500;
 
 const getStudentActivity = async (userId) => {
@@ -588,13 +626,6 @@ const getStudentActivity = async (userId) => {
     };
 };
 
-// ============================================================
-// GET /api/teacher/students/:id/progress
-// ------------------------------------------------------------
-// รายละเอียดรายบท/รายด่านของนิสิต 1 คน
-// (ข้อมูลชุดเดียวกับหน้า "ความคืบหน้าของฉัน" ของนิสิต)
-// ============================================================
-
 exports.getStudentProgress = async (req, res) => {
     try {
         const studentUserId = Number(req.params.id);
@@ -624,19 +655,6 @@ exports.getStudentProgress = async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 };
-
-// ============================================================
-// GET /api/teacher/students/:id/levels/:levelId/latest
-// ------------------------------------------------------------
-// คำตอบของนิสิตใน "รอบล่าสุดที่เล่นจบ" ของด่านนั้น
-//
-// ไม่ผูกกับ level_id: ดึงจากทุกตารางลูกของ game_play_history
-// แล้วส่งเฉพาะส่วนที่มีข้อมูล (ด่านใหม่ เช่น Unit 4 ใช้ได้เลย
-// ถ้าเก็บคำตอบลงตารางเดิมเหล่านี้)
-//
-// รูปแบบแถว (ใช้ร่วมกันทุกส่วน):
-//   { title, answer, correct_answer, is_correct (true/false/null), note }
-// ============================================================
 
 const NEED_WANT_LABEL = { need: "จำเป็น (Need)", want: "อยากได้ (Want)" };
 
@@ -1011,8 +1029,6 @@ const buildTreasurerSections = async (playId) => {
 };
 
 // ---------- Slip Hunt (Unit 4 Level 1) ----------
-// ตาราง game_play_slip_hunt / slip_details ใช้ SQL ตรง (อาจยังไม่อยู่ใน
-// schema.prisma) — ถ้าตารางไม่มีจะข้ามส่วนนี้ไปเฉย ๆ
 const SLIP_CHOICE_LABEL = { real: "สลิปจริง", fake: "สลิปปลอม" };
 
 const buildSlipHuntSection = async (playId) => {
@@ -1051,8 +1067,6 @@ const buildSlipHuntSection = async (playId) => {
 };
 
 // ---------- Slot (Unit 4 Level 2 : กับดักพนัน) ----------
-// ไม่มีถูก/ผิด — แสดงพฤติกรรมการเดิมพันแต่ละครั้ง
-// (เพิ่มเดิมพันหลังชนะ = ติดเหยื่อล่อ / เพิ่มหลังแพ้ = ไล่เอาทุนคืน)
 const buildSlotSection = async (playId) => {
     try {
         const rows = await prisma.$queryRaw`
@@ -1105,7 +1119,6 @@ const buildSlotSection = async (playId) => {
 };
 
 // ---------- Word Clue (Unit 5 Level 1 : ตามหาคำจากคำใบ้) ----------
-// 1 แถวต่อ 1 คำ: คำที่พิมพ์ผิดทั้งหมด + ตอบถูกในครั้งที่เท่าไร
 const buildWordSection = async (playId) => {
     try {
         const rows = await prisma.$queryRaw`
@@ -1294,9 +1307,6 @@ const buildCrisisSection = async (playId) => {
 };
 
 // ---------- ShadowMirror (Unit 6 Level 3 : กระจกสะท้อนใจ) ----------
-// คำถามปลายเปิด วิเคราะห์ด้วย AI (Gemini) ไม่มีถูก/ผิด ไม่มี IP ผูกอยู่
-// (ดูหมายเหตุใน services/gamePlayService.js + controllers/reflectController.js)
-// แสดงคำตอบดิบ 6 ข้อ + คะแนน 4 trait + สรุปจาก AI ให้อาจารย์ดูอย่างเดียว
 const SHADOW_MIRROR_TRAIT_LABEL = {
     logic: "Logic · ตรรกะ",
     empathy: "Empathy · ความเห็นใจ",

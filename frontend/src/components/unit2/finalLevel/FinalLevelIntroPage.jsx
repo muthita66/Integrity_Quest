@@ -72,7 +72,7 @@ export default function FinalLevelIntroPage({ startMission, initialStep = 0 }) {
 
 
     return (
-        <main className="mirror-scene min-h-screen relative overflow-hidden">
+        <main className="mirror-scene min-h-dvh relative overflow-hidden">
             <section className="relative z-20 flex items-start justify-center">
                 <div className="w-full">
                     {!loading && sceneData.length > 0 && (

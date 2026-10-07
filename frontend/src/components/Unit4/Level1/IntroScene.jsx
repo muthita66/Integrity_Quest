@@ -9,9 +9,6 @@ import jane from "../../../assets/unit4/senior-detective.png";
 import "../../../styles/theme.css";
 import "./level1.css";
 
-// ✅ userId ไม่ต้องส่งเอง — backend อ่านจาก token (authMiddleware → req.user.id)
-// ⚠️ ถ้าโปรเจกต์เก็บ token ด้วย key อื่น หรือมี api helper อยู่แล้ว (เช่น axios instance
-//    ที่ Unit 1–3 ใช้) ให้เปลี่ยนมาใช้ตัวนั้นแทน
 const API_BASE = "http://localhost:5000";
 const SLIP_HUNT_LEVEL_ID = 11;
 const getToken = () => localStorage.getItem("token");
@@ -29,7 +26,7 @@ export default function IntroScene() {
     const [index, setIndex] = useState(0);
     const [text, setText] = useState("");
     const [typing, setTyping] = useState(true);
-    const [creatingSession, setCreatingSession] = useState(false); // ✅ loading state
+    const [creatingSession, setCreatingSession] = useState(false);
     const timer = useRef(null);
 
     useEffect(() => {
@@ -50,7 +47,6 @@ export default function IntroScene() {
         return () => clearInterval(timer.current);
     }, [index]);
 
-    // ✅ เริ่มเกม (POST /api/game-play/start) เมื่อ user คลิก "เริ่มตรวจสลิป"
     const startGame = async () => {
         try {
             setCreatingSession(true);
@@ -73,7 +69,6 @@ export default function IntroScene() {
                 return;
             }
 
-            // ✅ ได้ play_id กลับมา -> ไปหน้า Game พร้อม playId
             const playId = result.data.play_id;
             navigate(`/unit4/level1/game?playId=${playId}`);
         } catch (error) {
@@ -83,7 +78,6 @@ export default function IntroScene() {
         }
     };
 
-    // กดครั้งแรกระหว่างพิมพ์ = แสดงข้อความทั้งบรรทัดทันที ไม่ต้องรอ
     const advance = () => {
         if (typing) {
             clearInterval(timer.current);
@@ -94,7 +88,6 @@ export default function IntroScene() {
         if (index < DIALOGS.length - 1) {
             setIndex(index + 1);
         } else {
-            // ✅ เมื่อบรรทัดสุดท้าย คลิกปุ่ม -> สร้าง game session
             startGame();
         }
     };
@@ -193,7 +186,7 @@ export default function IntroScene() {
                             type="button"
                             className="primary-btn"
                             onClick={advance}
-                            disabled={creatingSession} // ✅ disable ขณะสร้าง session
+                            disabled={creatingSession}
                         >
                             {creatingSession ? (
                                 "กำลังสร้างเกม..."

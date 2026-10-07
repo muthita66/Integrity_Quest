@@ -22,17 +22,17 @@ export default function BudgetPanel({
         rounded-[28px]
         shadow-[7px_8px_0_rgba(70,38,15,.2),0_12px_26px_rgba(50,25,8,.2)]
         backdrop-blur-sm
-        p-6
+        p-6 [@media(max-height:820px)]:p-4
         flex
         flex-col
-        gap-4
+        gap-4 [@media(max-height:820px)]:gap-3
       "
     >
       {/* Header */}
       <div className="flex items-center gap-3">
         <MdOutlineAttachMoney
           size={38}
-          className="text-yellow-600"
+          className="shrink-0 text-yellow-600"
         />
 
         <div>
@@ -47,20 +47,20 @@ export default function BudgetPanel({
       </div>
 
       {/* งบคงเหลือ */}
-      <div className="bg-white/70 rounded-2xl p-5 border-2 border-[#d8b77c] shadow-inner">
+      <div className="bg-white/70 rounded-2xl p-5 [@media(max-height:820px)]:p-3 border-2 border-[#d8b77c] shadow-inner">
         <div className="text-sm text-gray-600">
           งบประมาณคงเหลือ
         </div>
 
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-2 [@media(max-height:820px)]:mt-1 flex items-center gap-2">
           <BsCoin
             size={26}
-            className="text-yellow-500"
+            className="shrink-0 text-yellow-500"
           />
 
           <span
             className={`
-              text-5xl
+              text-5xl [@media(max-height:820px)]:text-4xl
               font-black
               ${remainingBudget <= 20
                 ? "text-red-600"
@@ -113,12 +113,12 @@ export default function BudgetPanel({
         className="
           bg-[#fff0a8]
           rounded-2xl
-          p-4
+          p-4 [@media(max-height:820px)]:p-3
           border-2
           border-yellow-300
           shadow-[3px_4px_0_rgba(154,103,25,.16)]
-          text-sm
-          leading-6
+          text-sm [@media(max-height:820px)]:text-xs
+          leading-6 [@media(max-height:820px)]:leading-5
           text-[#5c4327]
         "
       >

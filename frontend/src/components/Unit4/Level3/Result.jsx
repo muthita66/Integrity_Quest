@@ -548,7 +548,7 @@ export default function ResultPage() {
                 <FaRedoAlt /> เล่นอีกครั้ง
               </button>
               <button className="btn home-btn" onClick={() => navigate("/unit4/book")}>
-                <FaBookOpen /> กลับสารบัญ
+                <FaBookOpen /> กลับหน้าหลัก
               </button>
             </div>
           </div>

@@ -5,7 +5,7 @@ export default function Background({ children }) {
         <main
             className="
                 relative
-                min-h-screen
+                min-h-dvh
                 overflow-hidden
                 bg-cover
                 bg-center
@@ -17,7 +17,7 @@ export default function Background({ children }) {
         >
             <div className="absolute inset-0 bg-black/40" />
 
-            <div className="relative min-h-screen">
+            <div className="relative min-h-dvh">
                 {children}
             </div>
         </main>

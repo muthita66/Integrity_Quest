@@ -93,7 +93,7 @@ export default function FinalLevelIntroPage() {
     };
 
     return (
-        <main className="relative min-h-screen overflow-hidden bg-black font-sara">
+        <main className="relative min-h-dvh overflow-hidden bg-black font-sara">
 
             {/* Skip Button */}
             <button

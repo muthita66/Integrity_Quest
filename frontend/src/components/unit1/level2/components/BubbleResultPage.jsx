@@ -144,7 +144,7 @@ export default function BubbleResultPage() {
 
     if (!resultText) {
         return (
-            <div className="h-screen w-screen flex items-center justify-center bg-black">
+            <div className="h-dvh w-screen flex items-center justify-center bg-black">
                 <p className="text-2xl sarabun-bold text-white">
                     {messageError
                         ? "ไม่สามารถโหลดข้อมูลผลลัพธ์ได้"
@@ -158,7 +158,7 @@ export default function BubbleResultPage() {
 
     return (
         <div
-            className="h-screen w-screen flex items-center justify-center bg-cover bg-center bg-fixed relative overflow-hidden sarabun-bold"
+            className="h-dvh w-screen flex items-center justify-center bg-cover bg-center bg-fixed relative overflow-hidden sarabun-bold"
             style={{ backgroundImage: `url(${bgGame})`, fontFamily: "'Sarabun', sans-serif" }}
         >
             <div

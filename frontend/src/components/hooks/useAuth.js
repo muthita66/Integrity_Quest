@@ -64,9 +64,6 @@ export default function useAuth() {
         }
     };
 
-    // ภาควิชาทั้งหมด — ดึงจาก endpoint แยก GET /api/auth/departments
-    // (API /faculties ไม่ได้ส่ง departments ซ้อนมาด้วย ของเดิมที่ derive จาก
-    // faculties.flatMap(...) เลยว่างตลอด ทำให้ dropdown ภาควิชาไม่ขึ้น)
     const fetchDepartments = async () => {
         try {
             const data = await getDepartments();
@@ -131,9 +128,6 @@ export default function useAuth() {
                 localStorage.setItem("user", JSON.stringify(res.user));
             }
 
-            // รางวัลความขยัน: ถ้าเพิ่งได้รับตอน Login นี้ เก็บไว้ชั่วคราว
-            // แล้วให้หน้า /map (MapPage) อ่านตอนเปิดหน้ามาแสดง popup
-            // (เก็บใน sessionStorage เพราะหลัง navigate หน้านี้จะ unmount ไปแล้ว)
             if (res.streakReward?.justEarned) {
                 sessionStorage.setItem(
                     "streakReward",
@@ -141,8 +135,6 @@ export default function useAuth() {
                 );
             }
 
-            // ใช้ role จาก backend เป็นหลัก (กันคนเลือกแท็บผิด)
-            // ถ้า backend ไม่ส่งมา ค่อยใช้แท็บที่เลือก
             const userRole = res.user?.role || res.role || role;
             const target = userRole === "teacher" ? "/teacher" : "/map";
 
@@ -166,8 +158,6 @@ export default function useAuth() {
             return;
         }
 
-        // อาจารย์ต้องเลือกอย่างน้อย 1 กลุ่มนักเรียนที่ดูแล (ไม่ให้เห็นนิสิต
-        // ทั้งหมดโดยไม่ได้ตั้งใจ)
         if (role === "teacher" && (registerData.studentGroups || []).length === 0) {
             showPopup("error", "กรุณาเพิ่มอย่างน้อย 1 กลุ่มนักเรียนที่จะดูแล");
             return;
@@ -185,9 +175,6 @@ export default function useAuth() {
             ...common
         } = registerData;
 
-        // ส่งเฉพาะช่องที่ตรงกับ role
-        // studentGroups: ส่งเฉพาะกลุ่มที่มีการเลือกอะไรจริง (ตัด key ภายในออก
-        // เพราะใช้แค่ฝั่ง React ไม่เกี่ยวกับ backend)
         const cleanedGroups = (studentGroups || []).map(
             ({ faculty, major: groupMajor, year: groupYear, note }) => ({
                 faculty: faculty || null,

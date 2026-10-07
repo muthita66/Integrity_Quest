@@ -1,11 +1,6 @@
-const prisma = require("../lib/prisma"); // ตรงกับ backend/src/lib/prisma.js ในโปรเจกต์คุณ
-
+const prisma = require("../lib/prisma");
 const VALID_QUIZ_TYPES = ["pre_test", "post_test"];
 
-/**
- * GET /api/quizzes?type=pre_test
- * ดึงคำถามทั้งหมดของ quiz_type ที่ระบุ เรียงตาม quiz_id
- */
 async function getQuizzes(req, res) {
     try {
         const { type } = req.query;
@@ -34,13 +29,6 @@ async function getQuizzes(req, res) {
     }
 }
 
-/**
- * POST /api/quiz-answers
- * body: { quiz_type: "pre_test" | "post_test", answers: [{ quiz_id: number, score: number }, ...] }
- * ต้องผ่าน auth middleware มาก่อน เพื่อให้มี req.user.id
- *
- * ทำได้ครั้งเดียวเท่านั้น: ถ้า user เคยทำ quiz_type นี้ไปแล้ว จะปฏิเสธด้วย 409
- */
 async function submitQuizAnswers(req, res) {
     try {
         const userId = req.user?.id;
@@ -110,11 +98,6 @@ async function submitQuizAnswers(req, res) {
     }
 }
 
-/**
- * GET /api/quiz-answers/status?type=pre_test
- * เช็คว่า user (จาก token) เคยทำ quiz_type นี้ไปแล้วหรือยัง
- * ต้องผ่าน auth middleware มาก่อน
- */
 async function checkQuizStatus(req, res) {
     try {
         const userId = req.user?.id;

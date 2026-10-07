@@ -1,18 +1,5 @@
 const prisma = require("../lib/prisma");
 const gamePlayService = require("../services/gamePlayService");
-
-// ============================================================
-// Slot Game (Unit 4 Level 2 : กับดักพนัน)
-// ------------------------------------------------------------
-// ทุก route ต้อง login (authenticateToken ใน slotGameRoutes)
-//
-// Flow:
-// 1. POST /api/game-play/start     { level_id: 12 } → play_id
-// 2. POST /api/slot-game/spin      { playId, bet }  ทุกครั้งที่กดหมุน
-//    → backend ตัดสินผล + คุมเครดิต + บันทึกลง game_play_slot_rounds
-// 3. เมื่อ is_broke = true → POST /api/game-play/complete { play_id }
-// ============================================================
-
 const isTeacher = async (userId) =>
     (await prisma.teachers.count({ where: { user_id: Number(userId) } })) > 0;
 
@@ -68,10 +55,6 @@ const loadAccessiblePlay = async (req, res, playId) => {
     return play;
 };
 
-/**
- * POST /api/slot-game/spin
- * body: { playId, bet }
- */
 const spin = async (req, res) => {
     try {
         const playId = parseId(req.body.playId);
@@ -125,10 +108,6 @@ const spin = async (req, res) => {
     }
 };
 
-/**
- * GET /api/slot-game/play/:playId
- * สรุป + ประวัติการหมุนทั้งหมดของรอบนี้
- */
 const getPlay = async (req, res) => {
     try {
         const playId = parseId(req.params.playId);
