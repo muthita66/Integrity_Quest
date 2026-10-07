@@ -1,4 +1,4 @@
-import SceneTwoImg from "../../../../assets/unit3/finalLevel/intro/Scene2.png";
+import SceneTwoImg from "../../../../assets/unit3/finalLevel/intro/scene2.png";
 
 export default function SceneTwo() {
     return (

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import bgGameLevel1 from "../../../assets/unit3/level1/bgGameLevel1.png";
-import ResultPass from "../../../assets/unit3/level1/resultPass.png";
+import ResultPass from "../../../assets/unit3/level1/ResultPass.png";
 import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import useGameMuted from "../../../hooks/useGameMuted";
 

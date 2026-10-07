@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import ResultFailed from "../../../../assets/unit3/level1/resultFailed.png";
+import ResultFailed from "../../../../assets/unit3/level1/ResultFailed.png";
 import gameOverSound from "../../../../assets/sounds/BackgroundGame/GameOver.mp3";
 import useGameMuted from "../../../../hooks/useGameMuted";
 

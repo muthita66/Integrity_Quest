@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { HiLockClosed, HiLockOpen } from "react-icons/hi";
 import Lamp from "../../../../assets/unit2/Level1/intro/lamp.png";
 
-import QuestionOne from "../../../../assets/unit2/level1/Minigame/QuestionOne.png";
-import QuestionTwo from "../../../../assets/unit2/level1/Minigame/QuestionTwo.png";
-import QuestionThree from "../../../../assets/unit2/level1/Minigame/QuestionThree.png";
+import QuestionOne from "../../../../assets/unit2/Level1/Minigame/QuestionOne.png";
+import QuestionTwo from "../../../../assets/unit2/Level1/Minigame/QuestionTwo.png";
+import QuestionThree from "../../../../assets/unit2/Level1/Minigame/QuestionThree.png";
 
 const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 5;
@@ -240,12 +240,12 @@ function HintDialog({
                                                 <div
                                                     key={index}
                                                     className={`h-3 w-3 rounded-full transition-all ${index <
+                                                        questionIndex
+                                                        ? "bg-green-500"
+                                                        : index ===
                                                             questionIndex
-                                                            ? "bg-green-500"
-                                                            : index ===
-                                                                questionIndex
-                                                                ? "bg-orange-400"
-                                                                : "bg-slate-200"
+                                                            ? "bg-orange-400"
+                                                            : "bg-slate-200"
                                                         }`}
                                                 />
                                             )
@@ -301,10 +301,10 @@ function HintDialog({
                                                             !!selectedAnswer
                                                         }
                                                         className={`rounded-xl border-2 px-3 py-1 font-bold transition active:scale-95 ${isSelected
-                                                                ? isCorrect
-                                                                    ? "border-green-500 bg-green-200 text-green-800"
-                                                                    : "border-red-400 bg-red-100 text-red-600"
-                                                                : "border-orange-500 bg-orange-50 text-orange-600 hover:bg-orange-100"
+                                                            ? isCorrect
+                                                                ? "border-green-500 bg-green-200 text-green-800"
+                                                                : "border-red-400 bg-red-100 text-red-600"
+                                                            : "border-orange-500 bg-orange-50 text-orange-600 hover:bg-orange-100"
                                                             }`}
                                                     >
                                                         {/* IMAGE FROM DATABASE */}
