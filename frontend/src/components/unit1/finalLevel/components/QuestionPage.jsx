@@ -20,7 +20,7 @@ export default function QuestionPage({
 
     return (
         <div
-            className="relative min-h-screen w-full overflow-hidden bg-cover bg-center bg-no-repeat"
+            className="relative min-h-dvh w-full overflow-hidden bg-cover bg-center bg-no-repeat"
             style={{
                 backgroundImage: `url(${currentCase.background})`,
             }}
@@ -29,7 +29,7 @@ export default function QuestionPage({
             <div className="absolute inset-0 bg-black/40" />
 
             {/* เนื้อหา */}
-            <div className="relative z-10 flex min-h-screen items-center justify-center p-4 md:p-6">
+            <div className="relative z-10 flex min-h-dvh items-center justify-center p-4 md:p-6">
 
                 {/* กล่องแฟ้มคดี */}
                 <div

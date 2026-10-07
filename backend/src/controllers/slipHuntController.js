@@ -1,19 +1,6 @@
 const slipHuntService = require("../services/slipHuntService");
 const gamePlayService = require("../services/gamePlayService");
 const prisma = require("../lib/prisma");
-
-// ============================================================
-// Slip Hunt (Unit 4 Level 1)
-// ------------------------------------------------------------
-// ทุก route ต้อง login (authenticateToken ใน slipHuntRoutes)
-// และเข้าถึงได้เฉพาะ "รอบการเล่นของตัวเอง" (อาจารย์ดูได้ทุกคน)
-//
-// เพิ่มการตรวจตอนบันทึกคำตอบ:
-//   - play ต้องเป็นของผู้เล่นคนนี้ + ยังไม่จบ + เป็นด่าน Slip Hunt
-//   - slipOrder ต้องอยู่ในช่วง 1..จำนวนสลิป
-//   - ห้ามตอบสลิปเดิม / ลำดับเดิมซ้ำ (กันยิงซ้ำให้ครบ 5 ข้อ)
-// ============================================================
-
 const TOTAL_SLIPS = gamePlayService.SLIP_HUNT_TOTAL_SLIPS || 5;
 
 const isTeacher = async (userId) =>
@@ -63,10 +50,6 @@ const handleError = (res, label, error) => {
     });
 };
 
-/**
- * POST /api/slip-hunt/answer
- * body: { playId, slipId, slipOrder, playerChoice: "real" | "fake" }
- */
 const recordAnswer = async (req, res) => {
     try {
         const { playId, slipId, slipOrder, playerChoice } = req.body;
@@ -247,11 +230,6 @@ const getAnswer = async (req, res) => {
     }
 };
 
-/**
- * DELETE /api/slip-hunt/play/:playId — ล้างคำตอบเพื่อเริ่มใหม่
- * ทำได้เฉพาะเจ้าของรอบ และเฉพาะรอบที่ "ยังไม่จบ"
- * (รอบที่จบแล้วเป็นประวัติการเล่น ห้ามลบ ไม่งั้นแดชบอร์ดอาจารย์เพี้ยน)
- */
 const deleteGameHistory = async (req, res) => {
     try {
         const playId = parseId(req.params.playId);

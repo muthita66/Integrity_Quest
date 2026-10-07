@@ -18,10 +18,6 @@ import {
     getDepartments,
 } from "../services/profileService";
 
-// ============================================================
-// หน้าตั้งค่าบัญชี: แก้ข้อมูลที่สมัครไว้ + เปลี่ยนรหัสผ่าน
-// ============================================================
-
 const EMPTY_PASSWORD = {
     currentPassword: "",
     newPassword: "",
@@ -36,26 +32,16 @@ const Label = ({ children }) => (
 
 export default function SettingsPage() {
     const navigate = useNavigate();
-
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-
     const [form, setForm] = useState(null);
     const [passwordForm, setPasswordForm] = useState(EMPTY_PASSWORD);
-
     const [faculties, setFaculties] = useState([]);
     const [departments, setDepartments] = useState([]);
-
     const [popup, setPopup] = useState({ show: false, type: "", message: "" });
-
     const showPopup = (type, message) =>
         setPopup({ show: true, type, message });
 
-    // ========================================================
-    // โหลดข้อมูล
-    // ========================================================
-
-    // ปิด scroll ของทั้งหน้าเว็บขณะอยู่หน้านี้ (คืนค่าเดิมเมื่อออก)
     useEffect(() => {
         const html = document.documentElement;
         const prevHtml = html.style.overflow;
@@ -137,10 +123,6 @@ export default function SettingsPage() {
         [faculties, departments]
     );
 
-    // ========================================================
-    // เปลี่ยนค่าในฟอร์ม
-    // ========================================================
-
     const handleChange = (e) => {
         const { name, value } = e.target;
 
@@ -170,10 +152,6 @@ export default function SettingsPage() {
         onChange: handlePasswordChange,
         focusClass: theme.focus,
     });
-
-    // ========================================================
-    // บันทึกข้อมูลส่วนตัว
-    // ========================================================
 
     const handleSaveProfile = async (e) => {
         e.preventDefault();
@@ -206,10 +184,6 @@ export default function SettingsPage() {
         }
     };
 
-    // ========================================================
-    // เปลี่ยนรหัสผ่าน
-    // ========================================================
-
     const handleSavePassword = async (e) => {
         e.preventDefault();
 
@@ -232,11 +206,6 @@ export default function SettingsPage() {
     };
 
     const backPath = isTeacher ? "/teacher" : "/map";
-
-    // ========================================================
-    // UI
-    // ========================================================
-
     return (
         <>
             <Popup
@@ -404,7 +373,6 @@ export default function SettingsPage() {
                                     </div>
                                 </form>
 
-                                {/* ================= ขวา: เปลี่ยนรหัสผ่าน ================= */}
                                 <form
                                     onSubmit={handleSavePassword}
                                     className="flex flex-col gap-4 border-t border-gray-200 pt-8 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10"

@@ -55,8 +55,8 @@ export default function WordCard({ word, completed, onSubmit }) {
                 relative
                 w-full
                 max-w-[225px]
-                h-[150px]
-                p-4
+                min-h-[150px] [@media(max-height:820px)]:min-h-[128px]
+                p-4 [@media(max-height:820px)]:p-3
                 rounded-sm
                 shadow-[3px_5px_12px_rgba(0,0,0,0.45)]
                 transition-all
@@ -88,7 +88,7 @@ export default function WordCard({ word, completed, onSubmit }) {
             ) : (
                 <>
                     {/* ช่องตัวอักษร */}
-                    <div className="flex flex-wrap justify-center gap-1.5 mb-3 mt-1">
+                    <div className="flex flex-wrap justify-center gap-1.5 mb-3 [@media(max-height:820px)]:mb-2 mt-1">
                         {Array.from({ length: word.totalChars }, (_, index) => {
                             const revealed = index < revealedCount;
 
@@ -96,8 +96,8 @@ export default function WordCard({ word, completed, onSubmit }) {
                                 <div
                                     key={index}
                                     className="
-                                        w-8
-                                        h-8
+                                        w-8 [@media(max-height:820px)]:w-7
+                                        h-8 [@media(max-height:820px)]:h-7
                                         bg-white
                                         border-b-[3px]
                                         border-[#7b6145]
@@ -105,7 +105,7 @@ export default function WordCard({ word, completed, onSubmit }) {
                                         flex
                                         items-center
                                         justify-center
-                                        text-[21px]
+                                        text-[21px] [@media(max-height:820px)]:text-[18px]
                                         font-black
                                         text-[#120700]
                                         shadow-sm
@@ -132,10 +132,10 @@ export default function WordCard({ word, completed, onSubmit }) {
                         readOnly={checking}
                         aria-label={`คำตอบของคำใบ้: ${word.clue}`}
                         aria-invalid={Boolean(error)}
-                        placeholder={checking ? "กำลังตรวจ..." : `พิมพ์ ${remainingCount} ตัวที่เหลือ แล้วกด Enter`}
+                        placeholder={checking ? "กำลังตรวจ..." : `พิมพ์ ${remainingCount} ตัว แล้วกด Enter`}
                         className={`
                             w-full
-                            py-2
+                            py-2 [@media(max-height:820px)]:py-1.5
                             px-2
                             bg-white
                             border

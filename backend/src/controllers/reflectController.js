@@ -2,39 +2,10 @@ const prisma = require("../lib/prisma");
 const gamePlayService = require("../services/gamePlayService");
 const userProgressController = require("./userProgressController");
 
-// ============================================================
 // Unit 6 Level 3 : ShadowMirror (กระจกสะท้อนใจ)
-// POST /api/reflect
-// ============================================================
-//
-// รับคำตอบปลายเปิด 6 ข้อ จาก play ที่เริ่มผ่าน POST /api/game-play/start
-// (level_id ของ ShadowMirror) มาแล้ว ส่งให้ Gemini วิเคราะห์เป็นคะแนน 4
-// trait (logic / empathy / responsibility / consistency) — ไม่เชื่อ
-// คะแนนจาก client ใด ๆ ทั้งสิ้น คะแนน/IP คำนวณจากผลที่ AI ส่งกลับมา
-// เท่านั้น
-//
-// ไม่มีคำตอบถูก/ผิด (คำถามปลายเปิด) จึงไม่มีเงื่อนไข FAIL — เล่นจบ =
-// ได้ผลเสมอ ให้ IP ตามระดับ Badge จากคะแนนเฉลี่ย (ดู
-// gamePlayService.calcShadowMirrorResult)
-// ============================================================
-
 const TRAIT_KEYS = ["logic", "empathy", "responsibility", "consistency"];
-
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-
-// ------------------------------------------------------------
-// เรียก Gemini ให้วิเคราะห์คำตอบ แล้วคืน JSON ตาม shape ที่ frontend
-// (ShadowMirror.jsx) ต้องการพอดี:
-//   { overall_reflection, logic:{score,note}, empathy:{...},
-//     responsibility:{...}, consistency:{...}, shadow_message }
-// ใช้ responseMimeType: "application/json" ให้ Gemini ตอบ JSON ล้วน ๆ
-// (ไม่มี ```json fence ปน) ลด error ตอน parse
-//
-// ใช้ global fetch ของ Node (มีมาตั้งแต่ Node 18) — ถ้า backend รันบน
-// Node เวอร์ชันเก่ากว่านี้ ต้อง `npm install node-fetch` แล้ว
-// `const fetch = require("node-fetch");` เพิ่มเองที่บรรทัดบนสุด
-// ------------------------------------------------------------
 async function analyzeWithGemini(answers) {
     if (!GEMINI_API_KEY) {
         throw new Error("ยังไม่ได้ตั้งค่า GEMINI_API_KEY ใน .env");
@@ -103,10 +74,6 @@ ${qaText}
     }
 }
 
-// ------------------------------------------------------------
-// clamp + validate ให้แน่ใจว่าทุก trait มี score เป็นตัวเลข 0-100
-// และ note เป็น string เสมอ ป้องกัน AI ตอบไม่ครบ/ผิด schema
-// ------------------------------------------------------------
 function sanitizeResult(raw) {
     const clampScore = (v) => {
         const n = Number(v);
@@ -131,13 +98,6 @@ function sanitizeResult(raw) {
     };
 }
 
-// ------------------------------------------------------------
-// ดึงผลที่เคย persist ไว้แล้ว (กรณีเล่นจบไปแล้ว เรียกซ้ำ/refresh หน้า
-// /ชน race) คืน shape เดียวกับตอนวิเคราะห์ใหม่ ให้ frontend ใช้ร่วมกันได้
-//
-// *** ไม่มี IP ผูกกับ ShadowMirror — ไม่ต้อง query user_stats/earned_ip
-// เลย (ดูหมายเหตุไม่แจก IP ใน services/gamePlayService.js) ***
-// ------------------------------------------------------------
 async function buildStoredResultPayload(playId) {
     const row = await prisma.game_play_shadow_mirror.findUnique({
         where: { play_id: playId },
@@ -161,10 +121,6 @@ async function buildStoredResultPayload(playId) {
     };
 }
 
-// ============================================================
-// POST /api/reflect
-// body: { play_id, answers: [{ question, answer }, ...] }
-// ============================================================
 exports.submitReflection = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -219,10 +175,6 @@ exports.submitReflection = async (req, res) => {
 
         const avgScore =
             TRAIT_KEYS.reduce((sum, key) => sum + result[key].score, 0) / TRAIT_KEYS.length;
-
-        // ไม่มี IP ผูกกับ ShadowMirror — ใช้ calcShadowMirrorResult() แค่เอา
-        // badge สำหรับแสดงผลในหน้าอาจารย์ (earnedIP ของฟังก์ชันนี้เป็น 0
-        // เสมอ ไม่ต้องดึงมาใช้)
         const { badge } = gamePlayService.calcShadowMirrorResult(avgScore);
 
         const completedAt = new Date();
@@ -268,8 +220,6 @@ exports.submitReflection = async (req, res) => {
             )
         `;
 
-        // ---- Progress (ปลดล็อกด่านถัดไป/จบ Unit ตามปกติ — ไม่เกี่ยวกับ IP
-        // ไม่มีเงื่อนไข FAIL → passed เสมอ) ----
         try {
             await userProgressController.updateLevelProgress({
                 userId,

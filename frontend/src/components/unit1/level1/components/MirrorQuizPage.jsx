@@ -20,8 +20,14 @@ import ScoreAnimation from "../ScoreAnimation";
 import ExamLeakAnimation from "../ExamLeakAnimation";
 import CopyWorkAnimation from "../CopyWorkAnimation";
 import ExitDialog from "./ExitDialog";
+import ScaleToFit from "../../../common/ScaleToFit";
 
 const LEVEL_ID = 1;
+
+// ฉากเกมออกแบบไว้ที่ขนาดนี้ แล้วให้ ScaleToFit ย่อ/ขยายให้พอดีหน้าจอ
+// กว้าง 1152 (= max-w-6xl เดิม) / สูง 676 = กล่องเกม 620 + แถบปุ่มเมนูด้านบน 56
+const STAGE_WIDTH = 1152;
+const STAGE_HEIGHT = 676;
 
 const animations = [
     WalletAnimation,
@@ -197,7 +203,7 @@ export default function MirrorQuizPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-dvh flex items-center justify-center">
                 กำลังเริ่มเกม...
             </div>
         );
@@ -205,7 +211,7 @@ export default function MirrorQuizPage() {
 
     if (gameError || !questions.length || !playId) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+            <div className="min-h-dvh flex flex-col items-center justify-center gap-4">
                 <p>{gameError || "ไม่พบข้อมูลเกม"}</p>
 
                 <div className="flex gap-3">
@@ -230,14 +236,13 @@ export default function MirrorQuizPage() {
     return (
         <div
             className="
-                min-h-screen
+                h-dvh
                 w-full
                 flex
                 items-center
                 justify-center
                 relative
                 overflow-hidden
-                p-5
                 sarabun-bold
             "
             style={{
@@ -249,39 +254,48 @@ export default function MirrorQuizPage() {
             {/* Dark Overlay */}
             <div className="absolute inset-0 bg-black/50" />
 
-            {/* Main Game Container */}
-            <div className="relative z-10 w-full max-w-6xl">
+            {/* Menu Button — ติดมุมขวาบนของหน้าจอ (อยู่นอก ScaleToFit จึงไม่ถูกย่อ/ขยายตามฉากเกม) */}
+            <button
+                type="button"
+                onClick={() => setShowExitDialog(true)}
+                aria-label="เปิดเมนู"
+                className="
+                    absolute
+                    top-4
+                    right-4
+                    z-50
+                    rounded-full
+                    border-2
+                    border-white/80
+                    bg-black/50
+                    p-2.5
+                    text-white
+                    shadow-lg
+                    backdrop-blur-sm
+                    transition-all
+                    duration-300
+                    hover:scale-105
+                    hover:bg-black/70
+                    active:scale-95
+                "
+            >
+                <MdTableRows size={22} />
+            </button>
 
-                {/* Menu Button */}
-                <button
-                    type="button"
-                    onClick={() => setShowExitDialog(true)}
-                    className="
-                        absolute
-                        -top-12
-                        -right-45
-                        z-50
-                        rounded-full
-                        border-2
-                        border-white/80
-                        bg-black/50
-                        p-2.5
-                        text-white
-                        shadow-lg
-                        backdrop-blur-sm
-                        transition-all
-                        duration-300
-                        hover:scale-105
-                        hover:bg-black/70
-                        active:scale-95
-                    "
-                >
-                    <MdTableRows size={22} />
-                </button>
+            {/* Main Game Container — ย่อ/ขยายทั้งก้อนให้พอดีหน้าจอ */}
+            <ScaleToFit
+                designWidth={STAGE_WIDTH}
+                designHeight={STAGE_HEIGHT}
+                padding={32}
+                className="relative z-10"
+            >
 
                 {/* Game Box */}
                 <div
                     className="
+                        absolute
+                        bottom-0
+                        left-0
                         w-full
                         h-[620px]
                         border-4
@@ -358,7 +372,7 @@ export default function MirrorQuizPage() {
                         />
                     </div>
                 </div>
-            </div>
+            </ScaleToFit>
 
             {/* Exit Dialog */}
             <ExitDialog

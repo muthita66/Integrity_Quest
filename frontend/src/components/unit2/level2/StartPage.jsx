@@ -8,7 +8,7 @@ import bgMission from "../../../assets/unit2/bgLevel2.png"
 
 export default function StartPage({ setIsStarted }) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed"
+        <div className="min-h-dvh flex items-center justify-center bg-cover bg-center bg-fixed"
             style={{
                 backgroundImage: `url(${bgGame})`,
             }}>

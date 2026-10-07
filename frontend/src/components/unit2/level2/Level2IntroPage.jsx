@@ -92,7 +92,7 @@ export default function Level2IntroPage() {
     };
 
     return (
-        <main className="mirror-scene min-h-screen relative overflow-hidden font-sara">
+        <main className="mirror-scene min-h-dvh relative overflow-hidden font-sara">
             {/* Background */}
             <div
                 className="mirror-scene__bg absolute inset-0"

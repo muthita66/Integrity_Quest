@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
-
 import bg_login from "../../assets/bg_login.png";
-
 import useAuth from "../hooks/useAuth";
-
 import Popup from "../../components/auth/Popup";
 import AuthHeader from "../../components/auth/AuthHeader";
 import LoginForm from "../../components/auth/LoginForm";
@@ -35,34 +32,19 @@ export default function AuthPage() {
     updateStudentGroups,
   } = useAuth();
 
-  // ============================================================
-  // ความยินยอม (PDPA) — ต้องติ๊กยินยอมก่อนถึงจะเห็นฟอร์มสมัครสมาชิกจริง
-  // ------------------------------------------------------------
-  // consent = null  → ยังไม่ยินยอม (โชว์ ConsentNotice แทน RegisterForm)
-  // consent = { at, version } → ยินยอมแล้ว (โชว์ RegisterForm ตามปกติ)
-  // รีเซ็ตกลับเป็น null ทุกครั้งที่สลับกลับไป Login เพื่อให้ยินยอมใหม่ทุกครั้ง
-  // ที่เข้าสู่ขั้นตอนสมัครสมาชิก
-  // ============================================================
   const [consent, setConsent] = useState(null);
 
   useEffect(() => {
     if (isLogin) setConsent(null);
   }, [isLogin]);
 
-  // เมื่อยินยอมแล้ว ดันค่า consent_at / consent_version เข้า registerData
-  // ผ่าน handleRegisterChange (รูปแบบเดียวกับ onChange ของ input ทั่วไป)
-  // เพื่อให้ handleRegisterSubmit ส่งค่าติดไปกับ payload ตอนสมัครจริง
   useEffect(() => {
     if (!consent) return;
     handleRegisterChange({ target: { name: "consent_at", value: consent.at } });
     handleRegisterChange({
       target: { name: "consent_version", value: consent.version },
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [consent]);
-
-  // แสดงหน้ายินยอมเฉพาะตอนสมัครแบบ "นักเรียน" เท่านั้น (เอกสารยินยอม
-  // พูดถึงข้อมูลนิสิตโดยเฉพาะ — อาจารย์ไม่ต้องผ่านหน้านี้)
   const showConsent = !isLogin && role !== "teacher" && !consent;
 
   return (

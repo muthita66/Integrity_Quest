@@ -3,6 +3,15 @@
     cursor: pointer;
 }
 
+/* ชื่อผู้ใช้ยาวเกินพื้นที่ → ตัดด้วย ... (เลือกเฉพาะ span ชั้นแรก
+   ไม่กระทบข้อความในเมนูที่เลื่อนลงมา) */
+.user-dropdown>span {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .dropdown-menu {
     position: absolute;
     top: 60px;
@@ -19,6 +28,8 @@
     z-index: 9999;
 
     color: #333;
+
+    white-space: normal;
 }
 
 .dropdown-item {
@@ -47,8 +58,19 @@
     margin: 0;
 }
 
+/* รูปช้างหน้าโลโก้ (เดิมกำหนด 60px ใน Header.jsx) */
+.logo-img {
+    width: clamp(40px, 4.5vw, 60px);
+    height: auto;
+    flex-shrink: 0;
+}
+
 .logo-text {
-    font-size: 3rem;
+    /* ย่อตามความกว้างจอ: 3rem ที่จอ ≥ 1334px, เล็กสุด 1.6rem
+       และห้ามขึ้นบรรทัดใหม่ (เดิมขึ้น 2 บรรทัดแล้วโดนตัดเมื่อจอแคบ) */
+    font-size: clamp(1.6rem, 3.6vw, 3rem);
+    line-height: 1.1;
+    white-space: nowrap;
     font-weight: 900;
 
     background: linear-gradient(180deg,
@@ -97,4 +119,51 @@
 
 .logout-button:active {
     transform: translateY(0);
+}
+
+/* ============================================================
+   Responsive: แถบหัวหน้าแผนที่ (รองรับตั้งแต่ 768px)
+   ============================================================ */
+
+/* ไม่ให้โลโก้กับกลุ่มปุ่มด้านขวาบีบกันจนข้อความขึ้นหลายบรรทัด */
+.map-page .logo,
+.map-page .header-right {
+    flex-shrink: 0;
+}
+
+.map-page .header-right>div {
+    white-space: nowrap;
+}
+
+/* แท็บเล็ต / โน้ตบุ๊กจอเล็ก (< 1280px): ลดระยะห่างและขนาดตัวอักษร */
+@media (max-width: 1279px) {
+    .map-page .header {
+        padding: 0 16px;
+        gap: 12px;
+    }
+
+    .map-page .header-right {
+        gap: 10px;
+        font-size: 14px;
+    }
+
+    .map-page .header-right>div {
+        padding: 6px 12px;
+    }
+
+    .logout-button {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    .user-dropdown>span {
+        max-width: 120px;
+    }
+}
+
+/* จอแคบมาก (< 900px เช่น iPad แนวตั้ง): ปุ่ม Logout เหลือแต่ไอคอน */
+@media (max-width: 899px) {
+    .logout-button span {
+        display: none;
+    }
 }

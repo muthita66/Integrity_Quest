@@ -14,7 +14,7 @@ export default function SceneThree({
     // ข้อมูล Dialog จาก Database
     const dialog = scene?.introDialog?.[0];
     return (
-        <div className="relative w-full h-screen overflow-hidden">
+        <div className="relative w-full h-dvh overflow-hidden">
             {/* Illustration */}
             <img
                 src={sceneThree}

@@ -1,17 +1,160 @@
-.unit5-menu-button { position: fixed; top: 14px; right: 18px; z-index: 20000; border: 1px solid #d1ae6e; border-radius: 10px; background: #3b291aee; color: #fff2d6; padding: 9px 14px; cursor: pointer; box-shadow: 0 3px 12px #0004; }
-.unit5-menu-overlay { position: fixed; inset: 0; z-index: 20001; background: #180f09bb; display: grid; place-items: center; padding: 20px; backdrop-filter: blur(5px); }
-.unit5-menu-panel { width: min(340px, 100%); padding: 28px; border: 2px solid #b68a48; border-radius: 16px; background: #fff5e2; color: #49331f; text-align: center; }
-.unit5-menu-panel h2 { margin: 0 0 20px; font-size: 24px; font-weight: 700; }
-.unit5-menu-panel button { display: block; width: 100%; margin-top: 12px; padding: 12px; border: 1px solid #987047; border-radius: 10px; background: #5b3d23; color: #fff5e2; cursor: pointer; }
-.unit5-menu-panel button:last-child { background: transparent; color: #5b3d23; }
-.unit5-menu-panel button:focus-visible { outline: 3px solid #d49433; outline-offset: 3px; }
-.case-complete-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 24px; }
-.case-complete-actions .case-complete-next { margin-top: 0; padding: 12px 8px; font-size: 14px; }
-.tax-result-page .bottom-buttons, .summary-panel .summary-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-@media(max-width:600px) { .case-complete-actions { grid-template-columns: 1fr; } .unit5-menu-button { top: 8px; right: 8px; padding: 7px 10px; } }
-.unit5-controls { position: fixed; top: 14px; right: 18px; z-index: 20000; display: flex; align-items: center; gap: 10px; }
-.unit5-controls .unit5-menu-button { position: static; }
-.unit5-controls-game { inset: 0 0 auto; height: 60px; padding: 8px 18px; justify-content: flex-end; box-sizing: border-box; background: #241408; border-bottom: 1px solid #b68a4840; }
-.unit5-game-content { padding-top: 76px !important; box-sizing: border-box; }
-.unit5-controls-game .unit5-menu-button { width: 44px; height: 44px; padding: 0; display: grid; place-items: center; font-size: 24px; line-height: 1; }
-@media (max-width: 600px) { .unit5-controls { top: 8px; right: 8px; gap: 8px; } .unit5-controls-game { top: 0; right: 0; padding-inline: 8px; } }
+.unit5-menu-button {
+    position: fixed;
+    top: 14px;
+    right: 18px;
+    z-index: 20000;
+    border: 1px solid #d1ae6e;
+    border-radius: 10px;
+    background: #3b291aee;
+    color: #fff2d6;
+    padding: 9px 14px;
+    cursor: pointer;
+    box-shadow: 0 3px 12px #0004;
+}
+
+.unit5-menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20001;
+    background: #180f09bb;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.unit5-menu-panel {
+    width: min(340px, 100%);
+    padding: 28px;
+    border: 2px solid #b68a48;
+    border-radius: 16px;
+    background: #fff5e2;
+    color: #49331f;
+    text-align: center;
+}
+
+.unit5-menu-panel h2 {
+    margin: 0 0 20px;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.unit5-menu-panel button {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid #987047;
+    border-radius: 10px;
+    background: #5b3d23;
+    color: #fff5e2;
+    cursor: pointer;
+}
+
+.unit5-menu-panel button:last-child {
+    background: transparent;
+    color: #5b3d23;
+}
+
+.unit5-menu-panel button:focus-visible {
+    outline: 3px solid #d49433;
+    outline-offset: 3px;
+}
+
+.case-complete-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.case-complete-actions .case-complete-next {
+    margin-top: 0;
+    padding: 12px 8px;
+    font-size: 14px;
+}
+
+.tax-result-page .bottom-buttons,
+.summary-panel .summary-buttons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media(max-width:600px) {
+    .case-complete-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .unit5-menu-button {
+        top: 8px;
+        right: 8px;
+        padding: 7px 10px;
+    }
+}
+
+.unit5-controls {
+    position: fixed;
+    top: 14px;
+    right: 18px;
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.unit5-controls .unit5-menu-button {
+    position: static;
+}
+
+/* หน้าเกม: ไม่มีแถบสีและเส้นขอบด้านบนแล้ว เหลือแต่ปุ่มเมนูลอยมุมขวาบน
+   (ชั้นแถบใส + pointer-events: none เพื่อไม่ให้บังการคลิกของเนื้อหาที่อยู่ข้างใต้) */
+.unit5-controls-game {
+    inset: 0 0 auto;
+    height: 60px;
+    padding: 8px 18px;
+    justify-content: flex-end;
+    box-sizing: border-box;
+    background: transparent;
+    border-bottom: 0;
+    pointer-events: none;
+}
+
+.unit5-controls-game .unit5-menu-button {
+    pointer-events: auto;
+}
+
+.unit5-game-content {
+    padding-top: 64px !important;
+    box-sizing: border-box;
+}
+
+.unit5-controls-game .unit5-menu-button {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    line-height: 1;
+}
+
+/* หน้าที่ฝังปุ่มเมนูไว้ในแถบหัวข้อของตัวเอง (ใส่คลาส unit5-embedded-menu ที่ element ชั้นนอกของหน้า):
+   ไม่กันที่ด้านบน และวางปุ่มไว้แถวเดียวกับแถบหัวข้อ แต่อยู่นอกกล่อง (แถบหัวข้อต้องเว้นขวาไว้ ~56px เช่น mr-[56px]) */
+body:has(.unit5-embedded-menu) .unit5-controls-game {
+    height: auto;
+    padding: 30px 16px 0;
+    align-items: flex-start;
+}
+
+@media (max-width: 600px) {
+    .unit5-controls {
+        top: 8px;
+        right: 8px;
+        gap: 8px;
+    }
+
+    .unit5-controls-game {
+        top: 0;
+        right: 0;
+        padding-inline: 8px;
+    }
+}

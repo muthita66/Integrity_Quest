@@ -69,12 +69,12 @@ export default function EventPopup({
                             duration: .3
                         }}
                         className={`
-              relative w-[min(540px,92vw)] overflow-hidden
+              relative w-[min(540px,92vw)] max-h-[calc(100dvh-1.5rem)] overflow-x-hidden overflow-y-auto
               rounded-[30px] border-2 bg-gradient-to-br
               ${eventStyles[event.type] || "from-amber-100 to-orange-50 border-amber-300"}
               border-b-[8px] border-[#a9651e]
               shadow-[10px_12px_0_rgba(56,28,10,.3),0_25px_60px_rgba(0,0,0,.4)]
-              p-7 md:p-9
+              p-7 md:p-9 [@media(max-height:820px)]:p-5 [@media(max-height:820px)]:md:p-5
             `}
                     >
 
@@ -102,7 +102,7 @@ export default function EventPopup({
 
                         {/* Icon */}
 
-                        <div className="mx-auto mt-7 flex h-28 w-28 items-center justify-center rounded-[30px] border-2 border-white/70 bg-white/45 shadow-[5px_6px_0_rgba(105,63,18,.16)]">
+                        <div className="mx-auto mt-7 [@media(max-height:820px)]:mt-3 flex h-28 w-28 [@media(max-height:820px)]:h-20 [@media(max-height:820px)]:w-20 items-center justify-center rounded-[30px] border-2 border-white/70 bg-white/45 shadow-[5px_6px_0_rgba(105,63,18,.16)]">
                             {icons[event.type] || <FaTriangleExclamation size={58} className="text-amber-500" />}
 
                         </div>
@@ -110,7 +110,7 @@ export default function EventPopup({
                         {/* Title */}
 
                         <h3
-                            className="mt-5 text-center text-3xl font-black text-[#2b1b12] drop-shadow-[2px_2px_0_rgba(255,255,255,.35)]"
+                            className="mt-5 [@media(max-height:820px)]:mt-3 text-center text-3xl font-black text-[#2b1b12] drop-shadow-[2px_2px_0_rgba(255,255,255,.35)]"
                         >
                             {event.title}
                         </h3>
@@ -118,20 +118,19 @@ export default function EventPopup({
                         {/* Detail */}
 
                         <p
-                            className="mt-4 text-center text-lg font-semibold leading-8 text-[#5c4734]"
+                            className="mt-4 [@media(max-height:820px)]:mt-2 text-center text-lg [@media(max-height:820px)]:text-base font-semibold leading-8 [@media(max-height:820px)]:leading-7 text-[#5c4734]"
                         >
                             {event.description}
                         </p>
 
                         {/* Effect */}
 
-                        <div className="mt-6 rounded-2xl border-2 border-amber-300/80 bg-[#fff1a8]/80 p-4 text-center shadow-inner">
+                        <div className="mt-6 [@media(max-height:820px)]:mt-3 rounded-2xl border-2 border-amber-300/80 bg-[#fff1a8]/80 p-4 [@media(max-height:820px)]:p-3 text-center shadow-inner">
                             <div className="mb-1 text-[10px] font-black tracking-[0.25em] text-[#9a671b]">ผลกระทบต่อเมือง</div>
                             <div className="font-bold text-[#6b4d2d]">{event.effect}</div>
                         </div>
 
                         {/* Button */}
-
                         <motion.button
                             whileHover={{
                                 scale: 1.05
@@ -140,17 +139,13 @@ export default function EventPopup({
                                 scale: .95
                             }}
                             onClick={onClose}
-                            className="mt-7 flex w-full items-center justify-center gap-3 rounded-[18px] border-b-[5px] border-[#8f4b12] bg-gradient-to-r from-[#f3c64d] via-[#e79421] to-[#c86416] py-3 text-xl font-black text-[#3d210f] shadow-[5px_6px_0_rgba(111,57,13,.22)]"
+                            className="mt-7 [@media(max-height:820px)]:mt-4 flex w-full items-center justify-center gap-3 rounded-[18px] border-b-[5px] border-[#8f4b12] bg-gradient-to-r from-[#f3c64d] via-[#e79421] to-[#c86416] py-3 [@media(max-height:820px)]:py-2 text-xl font-black text-[#3d210f] shadow-[5px_6px_0_rgba(111,57,13,.22)]"
                         >
                             รับทราบ <FaArrowRight />
                         </motion.button>
-
                     </motion.div>
-
                 </motion.div>
-
             )}
-
         </AnimatePresence>
     );
 }

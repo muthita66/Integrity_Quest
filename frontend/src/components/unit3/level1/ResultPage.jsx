@@ -7,6 +7,7 @@ import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import useGameMuted from "../../../hooks/useGameMuted";
 
 import ConfettiBurst from "./components/ConfettiBurst";
+import FitToViewport from "../../common/FitToViewport";
 
 import "../../../styles/unit3/level1/resultAnimation.css";
 
@@ -85,7 +86,7 @@ export default function ResultPage() {
     }, []);
 
     return (
-        <div className="fixed inset-0 w-screen h-screen font-sara overflow-hidden touch-none overscroll-none sarabun-bold">
+        <div className="fixed inset-0 w-screen h-dvh font-sara overflow-hidden touch-none overscroll-none sarabun-bold">
             <div
                 className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 blur-[2px]"
                 style={{
@@ -102,24 +103,26 @@ export default function ResultPage() {
 
             {/* กึ่งกลางจอ */}
             <div className="relative z-10 w-full h-full flex items-center justify-center p-6">
+                <FitToViewport padding={16}>
+                    <div className="relative w-[36rem] max-w-[calc(100vw-3rem)]">
 
-                {/* กระดาษ */}
-                <div
-                    className="relative w-full max-w-xl"
-                    style={{
-                        filter: "drop-shadow(0 20px 35px rgba(0,0,0,0.55))",
-                        opacity: showPaper ? 1 : 0,
-                        animation: showPaper
-                            ? "paper-rise 0.6s cubic-bezier(0.22,1,0.36,1) forwards"
-                            : "none",
-                    }}
-                >
+                        {/* กระดาษ */}
+                        <div
+                            className="relative w-full"
+                            style={{
+                                filter: "drop-shadow(0 20px 35px rgba(0,0,0,0.55))",
+                                opacity: showPaper ? 1 : 0,
+                                animation: showPaper
+                                    ? "paper-rise 0.6s cubic-bezier(0.22,1,0.36,1) forwards"
+                                    : "none",
+                            }}
+                        >
 
-                    {/* ใบเสร็จ */}
-                    <div
-                        className="relative pt-12 px-7 pb-12"
-                        style={{
-                            background: `
+                            {/* ใบเสร็จ */}
+                            <div
+                                className="relative pt-12 px-7 pb-12"
+                                style={{
+                                    background: `
                                 repeating-linear-gradient(
                                     0deg,
                                     rgba(0,0,0,0.015) 0px,
@@ -130,228 +133,233 @@ export default function ResultPage() {
                                 #F8F3E3
                             `,
 
-                            border: "2px solid #000000",
+                                    border: "2px solid #000000",
 
-                            borderTopLeftRadius: "0.75em",
-                            borderTopRightRadius: "0.75em",
-                            borderBottomLeftRadius: "0.75em",
-                            borderBottomRightRadius: "0.75em",
+                                    borderTopLeftRadius: "0.75em",
+                                    borderTopRightRadius: "0.75em",
+                                    borderBottomLeftRadius: "0.75em",
+                                    borderBottomRightRadius: "0.75em",
 
-                            boxShadow: "0px 6px 0px 0px #000000",
-                        }}
-                    >
-                        <div className="text-center mb-4">
-                            <p className="text-[40px] font-bold"
-                                style={{
-                                    color: "#B4802E",
+                                    boxShadow: "0px 6px 0px 0px #000000",
                                 }}
                             >
-                                ภารกิจสำเร็จ
-                            </p>
+                                <div className="text-center mb-4">
+                                    <p className="text-[40px] font-bold"
+                                        style={{
+                                            color: "#B4802E",
+                                        }}
+                                    >
+                                        ภารกิจสำเร็จ
+                                    </p>
 
-                            <h1
-                                className="text-2xl font-black mt-1"
-                                style={{
-                                    color: "#2B2118",
-                                }}
-                            >
-                                ตามหาใบเสร็จ
-                            </h1>
-                        </div>
-
-                        {/* เส้นแบ่ง */}
-                        <div
-                            className="border-t-2 border-dashed mb-4"
-                            style={{
-                                borderColor: "#c9b48f",
-                            }}
-                        />
-
-                        {/* รายการสถิติ */}
-                        <div className="flex flex-col gap-2.5 mb-4">
-                            {stats.map((s) => (
-                                <div
-                                    key={s.label}
-                                    className="flex items-baseline justify-between gap-3"
-                                >
-                                    <span
-                                        className="text-base font-bold whitespace-nowrap"
+                                    <h1
+                                        className="text-2xl font-black mt-1"
                                         style={{
                                             color: "#2B2118",
                                         }}
                                     >
-                                        {s.label}
-                                    </span>
-
-                                    <span
-                                        className="flex-1 border-b border-dotted mb-1"
-                                        style={{
-                                            borderColor: "#c9b48f",
-                                        }}
-                                    />
-
-                                    <span
-                                        className="font-mono font-bold tracking-wider text-base whitespace-nowrap"
-                                        style={{
-                                            color: s.color,
-                                        }}
-                                    >
-                                        {s.value}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* เส้นแบ่งก่อนคะแนนพิเศษ */}
-                        <div
-                            className="border-t-2 border-dashed mb-4"
-                            style={{
-                                borderColor: "#c9b48f",
-                            }}
-                        />
-                        <div className="relative rounded-2xl border-2 border-green-300 bg-green-50/80 px-4 py-3 mb-4">
-
-                            {/* ป้ายหัวข้อ */}
-                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                                <div className="bg-green-600 text-white px-6 py-1 rounded-lg font-black text-lg shadow-md whitespace-nowrap">
-                                    Integrity Points!
-                                </div>
-                            </div>
-
-                            {/* รายการ IP: พื้นฐาน + โบนัสแต่ละอย่าง */}
-                            <div className="flex flex-col gap-2 pt-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm font-bold text-[#2B2118]">
-                                        ผ่านภารกิจ
-                                    </span>
-                                    <span className="text-sm font-black text-green-700">
-                                        +{baseIP} IP
-                                    </span>
+                                        ตามหาใบเสร็จ
+                                    </h1>
                                 </div>
 
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm font-bold text-[#2B2118]">
-                                            ทำภารกิจภายใน 30 วินาที
-                                        </p>
-                                        <p className="text-xs text-[#5f5548]">
-                                            ใช้เวลา {timeUsed} วินาที
-                                        </p>
+                                {/* เส้นแบ่ง */}
+                                <div
+                                    className="border-t-2 border-dashed mb-4"
+                                    style={{
+                                        borderColor: "#c9b48f",
+                                    }}
+                                />
+
+                                {/* รายการสถิติ */}
+                                <div className="flex flex-col gap-2.5 mb-4">
+                                    {stats.map((s) => (
+                                        <div
+                                            key={s.label}
+                                            className="flex items-baseline justify-between gap-3"
+                                        >
+                                            <span
+                                                className="text-base font-bold whitespace-nowrap"
+                                                style={{
+                                                    color: "#2B2118",
+                                                }}
+                                            >
+                                                {s.label}
+                                            </span>
+
+                                            <span
+                                                className="flex-1 border-b border-dotted mb-1"
+                                                style={{
+                                                    borderColor: "#c9b48f",
+                                                }}
+                                            />
+
+                                            <span
+                                                className="font-mono font-bold tracking-wider text-base whitespace-nowrap"
+                                                style={{
+                                                    color: s.color,
+                                                }}
+                                            >
+                                                {s.value}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* เส้นแบ่งก่อนคะแนนพิเศษ */}
+                                <div
+                                    className="border-t-2 border-dashed mb-4"
+                                    style={{
+                                        borderColor: "#c9b48f",
+                                    }}
+                                />
+                                <div className="relative rounded-2xl border-2 border-green-300 bg-green-50/80 px-4 py-3 mb-4">
+
+                                    {/* ป้ายหัวข้อ */}
+                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                                        <div className="bg-green-600 text-white px-6 py-1 rounded-lg font-black text-lg shadow-md whitespace-nowrap">
+                                            Integrity Points!
+                                        </div>
                                     </div>
 
-                                    {isFast ? (
-                                        <span className="text-sm font-black text-green-700 shrink-0">
-                                            +{speedBonusIP} IP
+                                    {/* รายการ IP: พื้นฐาน + โบนัสแต่ละอย่าง */}
+                                    <div className="flex flex-col gap-2 pt-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-bold text-[#2B2118]">
+                                                ผ่านภารกิจ
+                                            </span>
+                                            <span className="text-sm font-black text-green-700">
+                                                +{baseIP} IP
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm font-bold text-[#2B2118]">
+                                                    ทำภารกิจภายใน 30 วินาที
+                                                </p>
+                                                <p className="text-xs text-[#5f5548]">
+                                                    ใช้เวลา {timeUsed} วินาที
+                                                </p>
+                                            </div>
+
+                                            {isFast ? (
+                                                <span className="text-sm font-black text-green-700 shrink-0">
+                                                    +{speedBonusIP} IP
+                                                </span>
+                                            ) : (
+                                                <span className="text-sm font-bold text-gray-500 shrink-0">
+                                                    ไม่ได้รับ
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-bold text-[#2B2118]">
+                                                ไม่มีการกดผิด
+                                            </span>
+
+                                            {isFlawless ? (
+                                                <span className="text-sm font-black text-green-700 shrink-0">
+                                                    +{noWrongBonusIP} IP
+                                                </span>
+                                            ) : (
+                                                <span className="text-sm font-bold text-gray-500 shrink-0">
+                                                    ไม่ได้รับ
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* IP รวมที่ได้จากภารกิจนี้ */}
+                                    <div className="text-center mt-3 pt-2 border-t border-green-200">
+                                        <span className="text-base font-black text-green-700">
+                                            Total IP Earned {earnedIP}
                                         </span>
-                                    ) : (
-                                        <span className="text-sm font-bold text-gray-500 shrink-0">
-                                            ไม่ได้รับ
-                                        </span>
-                                    )}
+                                    </div>
+
                                 </div>
 
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm font-bold text-[#2B2118]">
-                                        ไม่มีการกดผิด
-                                    </span>
+                                {/* ข้อความสรุป */}
+                                <p
+                                    className="text-base leading-start text-center mb-1"
+                                    style={{
+                                        color: "#4a4033",
+                                    }}
+                                >
+                                    ตามใบเสร็จครบแล้ว ควรเก็บหลักฐานทุกครั้งที่ใช้เงินกองกลาง
+                                </p>
 
-                                    {isFlawless ? (
-                                        <span className="text-sm font-black text-green-700 shrink-0">
-                                            +{noWrongBonusIP} IP
+                                {/* เส้นแบ่ง */}
+                                <div
+                                    className="border-t-2 border-dashed mt-4 mb-5"
+                                    style={{
+                                        borderColor: "#c9b48f",
+                                    }}
+                                />
+
+                                {/* ปุ่ม */}
+                                <div className="flex justify-center items-center gap-3">
+                                    {/* กลับหน้าหลัก */}
+                                    <button
+                                        onClick={() => navigate("/map")}
+                                        className="result-button result-button-yellow"
+                                    >
+                                        <span className="result-button-top">
+                                            กลับหน้าหลัก
                                         </span>
-                                    ) : (
-                                        <span className="text-sm font-bold text-gray-500 shrink-0">
-                                            ไม่ได้รับ
+                                    </button>
+
+                                    {/* ด่านต่อไป */}
+                                    <button
+                                        onClick={() =>
+                                            navigate("/unit3/level2/intro")
+                                        }
+                                        className="result-button result-button-green"
+                                    >
+                                        <span className="result-button-top">
+                                            ด่านถัดไป
                                         </span>
-                                    )}
+                                    </button>
                                 </div>
-                            </div>
 
-                            {/* IP รวมที่ได้จากภารกิจนี้ */}
-                            <div className="text-center mt-3 pt-2 border-t border-green-200">
-                                <span className="text-base font-black text-green-700">
-                                    Total IP Earned {earnedIP}
-                                </span>
                             </div>
-
                         </div>
 
-                        {/* ข้อความสรุป */}
-                        <p
-                            className="text-base leading-start text-center mb-1"
-                            style={{
-                                color: "#4a4033",
-                            }}
-                        >
-                            ตามใบเสร็จครบแล้ว ควรเก็บหลักฐานทุกครั้งที่ใช้เงินกองกลาง
-                        </p>
-
-                        {/* เส้นแบ่ง */}
-                        <div
-                            className="border-t-2 border-dashed mt-4 mb-5"
-                            style={{
-                                borderColor: "#c9b48f",
-                            }}
-                        />
-
-                        {/* ปุ่ม */}
-                        <div className="flex justify-center items-center gap-3">
-                            {/* กลับหน้าหลัก */}
-                            <button
-                                onClick={() => navigate("/map")}
-                                className="result-button result-button-yellow"
-                            >
-                                <span className="result-button-top">
-                                    กลับหน้าหลัก
-                                </span>
-                            </button>
-
-                            {/* ด่านต่อไป */}
-                            <button
-                                onClick={() =>
-                                    navigate("/unit3/level2/intro")
-                                }
-                                className="result-button result-button-green"
-                            >
-                                <span className="result-button-top">
-                                    ด่านถัดไป
-                                </span>
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-                {/* ตราปั๊มหมึก "สำเร็จ" */}
-                {showStamp && (
-                    <div
-                        className="absolute top-2 right-100 z-20 select-none"
-                        style={{
-                            animation: "stamp-pop 0.55s ease-out both",
-                        }}
-                    >
-                        <div
-                            className="w-40 h-40 rounded-full border-[3px] flex flex-col items-center justify-center gap-0.5 bg-[#F8F3E3]/90"
-                            style={{
-                                borderColor: "#2F6B4F",
-                                mixBlendMode: "multiply",
-                            }}
-                        >
+                        {/* ตราปั๊มหมึก "สำเร็จ"
+                    เดิมใช้ absolute top-2 right-100 เทียบกับ "หน้าจอ" ตำแหน่งจึงเลื่อนไปมาตามความกว้างจอ
+                    ตอนนี้ยึดกับมุมขวาบนของใบเสร็จ จึงอยู่ที่เดิมทุกขนาดจอ */}
+                        {showStamp && (
                             <div
-                                className="w-[150px] h-[150px] rounded-full border border-dashed flex flex-col items-center justify-center"
+                                className="absolute -top-6 -right-8 z-20 select-none"
                                 style={{
-                                    borderColor: "#2F6B4F",
+                                    animation: "stamp-pop 0.55s ease-out both",
                                 }}
                             >
-                                <img
-                                    src={ResultPass}
-                                    alt=""
-                                    className="w-36 h-36 rounded-full object-cover mb-0.5 opacity-90"
-                                />
+                                <div
+                                    className="w-40 h-40 rounded-full border-[3px] flex flex-col items-center justify-center gap-0.5 bg-[#F8F3E3]/90"
+                                    style={{
+                                        borderColor: "#2F6B4F",
+                                        mixBlendMode: "multiply",
+                                    }}
+                                >
+                                    <div
+                                        className="w-[150px] h-[150px] rounded-full border border-dashed flex flex-col items-center justify-center"
+                                        style={{
+                                            borderColor: "#2F6B4F",
+                                        }}
+                                    >
+                                        <img
+                                            src={ResultPass}
+                                            alt=""
+                                            className="w-36 h-36 rounded-full object-cover mb-0.5 opacity-90"
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        )}
+
                     </div>
-                )}
+                </FitToViewport>
 
             </div>
         </div>

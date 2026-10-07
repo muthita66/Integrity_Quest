@@ -10,13 +10,6 @@ const certificateController = require('../controllers/certificateController');
 router.get('/certificate', authMiddleware, certificateController.getCertificate);
 router.post('/reflection-complete', authMiddleware, certificateController.completeReflection);
 
-// ============================================================
-// GET USER PROGRESS
-// ============================================================
-// ใช้สำหรับ MapPage
-// ดึง Progress ของ Unit และ Level ของ User ที่ Login อยู่
-// ============================================================
-
 router.get(
     "/",
     authMiddleware,

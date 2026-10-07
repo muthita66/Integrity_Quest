@@ -16,7 +16,7 @@ export default function SceneThree({
     return (
         <div>
             {/* Illustration */}
-            <div className="relative w-full h-screen overflow-hidden">
+            <div className="relative w-full h-dvh overflow-hidden">
                 <img src={SceneThreeImg} alt="Scene Three" className="absolute inset-0 w-full h-full object-cover object-top" />
             </div>
             <button

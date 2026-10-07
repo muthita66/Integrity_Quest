@@ -27,7 +27,7 @@ export default function ScenePage({
 
     return (
         <div
-            className="relative w-full h-screen overflow-hidden bg-cover bg-center bg-no-repeat flex items-center justify-center p-6"
+            className="relative w-full h-dvh overflow-hidden bg-cover bg-center bg-no-repeat flex items-center justify-center p-6"
             style={{
                 backgroundImage: `url(${currentCase.background})`,
             }}

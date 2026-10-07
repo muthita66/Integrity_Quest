@@ -3,15 +3,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
-// ============================================================
-// ROLE
-// ============================================================
-//
-// student = role_id 1 (เหมือนเดิม)
-// teacher = หา role_id จากตาราง roles ที่ role_name = 'อาจารย์'
-//           (หรือ 'teacher') ไม่ hardcode เลข เผื่อ role_id ใน DB ไม่ใช่ 2
-// ============================================================
-
 const STUDENT_ROLE_ID = 1;
 
 const ROLE = {
@@ -76,18 +67,6 @@ const toPublicUser = (user, role) => ({
     role,
 });
 
-// ============================================================
-// Register
-// ============================================================
-//
-// body.role = "student" (ค่าเริ่มต้น) หรือ "teacher"
-//
-// student: username, firstName, lastName, email, password,
-//          gender, age, faculty, major, year
-// teacher: username, firstName, lastName, email, password,
-//          gender, faculty, department, position, inviteCode
-// ============================================================
-
 exports.register = async (req, res) => {
     try {
         const {
@@ -132,9 +111,6 @@ exports.register = async (req, res) => {
             });
         }
 
-        // ต้องผ่านขั้นยินยอม PDPA มาก่อนเท่านั้น (กันเคส bypass หน้ายินยอมฝั่ง
-        // frontend แล้วยิง API ตรง ๆ) — บังคับเฉพาะ "นักเรียน" เพราะเอกสาร
-        // ยินยอมพูดถึงข้อมูลนิสิตโดยเฉพาะ อาจารย์ไม่ต้องผ่านหน้านี้
         if (role === ROLE.STUDENT && (!consent_at || !consent_version)) {
             console.log("Register 400: กรุณายินยอม...", req.body);
             return res.status(400).json({
@@ -157,10 +133,6 @@ exports.register = async (req, res) => {
                 message: "Email หรือ Username นี้ถูกใช้แล้ว",
             });
         }
-
-        // ========================================================
-        // TEACHER
-        // ========================================================
 
         if (role === ROLE.TEACHER) {
             if (!isValidInviteCode(inviteCode)) {
@@ -187,13 +159,6 @@ exports.register = async (req, res) => {
                 });
             }
 
-            // ============================================================
-            // กลุ่มนักเรียนที่อาจารย์คนนี้จะดูแล — บังคับต้องมีอย่างน้อย 1 กลุ่ม
-            // (ไม่ใช่ "ไม่เลือก = เห็นนิสิตทั้งหมด") แต่ละกลุ่มเลือกคณะ/สาขา/
-            // ชั้นปีค่าเดียวต่อช่อง (เว้นว่าง = ทุกค่าของช่องนั้น) 1 อาจารย์มี
-            // ได้หลายกลุ่ม ต้องเช็คตรงนี้ "ก่อน" สร้าง user เพื่อไม่ให้ค้าง
-            // บัญชีกำพร้าไว้ในฐานข้อมูลถ้า validation ไม่ผ่าน
-            // ============================================================
             const validGroups = Array.isArray(studentGroups)
                 ? studentGroups.filter(
                     (g) => g && (g.faculty || g.major || g.year || g.note)
@@ -216,9 +181,6 @@ exports.register = async (req, res) => {
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
-
-            // สร้าง user + teacher พร้อมกัน (ถ้าพังจะไม่เหลือ user ค้าง)
-            // include teachers กลับมา เพื่อเอา teacher_id ไปผูกกลุ่มนักเรียนต่อ
             const user = await prisma.users.create({
                 data: {
                     username,
@@ -264,13 +226,7 @@ exports.register = async (req, res) => {
             });
         }
 
-        // ========================================================
-        // STUDENT (เหมือนเดิม)
-        // ========================================================
-
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        // สร้าง user + student พร้อมกัน (ถ้าพังจะไม่เหลือ user ค้าง)
         const user = await prisma.users.create({
             data: {
                 username,
@@ -313,18 +269,9 @@ exports.register = async (req, res) => {
     }
 };
 
-// ============================================================
-// Daily Streak (นับตอน Login)
-// ------------------------------------------------------------
-// ใช้วันที่ตามเวลาไทย (Asia/Bangkok)
-//   - Login วันเดียวกับครั้งก่อน   → streak เท่าเดิม
-//   - Login วันถัดไปพอดี           → streak + 1
-//   - เว้นเกิน 1 วัน / ยังไม่เคยมี  → streak = 1
-// ============================================================
-
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// "YYYY-MM-DD" ของวันนี้ตามเวลาไทย
+// "YYYY-MM-DD" ของวันนี้
 const todayInBangkok = () =>
     new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
 
@@ -370,8 +317,6 @@ const updateLoginStreak = async (userId) => {
     const alreadyRewardedToday = rewardLastDay === today;
     const justEarnedReward = isMilestone && !alreadyRewardedToday;
 
-    // จำนวนดาวสะสม: +1 ดวงทุกครั้งที่ครบ 7 วัน (ไม่ลดหรือหายแม้ streak จะขาด
-    // ภายหลัง) ส่วน IP ยังได้ครั้งละ 500 เท่าเดิมทุกครั้ง ไม่ได้ทบเพิ่มตามจำนวนดาว
     const newStarCount = (stats?.streak_star_count || 0) + (justEarnedReward ? 1 : 0);
 
     const updateData = {
@@ -414,16 +359,6 @@ const updateLoginStreak = async (userId) => {
 
     return { streak, streakReward };
 };
-
-// ============================================================
-// Login
-// ============================================================
-//
-// body: { email, password, role }
-//   role = "student" / "teacher" ที่ผู้ใช้เลือกในหน้า Login
-//   ถ้าเลือกไม่ตรงกับบัญชีจริง → ไม่ให้เข้า
-// response: { token, user: { id, username, email, role_id, role } }
-// ============================================================
 
 exports.login = async (req, res) => {
     try {
@@ -527,11 +462,6 @@ exports.login = async (req, res) => {
     }
 };
 
-// ============================================================
-// Departments (ใช้ในฟอร์มสมัครอาจารย์)
-// GET /departments
-// ============================================================
-
 exports.getDepartments = async (req, res) => {
     try {
         const departments = await prisma.departments.findMany({
@@ -555,20 +485,12 @@ exports.getDepartments = async (req, res) => {
     }
 };
 
-// ============================================================
-// Logout
-// ============================================================
 
 exports.logout = async (req, res) => {
     try {
         // ข้อมูล user มาจาก JWT Middleware
         const userId = req.user.id;
         const now = new Date();
-
-        // ----------------------------------------------------
-        // หา LOGIN ครั้งล่าสุดของ user คนนี้ (type_id = 1)
-        // เพื่อคำนวณเวลาที่อยู่ในเกม (นาที)
-        // ----------------------------------------------------
         const lastLogin = await prisma.logs_user_actions.findFirst({
             where: {
                 user_id: userId,
@@ -587,11 +509,6 @@ exports.logout = async (req, res) => {
                 )
             )
             : null;
-
-        // บันทึกประวัติ Logout
-        // type_id = 2 = LOGOUT
-        // reference_id = log_id ของ LOGIN ที่จับคู่กัน
-        // time_spent   = จำนวนนาทีตั้งแต่ LOGIN ถึง LOGOUT
         await prisma.logs_user_actions.create({
             data: {
                 user_id: userId,

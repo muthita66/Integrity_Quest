@@ -31,7 +31,7 @@ export default function ResultScreen({
                     <button className="sm-btn" onClick={restart}>
                         ลองใหม่อีกครั้ง
                     </button>
-                    <button className="sm-btn sm-map-btn" onClick={() => navigate("/map")}><Map size={18} /> กลับแผนที่</button>
+                    <button className="sm-btn sm-map-btn" onClick={() => navigate("/map")}><Map size={18} /> กลับหน้าหลัก</button>
                 </div>
             </div>
         );
@@ -80,7 +80,7 @@ export default function ResultScreen({
                     className="sm-btn sm-map-btn"
                     onClick={() => navigate("/map")}
                 >
-                    <Map size={18} /> กลับหน้าแมพ
+                    <Map size={18} /> กลับหน้าหลัก
                 </button>
             </div>
         </div>

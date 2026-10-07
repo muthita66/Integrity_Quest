@@ -1,10 +1,5 @@
 import { FiBookOpen, FiUsers } from "react-icons/fi";
 
-// ============================================================
-// สีตาม Role (ใช้ร่วมกันทุกไฟล์ในหน้า Login / Sign up)
-// นักเรียน = น้ำเงิน, อาจารย์ = เขียว
-// ============================================================
-
 export const ROLE_THEME = {
     student: {
         text: "text-blue-600",
@@ -27,10 +22,6 @@ const OPTIONS = [
     { value: "student", label: "นักเรียน", icon: FiBookOpen },
     { value: "teacher", label: "อาจารย์", icon: FiUsers },
 ];
-
-// ============================================================
-// ตัวเลือก นักเรียน / อาจารย์ (segmented control)
-// ============================================================
 
 export default function RoleToggle({ role, setRole, className = "" }) {
     return (

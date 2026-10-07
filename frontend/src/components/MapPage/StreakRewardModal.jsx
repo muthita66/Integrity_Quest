@@ -12,8 +12,6 @@ const CONFETTI_COLORS = [
     "#a78bfa",
 ];
 
-// สุ่มชิ้นพลุกระดาษ — ใช้ animation-iteration-count: infinite ให้ร่วงวนซ้ำ
-// ไปเรื่อยๆ จนกว่า popup จะถูกปิด (component unmount ก็หยุดเอง)
 const makeConfettiPieces = (count = 36) =>
     Array.from({ length: count }, (_, i) => ({
         id: i,
@@ -48,7 +46,7 @@ function StreakRewardModal({ reward, onClose }) {
             }}
             onClick={onClose}
         >
-            {/* keyframes พลุกระดาษ — ร่วงวนซ้ำไปเรื่อยๆ (infinite) จนกว่าจะปิด popup */}
+
             <style>{`
                 @keyframes streakConfettiFall {
                     0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
@@ -66,7 +64,6 @@ function StreakRewardModal({ reward, onClose }) {
                 }
             `}</style>
 
-            {/* พลุกระดาษ กระจายเต็มจอ ร่วงวนซ้ำตลอดจนกว่าจะกดปิด */}
             {confetti.map((piece) => (
                 <div
                     key={piece.id}

@@ -89,7 +89,7 @@ export default function Level1IntroPage() {
     };
 
     return (
-        <main className="relative min-h-screen overflow-hidden bg-black">
+        <main className="relative min-h-dvh overflow-hidden bg-black">
 
             <button
                 type="button"

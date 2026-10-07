@@ -1,18 +1,12 @@
 const prisma = require("../lib/prisma");
 const bcrypt = require("bcrypt");
 const userProgressController = require("./userProgressController");
-
-// ============================================================
-// Profile (ข้อมูลของผู้ใช้ที่ login อยู่)
-// ------------------------------------------------------------
-// GET  /api/profile           ดึงข้อมูล + สถิติ (IP, streak, progress)
-// PUT  /api/profile           แก้ข้อมูลส่วนตัว
-// PUT  /api/profile/password  เปลี่ยนรหัสผ่าน
-// ============================================================
-
 const STUDENT_ROLE_ID = 1;
-
 const PASSED_STATUSES = ["PASS", "PERFECT"];
+const REVERSE_KEYWORDS = ["ตามอารมณ์", "โดยไม่จำเป็น"];
+
+const isReverseItem = (questionText = "") =>
+    REVERSE_KEYWORDS.some((word) => questionText.includes(word));
 
 // student / teacher จาก role_id + ข้อมูลที่ผูกอยู่
 const getRole = (user) => {
@@ -21,12 +15,6 @@ const getRole = (user) => {
     return "student";
 };
 
-// % ความคืบหน้าภาพรวม "ทุกบท" (รวม Unit ที่ยังไม่เปิด)
-// ------------------------------------------------------------
-// แต่ละบทมีน้ำหนักเท่ากัน:
-//   progress = เฉลี่ย( ด่านที่ผ่านในบท / ด่านทั้งหมดในบท )
-// บทที่ยังไม่มีด่านใน DB (ยังไม่ได้ทำเนื้อหา) นับเป็น 0%
-// เช่น 6 บท ผ่านครบ 3 บท → 50%
 const getProgressPercent = async (userId) => {
     const units = await prisma.units.findMany({
         select: { unit_id: true },
@@ -61,8 +49,46 @@ const getProgressPercent = async (userId) => {
     return Math.round((totalRatio / units.length) * 100);
 };
 
-// streak ที่แสดง: ถ้าไม่ได้เข้าเกินเมื่อวาน → ขาดแล้ว แสดง 0
-// (ค่าใน DB จะถูกรีเซ็ตเป็น 1 ตอน Login ครั้งถัดไป)
+const getQuizPercents = async (userId) => {
+    const answers = await prisma.user_quiz_answers.findMany({
+        where: { user_id: userId },
+        select: {
+            score_given: true,
+            quizzes: {
+                select: { quiz_type: true, question_text: true, max_score: true },
+            },
+        },
+    });
+
+    const bucket = {
+        pre_test: { score: 0, max: 0 },
+        post_test: { score: 0, max: 0 },
+    };
+
+    answers.forEach((a) => {
+        const quiz = a.quizzes;
+        if (!quiz) return;
+
+        const type = String(quiz.quiz_type);
+        if (!bucket[type]) return;
+
+        const max = quiz.max_score || 5;
+        const score = isReverseItem(quiz.question_text)
+            ? max + 1 - a.score_given
+            : a.score_given;
+
+        bucket[type].score += score;
+        bucket[type].max += max;
+    });
+
+    const toPercent = (b) => (b.max ? Math.round((b.score / b.max) * 100) : null);
+
+    return {
+        pre_test_percent: toPercent(bucket.pre_test),
+        post_test_percent: toPercent(bucket.post_test),
+    };
+};
+
 const getDisplayStreak = (stats) => {
     if (!stats?.last_login_date || !stats.current_streak) return 0;
 
@@ -162,8 +188,6 @@ const buildProfile = async (userId) => {
         department: teacher?.dept_id ? String(teacher.dept_id) : "",
         position: teacher?.position || "",
 
-        // stats (แสดงใน Header)
-        // integrity_points = คะแนนรวมจากด่าน (ดีที่สุดต่อด่าน) + รางวัลความขยัน (streak_bonus_ip)
         stats: {
             integrity_points:
                 (user.user_stats?.integrity_points ?? 0) +
@@ -177,10 +201,6 @@ const buildProfile = async (userId) => {
         },
     };
 };
-
-// ============================================================
-// GET /api/profile
-// ============================================================
 
 exports.getProfile = async (req, res) => {
     try {
@@ -196,10 +216,6 @@ exports.getProfile = async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 };
-
-// ============================================================
-// PUT /api/profile
-// ============================================================
 
 exports.updateProfile = async (req, res) => {
     try {
@@ -363,10 +379,6 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
-// ============================================================
-// PUT /api/profile/password
-// ============================================================
-
 exports.changePassword = async (req, res) => {
     try {
         const userId = Number(req.user.id);
@@ -413,22 +425,6 @@ exports.changePassword = async (req, res) => {
     }
 };
 
-// ============================================================
-// GET /api/profile/overview
-// ------------------------------------------------------------
-// ภาพรวมทุกบท (รวมบทที่ยังไม่เปิด) สำหรับหน้า "ความคืบหน้าของฉัน"
-//
-// unit.status
-//   completed    ผ่านครบทุกด่าน
-//   in_progress  เล่นไปแล้วบางส่วน
-//   not_started  ปลดล็อกแล้ว ยังไม่เคยเล่น
-//   locked       ยังไม่ปลดล็อก
-//   coming_soon  บทยังไม่เปิด / ยังไม่มีด่านใน DB
-//
-// level.state (เหมือนก้อนหินบนแผนที่)
-//   passed / ready / locked
-// ============================================================
-
 const buildOverview = async (userId) => {
     const [
         units,
@@ -442,6 +438,7 @@ const buildOverview = async (userId) => {
         preTestAnswer,
         postTestAnswer,
         userStats,
+        quizPercents,
     ] =
         await Promise.all([
             prisma.units.findMany({
@@ -498,9 +495,6 @@ const buildOverview = async (userId) => {
                 select: { level_id: true, earned_ip: true, status: true },
             }),
             userProgressController.hasCompletedPreTest(userId),
-
-            // วันที่ทำ Pre-Test (เอาแถวแรกสุดที่ตอบ — ทุกข้อของ quiz_type เดียวกัน
-            // ถูกบันทึกพร้อมกันตอน submit ครั้งเดียว เลยใช้แถวไหนก็ได้วันเดียวกัน)
             prisma.user_quiz_answers.findFirst({
                 where: {
                     user_id: userId,
@@ -528,6 +522,9 @@ const buildOverview = async (userId) => {
                     last_streak_reward_date: true,
                 },
             }),
+
+            // % ของ Pre-Test / Post-Test (ดูคำอธิบายเหนือ getQuizPercents())
+            getQuizPercents(userId),
         ]);
 
     const unitProgressById = new Map(unitProgress.map((u) => [u.unit_id, u]));
@@ -621,8 +618,10 @@ const buildOverview = async (userId) => {
     return {
         pre_test_done: preTestDone,
         pre_test_date: preTestAnswer?.answered_at ?? null,
+        pre_test_percent: quizPercents.pre_test_percent,
         post_test_done: !!postTestAnswer,
         post_test_date: postTestAnswer?.answered_at ?? null,
+        post_test_percent: quizPercents.post_test_percent,
         streak_stars: userStats?.streak_star_count ?? 0,
         last_star_date: userStats?.last_streak_reward_date ?? null,
         overall_percent: await getProgressPercent(userId),
@@ -643,16 +642,6 @@ exports.getOverview = async (req, res) => {
     }
 };
 
-// ============================================================
-// GET /api/profile/daily-quests
-// ------------------------------------------------------------
-// ภารกิจประจำวัน (รีเซ็ตทุกเที่ยงคืน เวลาไทย)
-// คำนวณสดจาก game_play_history ของ "วันนี้" ไม่ต้องมีตารางเพิ่ม
-//   1. เล่นจบ 1 ด่านวันนี้
-//   2. ได้ PERFECT 1 ครั้งวันนี้
-//   3. เก็บ IP ให้ได้ 10 แต้มวันนี้
-// ============================================================
-
 const DAILY_QUESTS = [
     { key: "complete_level", title: "เล่นจบ 1 ด่าน", target: 1 },
     { key: "perfect", title: "ได้ PERFECT 1 ครั้ง", target: 1 },
@@ -669,10 +658,6 @@ exports.getDailyQuests = async (req, res) => {
         });
         const start = new Date(`${today}T00:00:00+07:00`);
         const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-
-        // แถบ "วันนี้ได้รับรางวัลความขยันไปแล้ว" (แสดงเหนือ Daily Quests)
-        // อ่านจาก last_streak_reward_date เทียบกับ "วันนี้" (ไม่ใช่ตอน Login
-        // ครั้งแรกเท่านั้น) เพื่อให้แถบนี้ยังขึ้นอยู่แม้โหลดหน้านี้ซ้ำ/รอบถัดไป
         const streakStats = await prisma.user_stats.findUnique({
             where: { user_id: userId },
             select: {
@@ -731,18 +716,6 @@ exports.getDailyQuests = async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 };
-
-// ============================================================
-// GET /api/profile/leaderboard
-// ------------------------------------------------------------
-// จัดอันดับจาก user_stats.integrity_points
-// (= ผลรวมคะแนนดีที่สุดของแต่ละด่าน → เล่นซ้ำปั๊มคะแนนไม่ได้)
-//   - เฉพาะนิสิต (role_id = 1) ที่มีคะแนน > 0
-//   - คะแนนเท่ากัน → ผ่านด่านมากกว่าอยู่ก่อน → สมัครก่อนอยู่ก่อน
-//   - ชื่อที่แสดง: "ชื่อจริง + ตัวแรกของนามสกุล." เช่น "สมชาย ก."
-//     ไม่มีชื่อจริง → ใช้ username
-// response: { top: [...5 อันดับ], me: {...} | null }
-// ============================================================
 
 const LEADERBOARD_SIZE = 5;
 
@@ -839,16 +812,6 @@ exports.getLeaderboard = async (req, res) => {
     }
 };
 
-// ============================================================
-// สถานะ Pre-Test / Post-Test
-// ------------------------------------------------------------
-// Post-Test ทำได้เมื่อ:
-//   1. ทำ Pre-Test แล้ว
-//   2. เล่นผ่านครบ "ทุกบท" (ทั้ง 6 บท) — บทที่ยังไม่เปิด/ยังไม่มีด่าน
-//      นับว่ายังไม่ครบ
-//   3. ยังไม่เคยทำ Post-Test
-// ============================================================
-
 const countQuizAnswers = (userId, quizType) =>
     prisma.user_quiz_answers.count({
         where: {
@@ -882,10 +845,8 @@ const getTestStatus = async (userId) => {
     };
 };
 
-// ใช้เช็กฝั่ง backend ตอนบันทึกคำตอบ Post-Test (กันยิง API ตรง)
 exports.getTestStatus = getTestStatus;
 
-// GET /api/profile/test-status
 exports.getTestStatusHandler = async (req, res) => {
     try {
         const data = await getTestStatus(Number(req.user.id));

@@ -83,7 +83,7 @@ export default function IntroScenes({ onComplete }) {
     };
 
     return (
-        <main className="mirror-scene min-h-screen relative overflow-hidden sarabun-bold">
+        <main className="mirror-scene min-h-dvh relative overflow-hidden sarabun-bold">
             <>
                 {/* Scene */}
                 <section className="relative z-20 flex items-start justify-center">

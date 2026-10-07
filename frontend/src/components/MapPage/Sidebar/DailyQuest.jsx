@@ -4,15 +4,6 @@ import { FaCheckCircle } from "react-icons/fa";
 import { getDailyQuests } from "../../services/profileService";
 import starIcon from "../../../assets/star.png";
 
-// ============================================================
-// Daily Quests (ดึงจาก DB ผ่าน /api/profile/daily-quests)
-// ------------------------------------------------------------
-// - ภารกิจของ "วันนี้" รีเซ็ตทุกเที่ยงคืน (เวลาไทย)
-// - ยังไม่เสร็จ : แสดง 0/1 + แถบความคืบหน้า
-// - เสร็จแล้ว   : พื้นเขียว + ✓
-// ใช้ class เดิมใน index.css (.panel / .quest-item / .quest-check)
-// ============================================================
-
 function DailyQuest() {
     const [quests, setQuests] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -42,9 +33,6 @@ function DailyQuest() {
 
     return (
         <>
-            {/* กล่องแยกต่างหาก: "วันนี้ได้รับรางวัลความขยันไปแล้ว"
-                แสดงเหนือ Daily Quests เมื่อผู้ใช้เข้าระบบรอบ 2 ขึ้นไปในวันที่
-                ครบ 7 วัน (ของเดิมที่เคยเด้ง popup ตอน login ครั้งแรกไปแล้ว) */}
             {streakReward?.claimed_today && (
                 <div
                     className="panel"

@@ -163,7 +163,7 @@ export default function MoneyResultPage() {
     });
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-y-auto p-4 sarabun-medium">
+        <div className="relative flex min-h-dvh items-center justify-center overflow-y-auto p-4 sarabun-medium">
             <style>{`
                 @keyframes mrp-stamp-slam {
                     0%   { opacity: 0; transform: translate(-50%, -50%) rotate(-18deg) scale(2.4); }

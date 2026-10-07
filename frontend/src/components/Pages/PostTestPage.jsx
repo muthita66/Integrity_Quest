@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import bg_game from "../../assets/bg_game.png";
 import { useNavigate } from "react-router-dom";
 
-// TODO: ถ้ามี env ของ backend URL อยู่แล้ว (เช่น VITE_API_URL) ให้ใช้ตัวนั้นแทน
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const QUIZ_TYPE = "post_test";
 
@@ -96,7 +95,7 @@ function PostTest() {
 
     return (
         <div
-            className="h-screen w-full flex items-center justify-center px-10 pt-16 pb-10 overflow-hidden"
+            className="h-dvh w-full flex items-center justify-center px-10 pt-16 pb-10 overflow-hidden"
             style={{
                 backgroundImage: `url(${bg_game})`,
                 backgroundSize: "cover",

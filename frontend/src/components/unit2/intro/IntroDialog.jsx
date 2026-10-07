@@ -18,13 +18,16 @@ export default function IntroDialog({
     const displayLesson = lesson || sceneData?.lesson;
 
     return (
+        // Responsive: กว้าง 88% (แท็บเล็ต) → 70% (≥1024px) → 60% (≥1280px)
+        // สูงขั้นต่ำ 240px และยืดตามความยาวข้อความได้ (เดิมสูงตายตัวจนข้อความยาวชนปุ่ม)
+        // pb-[72px] = เว้นที่ให้แถวปุ่มด้านล่าง (สูง 40px + ห่างขอบ 20px + เผื่อ)
         <div
             className="
-                relative mx-auto w-[60%] h-[240px]
+                relative mx-auto w-[88%] lg:w-[70%] xl:w-[60%] min-h-[240px]
                 bg-black/40 backdrop-blur-sm border-2 border-white/50 rounded-2xl text-white
-                px-6 pb-5 pt-8
+                px-6 pt-8 pb-[72px]
                 shadow-2xl
-                md:px-9 md:pb-7
+                md:px-9
                 sarabun-bold
             ">
             {/* Speaker name */}
@@ -35,7 +38,7 @@ export default function IntroDialog({
                     bg-yellow-200 px-6 py-2
                     shadow-lg">
                 <p className="text-lg font-black text-black md:text-xl">
-                    {speaker}
+                    {displaySpeaker}
                 </p>
             </div>
 

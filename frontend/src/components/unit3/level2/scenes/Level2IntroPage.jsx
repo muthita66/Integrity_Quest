@@ -83,7 +83,7 @@ export default function Level2IntroPage() {
     };
 
     return (
-        <main className="relative min-h-screen overflow-hidden bg-black font-sara">
+        <main className="relative min-h-dvh overflow-hidden bg-black font-sara">
 
             <button
                 type="button"

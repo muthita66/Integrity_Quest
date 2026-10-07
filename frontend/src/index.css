@@ -34,10 +34,20 @@ html {
   @apply overflow-hidden;
 }
 
+/* กันการดึงหน้าจอลงเพื่อรีเฟรช (pull-to-refresh) และเด้งขอบ
+   ที่ทำให้เกมบนแท็บเล็ตรีโหลดโดยไม่ตั้งใจ */
+html,
+body {
+  overscroll-behavior: none;
+}
+
 /* ── Page Layout ── */
 .map-page {
   width: 100%;
   height: 100vh;
+  /* มือถือ/แท็บเล็ต: 100vh รวมพื้นที่แถบ address bar ทำให้ขอบล่างโดนตัด
+     dvh = ความสูงที่มองเห็นจริง (เบราว์เซอร์เก่าที่ไม่รองรับจะใช้ 100vh ด้านบนแทน) */
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background-size: cover;
@@ -293,7 +303,7 @@ html {
 
 /* ── Sidebar & Panels ── */
 .sidebar {
-  width: 320px;
+  width: 280px;
   height: 100%;
   background: rgba(30, 41, 59, 0.45);
   backdrop-filter: blur(12px);
@@ -491,6 +501,50 @@ html {
   color: white;
 }
 
+/* ── Responsive: หน้าแผนที่ ── */
+/* แถบ About / Help ลอยทับมุมล่างขวา (ไม่เป็นแถวแยกใต้แผนที่)
+   เพื่อให้แผนที่ยาวถึงขอบล่างของหน้าต่าง เงาของเกาะ/ป้ายชื่อบทจะไม่ถูกตัดเป็นเส้นกลางฉาก */
+.map-page .footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 280px;
+  height: 24px;
+  z-index: 20;
+}
+
+/* เว้นที่ด้านล่างของแถบด้านข้างไม่ให้เนื้อหาโดนแถบ About / Help บัง */
+.map-page .sidebar {
+  padding-bottom: 44px;
+}
+
+/* แท็บเล็ตแนวตั้ง / หน้าต่างแคบ (< 1024px):
+   ย้ายแถบด้านข้างลงมาไว้ใต้แผนที่ แทนการบีบพื้นที่แผนที่ให้แคบจนปราสาทซ้อนกัน */
+@media (max-width: 1023px) {
+  .map-page .content {
+    flex-direction: column;
+  }
+
+  .map-page .game-map {
+    flex: 1 1 0;
+    height: auto;
+    min-height: 0;
+  }
+
+  .map-page .sidebar {
+    width: 100%;
+    height: auto;
+    flex: 0 0 auto;
+    max-height: 38vh;
+    border-left: none;
+    border-top: 3px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .map-page .footer {
+    width: 100%;
+  }
+}
+
 /* ── Animations ── */
 @keyframes float {
   0% {
@@ -608,8 +662,6 @@ html {
   z-index: 30;
   animation: mirror-shine 5s ease-in-out infinite;
 }
-
-
 
 .start-btn {
   animation: glow 1.8s infinite ease-in-out;

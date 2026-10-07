@@ -1,20 +1,8 @@
 import { useEffect, useState } from "react";
-
 import { getLeaderboard } from "../../services/profileService";
 
-// ============================================================
-// Leaderboard (ดึงจาก DB ผ่าน /api/profile/leaderboard)
-// ------------------------------------------------------------
-// - Top 5 นิสิต เรียงตาม Integrity Points
-// - แถวของตัวเองไฮไลต์
-// - ถ้าไม่ติด Top 5 → แสดงแถว "คุณ" ต่อท้าย
-// ใช้ class เดิมใน index.css (.panel / .leaderboard-item / .rank-*)
-// ============================================================
-
 const MEDALS = { 1: "🥇", 2: "🥈", 3: "🥉" };
-
 const RANK_CLASS = { 1: "rank-1", 2: "rank-2", 3: "rank-3" };
-
 const ME_STYLE = {
     background: "rgba(59, 130, 246, 0.12)",
     border: "1px solid rgba(59, 130, 246, 0.35)",

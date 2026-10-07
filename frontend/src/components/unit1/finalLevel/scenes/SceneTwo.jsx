@@ -12,7 +12,7 @@ export default function SceneTwo({
     totalScenes,
 }) {
     return (
-        <div className="relative w-full h-screen overflow-hidden">
+        <div className="relative w-full h-dvh overflow-hidden">
             {/* Illustration */}
             <img
                 src={SceneTwoImg}

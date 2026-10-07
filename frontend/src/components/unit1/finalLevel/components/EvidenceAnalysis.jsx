@@ -114,13 +114,13 @@ export default function EvidenceAnalysis({
                 : "#E53935";
 
     return (
-        <div className="w-full min-h-screen flex items-center justify-center">
+        <div className="w-full min-h-dvh flex items-center justify-center">
             {/* Main Content */}
             <div
                 className="
                     cid-paper
                     w-full
-                    min-h-screen
+                    min-h-dvh
                     flex
                     flex-col
                     relative
@@ -317,9 +317,6 @@ export default function EvidenceAnalysis({
                                     );
                                 }
 
-                                /*
-                                 * หลักฐานที่ไม่เกี่ยวข้องแต่เลือกมา
-                                 */
                                 if (
                                     !evidence.relevant &&
                                     isPicked

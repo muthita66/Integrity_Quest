@@ -99,7 +99,7 @@ export default function Level2IntroPage() {
 
     if (loading) {
         return (
-            <main className="min-h-screen flex items-center justify-center bg-black text-white">
+            <main className="min-h-dvh flex items-center justify-center bg-black text-white">
                 <p className="text-xl sarabun-bold">
                     กำลังโหลดข้อมูล...
                 </p>
@@ -110,7 +110,7 @@ export default function Level2IntroPage() {
     // ถ้าไม่มีข้อมูล
     if (!sceneData.length) {
         return (
-            <main className="min-h-screen flex items-center justify-center bg-black text-white">
+            <main className="min-h-dvh flex items-center justify-center bg-black text-white">
                 <p className="text-xl sarabun-bold">
                     ไม่พบข้อมูล Scene ของ Level 2
                 </p>
@@ -120,7 +120,7 @@ export default function Level2IntroPage() {
 
     // Main
     return (
-        <main className="min-h-screen relative overflow-hidden bg-black">
+        <main className="min-h-dvh relative overflow-hidden bg-black">
             <section className="relative z-20 flex items-start justify-center">
                 <div className="w-full">
                     <CurrentSceneComponent

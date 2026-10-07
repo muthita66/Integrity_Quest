@@ -1,13 +1,9 @@
 const express = require("express");
 const router = express.Router();
-
 const moneyGameController = require("../controllers/moneyGameController");
 const { syncLevelResult } = require("../controllers/levelSyncController");
 
-// =====================================================
 // Unit 3 Level 2 : Money Game
-// =====================================================
-
 // เริ่มเกม
 router.post(
     "/start/:playId",

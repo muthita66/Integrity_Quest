@@ -160,9 +160,6 @@ async function computeGameState(playId) {
         (item) => item.item_type === "want"
     ).length;
 
-    // ตรงกับพฤติกรรมเดิม: ซื้อของ "want" เยอะแค่ไหนก็แค่หักคะแนน ไม่ทำให้
-    // ภารกิจ FAIL ทันที — ต้องเป็น event ที่ระบุ unnecessary_purchase เท่านั้น
-    // ถึงจะ flip flag ที่มีผลต่อ success
     const unnecessaryPurchaseFlag = events.some(
         (event) => event.unnecessary_purchase_flag
     );
@@ -213,13 +210,6 @@ function buildResultPayload(treasurerRow, totalIntegrityPoints, ipBreakdown) {
     };
 }
 
-// สร้าง ipBreakdown ย้อนหลังจาก field ที่ persist ไว้แล้วใน
-// game_play_treasurer/game_play_history — ใช้เฉพาะตอน "เกมจบไปแล้ว"
-// (refetch/race กับ checkout/event) ไม่ต้อง computeGameState() ใหม่
-// เพราะ deterministic เหมือนกันทุกอย่างกับตอนจบเกมจริง (ดู
-// completeTreasurerGame: criteriaMet เดียวกัน) — earned_ip เอาจาก
-// game_play_history ที่ persist จริงเป็นหลักเสมอ กัน baseIp+timeBonusIp
-// ที่คำนวณย้อนหลังเพี้ยนไปจากตัวเลขจริงถ้า logic เปลี่ยนในอนาคต
 function buildIpBreakdownFromStored(treasurerRow, minReserve, earnedIpFromHistory) {
     const baseIp = treasurerRow.success ? BASE_PASS_IP : 0;
     const timeBonusIp =
@@ -233,8 +223,6 @@ function buildIpBreakdownFromStored(treasurerRow, minReserve, earnedIpFromHistor
     };
 }
 
-// จบเกมทันทีแบบ FAILED (เงินเกินงบ / เงินสำรองไม่พอ ไม่ว่าจะจาก checkout
-// หรือ event) — ใช้ร่วมกันทั้ง 2 จุด เพื่อไม่ให้ logic ผิดเพี้ยนกัน
 async function finalizeTreasurerFailure(
     play,
     treasurer,
@@ -257,8 +245,6 @@ async function finalizeTreasurerFailure(
         )
     );
 
-    // updateMany + completed_at:null กันเรียกจบเกมซ้ำ (เช่น checkout กับ
-    // event ยิงมาไล่เลี่ยกันจนทั้งคู่พยายามจบเกมพร้อมกัน)
     const updated = await prisma.game_play_history.updateMany({
         where: { play_id: playId, completed_at: null },
         data: {
@@ -317,10 +303,6 @@ async function finalizeTreasurerFailure(
     );
 }
 
-// =====================================================
-// Start Treasurer Game
-// สร้างข้อมูลสรุปของรอบการเล่นใน game_play_treasurer
-// =====================================================
 exports.startTreasurerGame = async (playId) => {
     const config = await prisma.final_level_config.findUnique({
         where: {
@@ -352,14 +334,6 @@ exports.startTreasurerGame = async (playId) => {
     });
 };
 
-// =====================================================
-// Checkout Cart
-// รับแค่ item_id + quantity จาก client ราคา/หมวด/ประเภท/จำนวนซื้อได้
-// สูงสุด อ่านจาก DB (level_items + items) ทั้งหมด ไม่เชื่อค่าจาก client
-// เลยแม้แต่ตัวเลขเดียว — ตรวจงบต่อหมวดกับเงินสำรองขั้นต่ำจริงจาก
-// final_level_config / final_level_category_budgets
-// POST /api/final-level/checkout
-// =====================================================
 exports.checkoutCart = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -627,10 +601,6 @@ exports.checkoutCart = async (req, res) => {
     }
 };
 
-// =====================================================
-// Decide Receipt (เก็บ / ไม่เก็บ) แล้วสุ่ม Event ต่อ (ถ้ามี)
-// POST /api/final-level/receipt/decide
-// =====================================================
 exports.decideReceipt = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -745,12 +715,6 @@ exports.decideReceipt = async (req, res) => {
     }
 };
 
-// =====================================================
-// Apply Event Choice
-// รับแค่ event_id + choice_id ผลกระทบ (money_change/score_change/flags)
-// อ่านจาก DB (final_level_event_choices) เท่านั้น ไม่เชื่อค่าจาก client
-// POST /api/final-level/event/apply
-// =====================================================
 exports.applyEventChoice = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -900,12 +864,6 @@ exports.applyEventChoice = async (req, res) => {
     }
 };
 
-// =====================================================
-// Complete Treasurer Game
-// รับแค่ play_id — score/grade/success/IP ทั้งหมดคำนวณจากข้อมูลจริง
-// ใน DB (computeGameState) ไม่เชื่อค่าใด ๆ จาก client เลย
-// POST /api/final-level/complete
-// =====================================================
 exports.completeTreasurerGame = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -940,17 +898,8 @@ exports.completeTreasurerGame = async (req, res) => {
                 message: "ยังไม่ได้เริ่มเกม Treasurer",
             });
         }
-
-        // ย้าย getConfig() มาไว้ตรงนี้ (แทนที่จะเรียกหลังเช็ค completed_at)
-        // เพราะ branch "เกมจบไปแล้ว" ด้านล่างต้องใช้ config.min_reserve
-        // ไปคำนวณ ipBreakdown ย้อนหลังด้วย
         const config = await getConfig();
 
-        // เกมจบไปแล้ว (เช่น checkout/event เพิ่งบังคับ FAILED ไปก่อนหน้า)
-        // ส่งผลเดิมกลับไปเฉย ๆ ไม่คำนวณซ้ำ ไม่ให้ IP ซ้ำ — แต่ยังคง
-        // สร้าง ipBreakdown ย้อนหลังจากข้อมูลที่ persist ไว้แล้ว ไม่งั้น
-        // ตอน refetch (เช่น refresh หน้า) จะเห็น base_ip/time_bonus_ip
-        // เป็น 0 หมดทั้งที่ได้ IP ไปแล้วจริง ๆ (earned_ip ใน DB ไม่ใช่ 0)
         if (play.completed_at) {
             const userStats = await prisma.user_stats.findUnique({
                 where: { user_id: userId },
@@ -996,9 +945,6 @@ exports.completeTreasurerGame = async (req, res) => {
             !state.unnecessaryPurchaseFlag &&
             balance >= config.min_reserve;
 
-        // คะแนนเต็ม 15 — 5 เงื่อนไข x 3 คะแนนเท่ากันทุกข้อ (ดู MAX_SCORE ด้านบน)
-        // เก็บผลแต่ละเงื่อนไขเป็น array ไว้ด้วย เพื่อเอาไปนับ IP ต่อ
-        // (1 เงื่อนไขที่ผ่าน = 1 IP — ดูส่วน IP ด้านล่าง)
         const criteriaMet = [
             state.requiredComplete,
             !state.missingReceiptFlag,
@@ -1010,8 +956,6 @@ exports.completeTreasurerGame = async (req, res) => {
 
         let finalScore = criteriaMetCount * POINTS_PER_CRITERION;
 
-        // หักคะแนนของไม่จำเป็น: -1 คะแนนต่อชิ้น สูงสุดไม่เกิน 3 คะแนน
-        // (เท่ากับคะแนนของเงื่อนไข "ไม่ซื้อของไม่จำเป็น" ข้อเดียว)
         finalScore -= Math.min(state.unnecessaryCount, POINTS_PER_CRITERION);
         finalScore = Math.max(finalScore, 0);
 
@@ -1057,10 +1001,6 @@ exports.completeTreasurerGame = async (req, res) => {
         });
 
         if (updated.count === 0) {
-            // แพ้ race ให้ checkout/event ที่ยิง complete เข้ามาก่อน —
-            // ต้องอ่าน earned_ip ที่เขา persist ไปแล้วจาก game_play_history
-            // เอง ด้วย (ไม่ใช่แค่ game_play_treasurer) ไม่งั้น ipBreakdown
-            // จะกลายเป็น 0 หมดทั้งที่ได้ IP ไปแล้วจริง ๆ
             const [existing, existingHistory] = await Promise.all([
                 prisma.game_play_treasurer.findUnique({
                     where: { play_id: playId },
@@ -1090,8 +1030,6 @@ exports.completeTreasurerGame = async (req, res) => {
             });
         }
 
-        // ---- IP (สเกลใหม่): ต้อง success ก่อนถึงนับ ----
-        // ผ่านภารกิจ = 150 IP + ทันเวลา = +50 IP (เต็ม 200)
         const baseIp = success ? BASE_PASS_IP : 0;
         const timeBonusIp = success && isFast ? TIME_BONUS_IP : 0;
         const gradeBonusIp = 0;
@@ -1166,19 +1104,10 @@ exports.completeTreasurerGame = async (req, res) => {
     }
 };
 
-// =====================================================
-// Get Final Level Data
-// ใช้สำหรับดึงข้อมูลเกม FinalLevel จาก Database
-// ยังไม่เกี่ยวกับประวัติการเล่น (อ่านอย่างเดียว ไม่มีประเด็นเรื่องความ
-// น่าเชื่อถือของข้อมูล — ไม่ได้แก้ไขส่วนนี้)
-// =====================================================
 exports.getFinalLevelData = async (req, res) => {
     try {
         const levelId = FINAL_LEVEL_ID;
-
-        // =====================================================
         // 1. ตรวจสอบ Level
-        // =====================================================
         const level = await prisma.level.findUnique({
             where: {
                 level_id: levelId,
@@ -1203,9 +1132,7 @@ exports.getFinalLevelData = async (req, res) => {
             });
         }
 
-        // =====================================================
         // 2. Final Level Config
-        // =====================================================
         const configResult = await prisma.$queryRaw`
             SELECT
                 id,
@@ -1226,9 +1153,7 @@ exports.getFinalLevelData = async (req, res) => {
 
         const config = configResult[0];
 
-        // =====================================================
         // 3. Category Budgets
-        // =====================================================
         const categoryBudgets = await prisma.$queryRaw`
             SELECT
                 id,
@@ -1239,9 +1164,7 @@ exports.getFinalLevelData = async (req, res) => {
             ORDER BY id
         `;
 
-        // =====================================================
         // 4. Items
-        // =====================================================
         const items = await prisma.$queryRaw`
             SELECT
                 i.items_id AS item_id,
@@ -1269,9 +1192,7 @@ exports.getFinalLevelData = async (req, res) => {
             });
         }
 
-        // =====================================================
         // 5. Random Events
-        // =====================================================
         const events = await prisma.$queryRaw`
             SELECT
                 event_id,
@@ -1286,9 +1207,7 @@ exports.getFinalLevelData = async (req, res) => {
             ORDER BY event_order
         `;
 
-        // =====================================================
         // 6. Event Choices
-        // =====================================================
         const choices = await prisma.$queryRaw`
             SELECT
                 c.choice_id,
@@ -1310,9 +1229,7 @@ exports.getFinalLevelData = async (req, res) => {
             ORDER BY e.event_order, c.choice_id
         `;
 
-        // =====================================================
         // 7. รวม Choices เข้าแต่ละ Event
-        // =====================================================
         const formattedEvents = events.map((event) => ({
             event_id: event.event_id,
             event_key: event.event_key,
@@ -1342,9 +1259,7 @@ exports.getFinalLevelData = async (req, res) => {
                 })),
         }));
 
-        // =====================================================
         // 8. Response
-        // =====================================================
         return res.status(200).json({
             message: "ดึงข้อมูล FinalLevel สำเร็จ",
             data: {

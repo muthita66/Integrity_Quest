@@ -79,7 +79,9 @@
 }
 
 @keyframes level1-blink {
-    50% { opacity: 0; }
+    50% {
+        opacity: 0;
+    }
 }
 
 .dots {
@@ -143,9 +145,17 @@
     transform: translateY(-3px);
 }
 
-.exhibit--ok { border-color: #5D9C6A; }
-.exhibit--no { border-color: #B95B52; }
-.exhibit--todo { opacity: .45; }
+.exhibit--ok {
+    border-color: #5D9C6A;
+}
+
+.exhibit--no {
+    border-color: #B95B52;
+}
+
+.exhibit--todo {
+    opacity: .45;
+}
 
 .evidence-stage {
     min-height: 300px;
@@ -183,18 +193,39 @@
 
 .stamp {
     position: absolute;
-    top: 18px;
-    right: 12px;
-    padding: 5px 12px;
+    top: 16px;
+    right: 10px;
+    /* ตราประทับทรงแนวนอน: กว้างกว่าสูง ไม่ตัดบรรทัด ไม่ถูกบีบเป็นสี่เหลี่ยมจัตุรัส */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: auto;
+    min-width: 132px;
+    padding: 4px 26px;
     border: 3px solid currentColor;
     border-radius: 6px;
+    font-size: 20px;
     font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: .5px;
+    text-align: center;
+    white-space: nowrap;
     transform: rotate(8deg);
     background: rgba(255, 255, 255, .76);
+    pointer-events: none;
 }
 
-.stamp--ok { color: #15803D; }
-.stamp--no { color: #B91C1C; }
+.stamp--ok {
+    color: #15803D;
+}
+
+.stamp--no {
+    color: #B91C1C;
+}
 
 .verdict-row {
     display: grid;
@@ -230,8 +261,13 @@
     font-weight: 400;
 }
 
-.verdict--real { background: rgba(21, 128, 61, .08); }
-.verdict--fake { background: rgba(185, 28, 28, .07); }
+.verdict--real {
+    background: rgba(21, 128, 61, .08);
+}
+
+.verdict--fake {
+    background: rgba(185, 28, 28, .07);
+}
 
 .review-row {
     display: flex;
@@ -244,8 +280,13 @@
     background: rgba(255, 255, 255, .56);
 }
 
-.review-row--ok { border-left-color: #15803D; }
-.review-row--no { border-left-color: #B91C1C; }
+.review-row--ok {
+    border-left-color: #15803D;
+}
+
+.review-row--no {
+    border-left-color: #B91C1C;
+}
 
 .review-row img {
     width: 48px;
@@ -256,12 +297,68 @@
 }
 
 @media (max-width: 760px) {
-    .book-stage { padding: 14px; align-items: flex-start; }
-    .book-frame { height: auto; min-height: calc(100vh - 28px); flex-direction: column; }
-    .book-page { padding: 26px 22px; }
-    .book-page--left { border-radius: var(--radius-page) var(--radius-page) 0 0; }
-    .book-page--right { border-radius: 0 0 var(--radius-page) var(--radius-page); }
-    .book-spine { width: auto; height: 14px; }
-    .book-gutter { display: none; }
-    .evidence-img { height: auto; max-height: 58vh; }
+    .book-stage {
+        padding: 14px;
+        align-items: flex-start;
+    }
+
+    .book-frame {
+        height: auto;
+        min-height: calc(100vh - 28px);
+        flex-direction: column;
+    }
+
+    .book-page {
+        padding: 26px 22px;
+    }
+
+    .book-page--left {
+        border-radius: var(--radius-page) var(--radius-page) 0 0;
+    }
+
+    .book-page--right {
+        border-radius: 0 0 var(--radius-page) var(--radius-page);
+    }
+
+    .book-spine {
+        width: auto;
+        height: 14px;
+    }
+
+    .book-gutter {
+        display: none;
+    }
+
+    .evidence-img {
+        height: auto;
+        max-height: 58vh;
+    }
+}
+
+/* ตราประทับ: เตี้ยและกว้าง ขนาดเล็กลง (specificity สูงกว่า .stamp เดิมที่อาจถูกกฎอื่นทับ) */
+.evidence-stage .evidence-frame span.stamp {
+    top: 50%;
+    left: 50%;
+    right: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    max-height: none;
+    aspect-ratio: auto;
+    margin: 0;
+    padding: 2px 20px;
+    border-width: 2px;
+    border-radius: 5px;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: .3px;
+    white-space: nowrap;
+    text-align: center;
+    transform: translate(-50%, -50%) rotate(-6deg);
 }

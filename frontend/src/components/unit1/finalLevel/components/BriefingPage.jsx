@@ -10,7 +10,7 @@ export default function BriefingPage({
 }) {
     return (
         <div
-            className="relative w-full min-h-screen overflow-hidden bg-cover bg-center bg-no-repeat"
+            className="relative w-full min-h-dvh overflow-hidden bg-cover bg-center bg-no-repeat"
             style={{
                 backgroundImage: `url(${currentCase.background})`,
             }}
@@ -19,7 +19,7 @@ export default function BriefingPage({
             <div className="absolute inset-0 bg-black/10" />
 
             {/* Main Content */}
-            <div className="relative z-10 w-full min-h-screen flex flex-col items-center justify-center px-8 pt-16 pb-12">
+            <div className="relative z-10 w-full min-h-dvh flex flex-col items-center justify-center px-8 pt-16 pb-12">
 
                 {/* Progress 1 - 2 - 3 - 4 - 5 */}
                 <div className="w-full max-w-7xl mb-8">

@@ -106,8 +106,11 @@ const FONT_STYLE = `
 export default function FinalLevel() {
   const game = useCaseGame();
 
+  // Responsive: index.css ตั้ง html เป็น overflow-hidden (หน้าเลื่อนไม่ได้)
+  // ถ้าเนื้อหาของด่านนี้สูงกว่าจอ (เช่น หน้าเลือกเคสบนโน้ตบุ๊กจอเตี้ย) ส่วนล่างจะเข้าไม่ถึง
+  // จึงให้กล่องนอกสุดเป็นกล่องที่เลื่อนได้เองแทน (h-dvh + overflow-y-auto)
   return (
-    <div className="min-h-screen w-full cid-body overflow-hidden relative sarabun-bold">
+    <div className="h-dvh w-full cid-body overflow-x-hidden overflow-y-auto relative sarabun-bold">
       <img
         src={BgGameLevel}
         alt=""
@@ -116,7 +119,8 @@ export default function FinalLevel() {
 
       <style>{FONT_STYLE}</style>
 
-      <div className="absolute inset-0 bg-black/50 z-0" />
+      {/* fixed (ไม่ใช่ absolute) เพื่อให้เงามืดคลุมจอตลอดเวลาที่เลื่อนเนื้อหา */}
+      <div className="fixed inset-0 bg-black/50 z-0" />
 
       {/* Game-over popup */}
       <GameOverPopup
@@ -146,7 +150,7 @@ export default function FinalLevel() {
       ===================================================== */}
 
       {game.stage === "intro" && (
-        <div className="fixed inset-0 w-screen h-screen z-10 overflow-hidden">
+        <div className="fixed inset-0 w-screen h-dvh z-10 overflow-hidden">
           <IntroScenes
             onComplete={() => game.setStage("title")}
           />
@@ -159,7 +163,7 @@ export default function FinalLevel() {
       ===================================================== */}
 
       {game.stage !== "intro" && (
-        <div className="relative z-10 w-full min-h-screen">
+        <div className="relative z-10 w-full min-h-dvh">
           <NavBar
             onRestart={game.restart}
             stage={game.stage}

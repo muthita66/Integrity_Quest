@@ -177,7 +177,7 @@ export default function Level2Intro() {
     return (
         <motion.div
             onClick={handleNext}
-            className="relative w-screen h-screen overflow-hidden cursor-pointer select-none"
+            className="relative w-full h-dvh overflow-hidden cursor-pointer select-none"
         >
             {/* ================= Background ================= */}
             <AnimatePresence mode="wait">
@@ -262,10 +262,11 @@ export default function Level2Intro() {
                 className="
                 absolute
                 bottom-8
-                left-60
-                right-60
+                left-[6%] right-[6%]
+                lg:left-[12%] lg:right-[12%]
+                xl:left-60 xl:right-60
 
-                min-h-[230px]
+                min-h-[190px] xl:min-h-[230px]
                 rounded-[30px]
                 bg-[#2b170e]/72
                 backdrop-blur-xl
@@ -287,12 +288,10 @@ export default function Level2Intro() {
         -top-12
         z-50
 
-        ${scene === "police" ? "left-20" : "right-20"}
+        ${scene === "police" ? "left-8" : "right-8"}
 
         bg-gradient-to-r from-[#8f2d13] to-[#641d0e]
         border-2 border-amber-200/70
-        px-8
-        py-3
 
         ${scene === "police"
                             ? "rounded-t-xl rounded-r-xl rounded-bl-xl"
@@ -306,6 +305,7 @@ export default function Level2Intro() {
 
         shadow-[4px_5px_0_rgba(52,22,8,.35),0_8px_18px_rgba(0,0,0,.25)]
     `}
+                    style={{ padding: "12px 32px" }}
                 >
                     {current.speaker}
                 </div>
@@ -319,12 +319,8 @@ export default function Level2Intro() {
 
                 <div
                     className="
-                    px-12
-                    pt-16
-                    pr-20
-
                     text-[#fff6df]
-                    text-[26px]
+                    text-[18px] lg:text-[20px] xl:text-[24px]
                     font-bold
                     leading-relaxed
                     tracking-wide
@@ -332,116 +328,54 @@ export default function Level2Intro() {
 
                     whitespace-pre-wrap
                     "
+                    style={{
+                        padding: "64px clamp(40px, 6vw, 80px) 28px clamp(32px, 4vw, 48px)",
+                    }}
                 >
                     {displayText}
                 </div>
 
                 <div className="absolute bottom-4 left-12 right-12 h-px bg-gradient-to-r from-transparent via-amber-200/55 to-transparent" />
 
-                {/* Hint */}
-
-
             </motion.div>
-            {/* ================= ปุ่มเริ่มเกม ================= */}
+
+            {/* ================= ปุ่มเริ่มเกม (กลางจอ) ================= */}
 
             {scene === "mayor" &&
                 dialogIndex === mayorDialogue.length - 1 &&
                 !typing && (
+                    <div className="pointer-events-none absolute inset-0 z-[100] flex items-center justify-center">
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            whileHover={{ scale: 1.08, y: -4 }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigate("/unit5/game2");
+                            }}
+                            style={{ padding: "24px 40px" }}
+                            className="pointer-events-auto relative group overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-[#2b1b12] font-black text-2xl tracking-wider shadow-[0_0_30px_rgba(251,191,36,.5)] border-4 border-yellow-100"
+                        >
+                            {/* Glow */}
+                            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition" />
 
-                    <motion.button
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{
-                            opacity: 1,
-                            scale: 1,
-                        }}
-                        whileHover={{
-                            scale: 1.08,
-                            y: -4,
-                        }}
-                        whileTap={{
-                            scale: 0.95,
-                        }}
-                        transition={{
-                            type: "spring",
-                            stiffness: 300,
-                        }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            navigate("/unit5/game2");
-                        }}
-                        className="
-        relative
-        group
-        overflow-hidden
+                            {/* วิ่งแสง */}
+                            <span className="absolute left-[-75%] top-0 h-full w-[30%] bg-white/35 rotate-12 blur-md group-hover:left-[140%] transition-all duration-1000" />
 
-        px-10
-        py-6
+                            {/* กรอบแต่ง */}
+                            <span className="absolute top-0 left-0 w-1/2 h-[25%] border-l-2 border-t-2 border-white rounded-tl-xl" />
+                            <span className="absolute top-0 right-0 w-1/2 h-[25%] group-hover:h-[90%] transition-all duration-300 border-r-2 border-t-2 border-white rounded-tr-xl" />
+                            <span className="absolute bottom-0 left-0 w-1/2 h-[25%] group-hover:h-[90%] transition-all duration-300 border-l-2 border-b-2 border-white rounded-bl-xl" />
+                            <span className="absolute bottom-0 right-0 w-1/2 h-[25%] border-r-2 border-b-2 border-white rounded-br-xl" />
 
-        rounded-2xl
-
-        bg-gradient-to-r
-        from-amber-500
-        via-yellow-400
-        to-amber-500
-
-        text-[#2b1b12]
-        font-black
-        text-2xl
-        tracking-wider
-
-        shadow-[0_0_30px_rgba(251,191,36,.5)]
-
-        border-4
-        border-yellow-100
-
-        absolute
-        bottom-[-55%]
-        left-[35%]
-        z-[100]
-    "
-                    >
-                        {/* Glow */}
-                        <div
-                            className="
-            absolute
-            inset-0
-            bg-white/10
-            opacity-0
-            group-hover:opacity-100
-            transition
-        "
-                        />
-
-                        {/* วิ่งแสง */}
-                        <span
-                            className="
-            absolute
-            left-[-75%]
-            top-0
-            h-full
-            w-[30%]
-            bg-white/35
-            rotate-12
-            blur-md
-
-            group-hover:left-[140%]
-
-            transition-all
-            duration-1000
-        "
-                        />
-
-                        {/* กรอบแต่ง */}
-                        <span className="absolute top-0 left-0 w-1/2 h-[25%] border-l-2 border-t-2 border-white rounded-tl-xl" />
-                        <span className="absolute top-0 right-0 w-1/2 h-[25%] group-hover:h-[90%] transition-all duration-300 border-r-2 border-t-2 border-white rounded-tr-xl" />
-                        <span className="absolute bottom-0 left-0 w-1/2 h-[25%] group-hover:h-[90%] transition-all duration-300 border-l-2 border-b-2 border-white rounded-bl-xl" />
-                        <span className="absolute bottom-0 right-0 w-1/2 h-[25%] border-r-2 border-b-2 border-white rounded-br-xl" />
-
-                        {/* เนื้อปุ่ม */}
-                        <span className="relative z-20 flex items-center gap-3">
-                            <span>เริ่มทดสอบการบริหารเมือง</span>
-                        </span>
-                    </motion.button>
+                            {/* เนื้อปุ่ม */}
+                            <span className="relative z-20 flex items-center gap-3">
+                                <span>เริ่มทดสอบการบริหารเมือง</span>
+                            </span>
+                        </motion.button>
+                    </div>
                 )}
         </motion.div>
     );

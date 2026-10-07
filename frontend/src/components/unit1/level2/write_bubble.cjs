@@ -56,7 +56,7 @@ export default function BubbleShooterPage() {
   if (isLoading) {
     return (
       <Background>
-        <div className="h-screen w-full flex items-center justify-center">
+        <div className="h-dvh w-full flex items-center justify-center">
           <div className="bg-white border-4 border-black rounded-2xl px-10 py-6 text-center shadow-[6px_6px_0px_black]">
             <p className="text-2xl sarabun-bold">
               กำลังโหลดเกม...
@@ -73,7 +73,7 @@ export default function BubbleShooterPage() {
   if (error) {
     return (
       <Background>
-        <div className="h-screen w-full flex items-center justify-center">
+        <div className="h-dvh w-full flex items-center justify-center">
           <div className="bg-white border-4 border-black rounded-2xl px-10 py-8 text-center shadow-[6px_6px_0px_black] max-w-lg">
             <p className="text-2xl text-red-600 sarabun-bold mb-4">
               ไม่สามารถโหลดเกมได้
@@ -112,7 +112,7 @@ export default function BubbleShooterPage() {
   // ==========================================
   return (
     <Background>
-      <div className="h-screen w-full overflow-hidden flex flex-col pb-4">
+      <div className="h-dvh w-full overflow-hidden flex flex-col pb-4">
 
         {/* ======================================
             Game Header

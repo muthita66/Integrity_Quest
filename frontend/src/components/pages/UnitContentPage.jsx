@@ -32,9 +32,6 @@ const UNIT5_ROUTES = [
     "/unit5/game3",
 ];
 
-// บทที่มีด่านใน DB แล้ว → ใช้ระบบล็อกตาม Progress
-// (บทที่ยังไม่มีด่านจะกดเข้า intro ของบทได้ตามเดิม)
-// Unit 6 : ด่านที่ 1, 2, 3 (ตาม order_no)
 const UNIT6_ROUTES = [
     "/unit6/game1",
     "/unit6/game2",
@@ -45,44 +42,18 @@ const LOCK_ENFORCED_UNITS = 6;
 
 export default function UnitContentPage() {
     const navigate = useNavigate();
+    const [header, setHeader] = useState(null);
+    const [cards, setCards] = useState([]);
+    const [levelProgress, setLevelProgress] = useState([]);
+    const [unitLocked, setUnitLocked] = useState(true);
+    const [loadingProgress, setLoadingProgress] = useState(true);
+    const [progressError, setProgressError] = useState("");
+    const { unitId } = useParams();
 
-    const [header, setHeader] =
-        useState(null);
-
-    const [cards, setCards] =
-        useState([]);
-
-    // ============================================================
-    // User Progress
-    // ============================================================
-
-    const [levelProgress, setLevelProgress] =
-        useState([]);
-
-    const [unitLocked, setUnitLocked] =
-        useState(true);
-
-    const [loadingProgress, setLoadingProgress] =
-        useState(true);
-
-    const [progressError, setProgressError] =
-        useState("");
-
-    const { unitId } =
-        useParams();
-
-    // เช่น /unit/unit2 -> "unit2" -> 2
     const parsedUnitId = unitId
         ? unitId.replace(/\D/g, "")
         : "";
-
-    const currentUnitId =
-        Number(parsedUnitId) || 1;
-
-    // ============================================================
-    // โหลด Unit Content
-    // ============================================================
-
+    const currentUnitId = Number(parsedUnitId) || 1;
     useEffect(() => {
         const fetchUnitContent =
             async () => {
@@ -121,10 +92,6 @@ export default function UnitContentPage() {
 
         fetchUnitContent();
     }, [currentUnitId]);
-
-    // ============================================================
-    // โหลด User Progress
-    // ============================================================
 
     useEffect(() => {
         let isMounted = true;
@@ -188,8 +155,6 @@ export default function UnitContentPage() {
                             currentUnit?.levels || []
                         );
 
-                        // ไม่พบบทนี้
-                        // (ยังไม่เปิด) = ล็อก
                         setUnitLocked(
                             !currentUnit ||
                             currentUnit.is_locked === true
@@ -223,24 +188,12 @@ export default function UnitContentPage() {
         };
     }, [currentUnitId]);
 
-    // ============================================================
-    // เรียง Level
-    // ============================================================
-
     const sortedLevels =
         [...levelProgress].sort(
             (a, b) =>
                 Number(a.order_no || 0) -
                 Number(b.order_no || 0)
         );
-
-    // ============================================================
-    // หา Level ที่ควรเล่นต่อ
-    //
-    // PASS / PERFECT = ผ่านแล้ว
-    // FAIL / IN_PROGRESS / UNLOCKED = ยังสามารถเล่นต่อได้
-    // LOCKED = ยังเล่นไม่ได้
-    // ============================================================
 
     const isLevelPlayable =
         (level, index) =>
@@ -274,19 +227,11 @@ export default function UnitContentPage() {
         (!nextPlayableLevel &&
             !allLevelsCompleted);
 
-    // ============================================================
-    // Route ของแต่ละ Level
-    // ============================================================
-
     const getLevelRoute = (
         unitId,
         levelId,
         index
     ) => {
-        // --------------------------------------------------------
-        // Unit 1
-        // --------------------------------------------------------
-
         if (unitId === 1) {
             switch (levelId) {
                 case 1:
@@ -302,10 +247,6 @@ export default function UnitContentPage() {
                     return null;
             }
         }
-
-        // --------------------------------------------------------
-        // Unit 2
-        // --------------------------------------------------------
 
         if (unitId === 2) {
             switch (levelId) {
@@ -325,11 +266,6 @@ export default function UnitContentPage() {
                     return null;
             }
         }
-
-        // --------------------------------------------------------
-        // Unit 3
-        // --------------------------------------------------------
-
         if (unitId === 3) {
             switch (levelId) {
                 // Level 8
@@ -349,15 +285,7 @@ export default function UnitContentPage() {
             }
         }
 
-        // --------------------------------------------------------
         // Unit 4–6
-        //
-        // ถ้ายังไม่มี route จาก level_id
-        // จะใช้ route เริ่มต้นของ Unit
-        // --------------------------------------------------------
-
-        // Unit 4 : ใช้ลำดับด่านในบท (เรียงตาม order_no)
-        // ด่าน 1 → level1, ด่าน 2 → level2, ด่าน 3 → level3
         if (unitId === 4) {
             return (
                 UNIT4_ROUTES[index] ||
@@ -365,7 +293,7 @@ export default function UnitContentPage() {
             );
         }
 
-        // Unit 5 : ใช้ลำดับด่านในบทเหมือน Unit 4
+        // Unit 5
         if (unitId === 5) {
             return (
                 UNIT5_ROUTES[index] ||
@@ -373,7 +301,7 @@ export default function UnitContentPage() {
             );
         }
 
-        // Unit 6 : ใช้ลำดับด่านในบทเหมือน Unit 4–5
+        // Unit 6 :
         if (unitId === 6) {
             return (
                 UNIT6_ROUTES[index] ||
@@ -383,10 +311,6 @@ export default function UnitContentPage() {
 
         return null;
     };
-
-    // ============================================================
-    // Start Level
-    // ============================================================
 
     const handleStart = () => {
         if (loadingProgress) {
@@ -401,14 +325,11 @@ export default function UnitContentPage() {
             return;
         }
 
-        // เปิดหน้าเตรียมความพร้อมก่อนเปิดหนังสือและเลือกด่านในบทที่ 4
         if (currentUnitId === 4) {
             navigate("/unit4/intro");
             return;
         }
 
-        // หน้าเลือกบทที่ 6 ให้เริ่มที่อินโทรเกม 1 เสมอ
-        // ไม่ให้ Progress เดิมพาไปเปิดเกม 2 โดยตรง
         if (currentUnitId === 6) {
             navigate("/unit6/game1");
             return;
@@ -417,17 +338,10 @@ export default function UnitContentPage() {
         let levelToStart =
             nextPlayableLevel;
 
-        // ถ้าผ่าน Unit ครบทุก Level แล้ว
-        // ให้สามารถเล่นซ้ำได้
-        // โดยเริ่มจาก Level แรก
         if (allLevelsCompleted) {
             levelToStart =
                 sortedLevels[0];
         }
-
-        // --------------------------------------------------------
-        // ถ้ามี Level Progress
-        // --------------------------------------------------------
 
         if (levelToStart) {
             const levelId =
@@ -460,10 +374,6 @@ export default function UnitContentPage() {
             }
         }
 
-        // --------------------------------------------------------
-        // Fallback สำหรับ Unit 4–6
-        // --------------------------------------------------------
-
         if (currentUnitId === 4) {
             navigate("/unit4/intro");
             return;
@@ -478,245 +388,82 @@ export default function UnitContentPage() {
             navigate("/unit6/game1");
             return;
         }
-
-        // --------------------------------------------------------
-        // ไม่พบ Route
-        // --------------------------------------------------------
-
         alert(
             `ไม่พบ Route ของ Unit ${currentUnitId}\nกรุณาตรวจสอบ App.jsx`
         );
     };
 
-    // ============================================================
-    // UI
-    // ============================================================
-
     return (
         <div
-            className="
-        min-h-screen
-        flex
-        items-center
-        justify-center
-        bg-cover
-        bg-center
-        bg-fixed
-        sarabun-medium
-        relative
-      "
+            className="min-h-dvh flex items-center justify-center bg-cover bg-center bg-fixed sarabun-medium relative"
             style={{
-                backgroundImage:
-                    `url(${bgGame})`,
+                backgroundImage: `url(${bgGame})`,
             }}
         >
             {/* Overlay */}
 
             <div
-                className="
-          absolute
-          inset-0
-          bg-white/40
-          backdrop-blur-[2px]
-        "
-            />
+                className="absolute inset-0 bg-white/40 backdrop-blur-[2px]" />
 
             {/* Header Unit */}
 
-            <div
-                className="
-          absolute
-          top-0
-          left-0
-          z-20
-          bg-orange-600
-          text-white
-          sarabun-semibold
-          px-6
-          py-2
-          rounded-br-2xl
-          text-lg
-          shadow-md
-        "
-            >
-                Unit {currentUnitId}:{" "}
-                {header?.name_th ||
-                    header?.title ||
-                    "กำลังโหลด..."}
+            <div className="absolute top-0 left-0 z-20 bg-orange-600 text-white sarabun-semibold px-6 py-2 rounded-br-2xl text-lg shadow-md">
+                Unit {currentUnitId}: {header?.name_th || header?.title || "กำลังโหลด..."}
             </div>
 
             {/* Home Button */}
 
-            <button
-                onClick={() =>
-                    navigate("/map")
-                }
-                className="
-          absolute
-          top-3
-          right-4
-          z-20
-          flex
-          items-center
-          gap-2
-          bg-white/80
-          hover:bg-orange-600
-          hover:text-white
-          text-orange-600
-          border-2
-          border-orange-600
-          px-2
-          py-2
-          rounded-full
-          text-sm
-          shadow-md
-          transition-all
-          duration-200
-          hover:scale-105
-        "
-            >
+            <button onClick={() => navigate("/map")} className="absolute top-3 right-4 z-20 flex items-center gap-2 bg-white/80 hover:bg-orange-600 hover:text-white text-orange-600 border-2 border-orange-600 px-2 py-2 rounded-full text-sm shadow-md transition-all duration-200 hover:scale-105">
                 <FaHouse size={24} />
             </button>
 
             {/* Main Content */}
 
-            <div
-                className="
-          relative
-          z-10
-          w-full
-          px-6
-          py-8
-        "
-            >
+            <div className="relative z-10 w-full px-6 py-8">
                 {/* Title */}
-
-                <div
-                    className="
-            text-center
-            mt-2
-            mb-4
-          "
-                >
-                    <h1
-                        className="
-              text-3xl
-              sarabun-bold
-              text-gray-800
-              tracking-wide
-              uppercase
-            "
-                    >
-                        {header?.title ||
-                            header?.name_en}
+                <div className="text-center mt-2 mb-4">
+                    <h1 className="text-3xl sarabun-bold text-gray-800 tracking-wide uppercase">
+                        {header?.title || header?.name_en}
                     </h1>
                 </div>
 
                 {/* Cards */}
-
                 <div
-                    className="
-            grid
-            grid-cols-1
-            md:grid-cols-3
-            gap-4
-            max-w-[1300px]
-            h-[550px]
-            mx-auto
-          "
-                >
+                    className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-[1300px] h-[550px] mx-auto">
                     {cards.length > 0 ? (
                         cards.map((item) => (
                             <div
                                 key={
                                     item.content_id
                                 }
-                                className="
-                  border-[3px]
-                  border-black
-                  bg-white/90
-                  rounded-2xl
-                  px-4
-                  py-4
-                  flex
-                  flex-col
-                  items-center
-                  justify-between
-                  min-h-[450px]
-                  shadow-lg
-                "
-                            >
-                                <h2
-                                    className="
-                    text-xl
-                    sarabun-bold
-                    text-center
-                    border-b
-                    pb-1
-                    w-full
-                  "
-                                >
+                                className="border-[3px] border-black bg-white/90 rounded-2xl px-4 py-4 flex flex-col items-center justify-between min-h-[450px] shadow-lg">
+                                <h2 className="text-xl sarabun-bold text-center border-b pb-1 w-full">
                                     {item.title}
                                 </h2>
 
                                 <p
-                                    className="
-                    mt-2
-                    sarabun-light
-                    text-md
-                    text-center
-                    text-black
-                    whitespace-pre-line
-                  "
-                                >
+                                    className="mt-2 sarabun-light text-md text-center text-black whitespace-pre-line">
                                     {item.description}
                                 </p>
 
                                 <div
-                                    className="
-                    flex-grow
-                    flex
-                    items-center
-                    justify-center
-                    my-4
-                    w-full
-                  "
+                                    className="flex-grow flex items-center justify-center my-4 w-full"
                                 >
                                     <img
                                         src={`/image/${item.image_url}`}
                                         alt={item.title}
-                                        className="
-                      max-h-64
-                      max-w-full
-                      object-contain
-                    "
+                                        className="max-h-64 max-w-full object-contain"
                                     />
                                 </div>
 
                                 <p
-                                    className="
-                    sarabun-light
-                    text-sm
-                    text-center
-                    justify-center
-                    text-black
-                    whitespace-pre-line
-                  "
-                                >
+                                    className="sarabun-light text-sm text-center justify-center text-black whitespace-pre-line">
                                     {item.reflection}
                                 </p>
                             </div>
                         ))
                     ) : (
-                        <div
-                            className="
-                col-span-full
-                text-center
-                py-12
-                text-gray-700
-                font-bold
-              "
-                        >
+                        <div className="col-span-full text-center py-12 text-gray-700 font-bold">
                             กำลังโหลดข้อมูลบทเรียน...
                         </div>
                     )}
@@ -728,44 +475,22 @@ export default function UnitContentPage() {
                     !progressError &&
                     nextPlayableLevel && (
                         <div
-                            className="
-                flex
-                justify-center
-                mt-2
-                text-sm
-                font-bold
-                text-gray-800
-              "
-                        >
-                            🔓 พร้อมเล่น:{" "}
+                            className="flex justify-center mt-2 text-sm font-bold text-gray-800">
+                            พร้อมเล่น:{" "}
                             {nextPlayableLevel.title}
                         </div>
                     )}
 
                 {progressError && (
                     <div
-                        className="
-              flex
-              justify-center
-              mt-2
-              text-sm
-              font-bold
-              text-red-600
-            "
-                    >
+                        className="flex justify-center mt-2 text-sm font-bold text-red-600">
                         {progressError}
                     </div>
                 )}
 
                 {/* START Button */}
 
-                <div
-                    className="
-            flex
-            justify-center
-            mt-4
-          "
-                >
+                <div className="flex justify-center mt-4">
                     <button
                         onClick={handleStart}
                         disabled={
@@ -785,50 +510,17 @@ export default function UnitContentPage() {
                                                 ? "บทนี้ยังไม่ปลดล็อก"
                                                 : "Level นี้ยังไม่ปลดล็อก"
                         }
-                        className={`
-              w-[48px]
-              h-[48px]
-              px-2
-              py-2
-              rounded-full
-              text-sm
-              shadow-md
-              transition-all
-              duration-200
-              border-2
-              ${isStartLocked &&
-                                currentUnitId <= LOCK_ENFORCED_UNITS
-                                ? `
-                    bg-gray-300
-                    text-gray-500
-                    border-gray-500
-                    cursor-not-allowed
-                    opacity-70
-                  `
-                                : `
-                    bg-white/80
-                    hover:bg-orange-600
-                    hover:text-white
-                    text-orange-600
-                    border-orange-600
-                    hover:scale-105
-                    cursor-pointer
-                  `
-                            }
-            `}
+                        className={`w-[48px] h-[48px] px-2 py-2 rounded-full text-sm shadow-md transition-all duration-200 border-2
+                            ${isStartLocked && currentUnitId <= LOCK_ENFORCED_UNITS
+                                ? `bg-gray-300 text-gray-500 border-gray-500 cursor-not-allowed opacity-70`
+                                : `bg-white/80 hover:bg-orange-600 hover:text-white text-orange-600 border-orange-600
+                                hover:scale-105 cursor-pointer`}`}
                     >
                         {isStartLocked &&
                             currentUnitId <= LOCK_ENFORCED_UNITS ? (
-                            <span className="text-xl">
-                                🔒
-                            </span>
+                            <span className="text-xl">🔒</span>
                         ) : (
-                            <FaCircleArrowRight
-                                className="
-                  w-full
-                  h-full
-                "
-                            />
+                            <FaCircleArrowRight className="w-full h-full" />
                         )}
                     </button>
                 </div>

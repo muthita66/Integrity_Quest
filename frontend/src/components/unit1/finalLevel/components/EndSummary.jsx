@@ -7,10 +7,6 @@ import goodSound from "../../../../assets/sounds/BackgroundGame/Good.mp3";
 import useGameMuted from "../../../../hooks/useGameMuted";
 
 const LEVEL_ID = 3;
-
-// เสียงตาม Rank
-// ปรมาจารย์ / มือฉมัง → Bonus
-// เริ่มต้น / ฝึกหัด    → Good
 const RANK_SOUNDS = {
     MASTER: bonusSound,
     EXPERT: bonusSound,
@@ -206,7 +202,7 @@ export default function EndSummary({ finalLevelResult, cases, onRestart }) {
 
     if (!finalLevelResult || !resultText) {
         return (
-            <div className="min-h-screen w-full flex items-center justify-center bg-black">
+            <div className="min-h-dvh w-full flex items-center justify-center bg-black">
                 <p className="text-xl sarabun-bold text-white">
                     {messageError
                         ? "ไม่สามารถโหลดข้อมูลผลลัพธ์ได้"
@@ -265,7 +261,7 @@ export default function EndSummary({ finalLevelResult, cases, onRestart }) {
             <FireworksCanvas />
 
             <div
-                className="cid-paper h-screen w-full p-4 md:p-6 text-center cid-pop flex flex-col overflow-hidden"
+                className="cid-paper h-dvh w-full p-4 md:p-6 text-center cid-pop flex flex-col overflow-hidden"
             >
                 <h2
                     className="cid-display text-2xl font-bold shrink-0 mb-2"

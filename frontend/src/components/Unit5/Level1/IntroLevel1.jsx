@@ -50,7 +50,7 @@ export default function IntroScene() {
     }, []);
 
     return (
-        <div className="relative w-screen h-screen overflow-hidden bg-black">
+        <div className="relative w-full h-dvh overflow-hidden bg-black">
 
             {/* Background */}
             <img
@@ -103,7 +103,7 @@ export default function IntroScene() {
                         absolute
                         bottom-0
                         right-8
-                        h-[82vh]
+                        h-[82dvh]
                         w-auto
                         z-20
                         pointer-events-none
@@ -152,7 +152,7 @@ export default function IntroScene() {
                         top-[22%]
                         right-[36%]
                         z-40
-                        max-w-[650px]
+                        max-w-[min(650px,58vw)]
                         "
                     >
                         {/* หางกล่องชี้ไปมือถือ */}
@@ -181,7 +181,7 @@ export default function IntroScene() {
                             backdrop-blur-md
                             rounded-[32px]
                             shadow-[0_25px_60px_rgba(15,23,42,0.32)]
-                            p-8
+                            p-6 xl:p-8
                             before:absolute before:inset-3 before:rounded-[24px]
                             before:border before:border-white/50 before:pointer-events-none
                             "
@@ -204,7 +204,7 @@ export default function IntroScene() {
                                     </h2>
                                 </div>
 
-                                <p className="text-xl leading-relaxed text-slate-800">
+                                <p className="text-lg xl:text-xl leading-relaxed text-slate-800">
                                     เบาะแสเกี่ยวกับการคอร์รัปชันภายในองค์กรถูกส่งถึงคุณแล้ว
                                     <br />
                                     เตรียมเปิดแฟ้มคดี ค้นหาคำศัพท์ที่เกี่ยวข้องเพื่อเปิดโปงความจริง
@@ -219,12 +219,12 @@ export default function IntroScene() {
                                     }}
                                     onClick={() => navigate("/unit5/tutorial")}
                                     className="
-                                    mt-8
+                                    mt-6 xl:mt-8
                                     rounded-2xl
                                     border border-orange-300/60
                                     bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500
-                                    px-10 py-4
-                                    text-xl font-bold text-white
+                                    px-8 xl:px-10 py-3 xl:py-4
+                                    text-lg xl:text-xl font-bold text-white
                                     shadow-[0_12px_24px_rgba(234,88,12,0.28)]
                                     "
                                 >

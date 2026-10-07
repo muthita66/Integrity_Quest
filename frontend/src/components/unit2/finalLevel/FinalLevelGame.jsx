@@ -74,7 +74,7 @@ export default function FinalMissionGame({ skipStartPage = false }) {
     // ================= Loading =================
     if (isLoading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-black">
+            <div className="flex min-h-dvh items-center justify-center bg-black">
                 <p className="text-2xl sarabun-bold text-white">
                     กำลังโหลดข้อมูลเกม...
                 </p>
@@ -85,7 +85,7 @@ export default function FinalMissionGame({ skipStartPage = false }) {
     // ================= Error =================
     if (error) {
         return (
-            <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-900">
+            <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-slate-900">
                 <p className="text-2xl font-bold text-red-400">
                     {error}
                 </p>
@@ -104,7 +104,7 @@ export default function FinalMissionGame({ skipStartPage = false }) {
     // ================= ป้องกัน currentMission ไม่มีข้อมูล =================
     if (!currentMission) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-slate-900">
+            <div className="flex min-h-dvh items-center justify-center bg-slate-900">
                 <p className="text-2xl font-bold text-white">
                     ไม่พบข้อมูล Mission
                 </p>
@@ -159,7 +159,7 @@ export default function FinalMissionGame({ skipStartPage = false }) {
 
     // ================= 3. หน้าจอการเล่น =================
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4 sarabun-bold">
+        <div className="relative flex min-h-dvh items-center justify-center overflow-hidden p-4 sarabun-bold">
             {/* เพลงพื้นหลัง (เล่นเฉพาะหน้าจอการเล่น) */}
             <GameMusic />
 

@@ -57,7 +57,7 @@ export default function ShoppingGame() {
 
     return (
         <div
-            className="relative flex min-h-screen flex-col items-center overflow-hidden bg-cover bg-center font-sans text-slate-800 sarabun-bold"
+            className="relative flex min-h-dvh flex-col items-center overflow-hidden bg-cover bg-center font-sans text-slate-800 sarabun-bold"
             style={{
                 backgroundImage: `url(${bgGameImg})`,
             }}

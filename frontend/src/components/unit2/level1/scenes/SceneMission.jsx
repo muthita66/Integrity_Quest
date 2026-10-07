@@ -33,7 +33,7 @@ export default function SceneMission({
     };
 
     return (
-        <div className="relative w-full h-screen overflow-hidden">
+        <div className="relative w-full h-dvh overflow-hidden">
             <img
                 src={sceneMission}
                 alt="Mission"
@@ -79,16 +79,21 @@ export default function SceneMission({
 
             {/* Game Instruction Box */}
             <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 w-[90%] max-w-4xl">
+                {/* Responsive: จอเตี้ยลดช่องไฟ (compact) และถ้ายังสูงเกินให้เลื่อนในกล่อง
+                    max-h = 100dvh - ปุ่มด้านบน (~4rem) - ระยะห่างขอบล่าง (3rem) */}
                 <div className="
                     rounded-3xl
                     border border-white/70
                     bg-white/55
                     px-8 py-5
+                    [@media(max-height:760px)]:py-3
+                    max-h-[calc(100dvh-7rem)]
+                    overflow-y-auto
                     shadow-2xl
                     backdrop-blur-md
                 ">
                     {/* Header */}
-                    <div className="text-center mb-5">
+                    <div className="text-center mb-5 [@media(max-height:760px)]:mb-3">
                         <h2 className="text-2xl md:text-3xl font-bold text-black sarabun-bold">
                             {mission?.title || "ภารกิจ : ตลาดมหาวิทยาลัย"}
                         </h2>
@@ -99,14 +104,14 @@ export default function SceneMission({
                     </div>
 
                     {/* Description */}
-                    <div className="rounded-2xl bg-purple-50 px-5 py-4 mb-5">
+                    <div className="rounded-2xl bg-purple-50 px-5 py-4 mb-5 [@media(max-height:760px)]:py-2 [@media(max-height:760px)]:mb-3">
                         <p className="text-center text-gray-700 text-sm md:text-md leading-relaxed sarabun-bold">
                             {mission?.text || ""}
                         </p>
                     </div>
 
                     {/* Rules */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6 [@media(max-height:760px)]:mb-3">
 
                         {rules.map((rule) => (
                             <div

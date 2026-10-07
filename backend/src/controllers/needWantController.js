@@ -11,7 +11,6 @@ exports.saveNeedWant = async (req, res) => {
             items,
         } = req.body;
 
-        // ================= ตรวจข้อมูลเบื้องต้น =================
         if (!play_id) {
             return res.status(400).json({
                 message: "กรุณาระบุ play_id",
@@ -32,7 +31,6 @@ exports.saveNeedWant = async (req, res) => {
             });
         }
 
-        // ================= ตรวจรูปแบบ user_type =================
         for (const item of items) {
             if (!item.item_id || !item.user_type) {
                 return res.status(400).json({
@@ -52,7 +50,6 @@ exports.saveNeedWant = async (req, res) => {
             }
         }
 
-        // ================= ตรวจสอบ Play History =================
         const play = await prisma.game_play_history.findUnique({
             where: {
                 play_id: playId,
@@ -65,7 +62,6 @@ exports.saveNeedWant = async (req, res) => {
             });
         }
 
-        // ================= ตรวจสอบเจ้าของการเล่น =================
         if (play.user_id !== userId) {
             return res.status(403).json({
                 message:
@@ -73,7 +69,6 @@ exports.saveNeedWant = async (req, res) => {
             });
         }
 
-        // ================= ตรวจสอบ Level =================
         if (play.level_id !== LEVEL_ID) {
             return res.status(400).json({
                 message:
@@ -81,7 +76,6 @@ exports.saveNeedWant = async (req, res) => {
             });
         }
 
-        // ================= ตรวจสอบว่าเกมจบแล้วหรือยัง =================
         if (play.completed_at) {
             return res.status(400).json({
                 message:
@@ -89,7 +83,6 @@ exports.saveNeedWant = async (req, res) => {
             });
         }
 
-        // ================= แปลง Item ID =================
         const itemIds = items.map((item) =>
             Number(item.item_id)
         );
@@ -107,7 +100,6 @@ exports.saveNeedWant = async (req, res) => {
             });
         }
 
-        // ================= ป้องกัน Item ซ้ำ =================
         const uniqueItemIds = [...new Set(itemIds)];
 
         if (
@@ -119,7 +111,6 @@ exports.saveNeedWant = async (req, res) => {
             });
         }
 
-        // ================= ดึง Items ของ Level 1 =================
         const levelItems =
             await prisma.level_items.findMany({
                 where: {
@@ -146,7 +137,6 @@ exports.saveNeedWant = async (req, res) => {
                 },
             });
 
-        // ================= ตรวจ Item ที่ไม่อยู่ใน Level 1 =================
         if (
             levelItems.length !==
             uniqueItemIds.length
@@ -172,7 +162,6 @@ exports.saveNeedWant = async (req, res) => {
             });
         }
 
-        // ================= ดึงจำนวน Item ทั้งหมด =================
         const totalLevelItems =
             await prisma.level_items.count({
                 where: {
@@ -180,7 +169,6 @@ exports.saveNeedWant = async (req, res) => {
                 },
             });
 
-        // ================= ต้องตอบครบทุก Item =================
         if (
             items.length !== totalLevelItems
         ) {
@@ -194,7 +182,7 @@ exports.saveNeedWant = async (req, res) => {
             });
         }
 
-        // ================= สร้างข้อมูลคำตอบ =================
+
         const records = items.map((item) => {
             const levelItem =
                 levelItems.find(
@@ -222,29 +210,25 @@ exports.saveNeedWant = async (req, res) => {
             };
         });
 
-        // ================= ลบข้อมูลเดิมของรอบนี้ =================
         await prisma.game_play_need_want.deleteMany({
             where: {
                 play_id: playId,
             },
         });
 
-        // ================= บันทึกคำตอบ =================
         await prisma.game_play_need_want.createMany({
             data: records,
         });
 
-        // ================= คำนวณคะแนน =================
         const correctCount =
             records.filter(
                 (record) =>
                     record.is_correct
             ).length;
 
-        const maxScore =
-            totalLevelItems;
+        const maxScore = totalLevelItems;
 
-        // ================= อัปเดต Game Play History =================
+
         await prisma.game_play_history.update({
             where: {
                 play_id: playId,
@@ -255,7 +239,6 @@ exports.saveNeedWant = async (req, res) => {
             },
         });
 
-        // ================= Response =================
         return res.status(201).json({
             message:
                 "บันทึกคำตอบ Need / Want สำเร็จ",

@@ -79,17 +79,6 @@ model faculty_groups {
   faculties  faculties[]
 }
 
-model feedback {
-  feedback_id Int      @id
-  user_id     Int
-  unit_id     Int
-  rating      Int
-  comment     String?
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  units       units    @relation(fields: [unit_id], references: [unit_id], onDelete: NoAction, onUpdate: NoAction, map: "feedback_fk_unit")
-  users       users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "feedback_fk_user")
-}
-
 model final_case_items {
   id              Int         @id @default(autoincrement())
   case_id         Int
@@ -546,15 +535,6 @@ model majors {
   teacher_student_groups teacher_student_groups[]
 }
 
-model mission_rewards {
-  mission_id Int
-  reward_id  Int
-  missions   missions @relation(fields: [mission_id], references: [mission_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk")
-  rewards    rewards  @relation(fields: [reward_id], references: [reward_id], onDelete: NoAction, onUpdate: NoAction, map: "reward_fk")
-
-  @@id([mission_id, reward_id])
-}
-
 model mission_types {
   type_id     Int        @id @default(autoincrement())
   type_name   String     @db.VarChar(255)
@@ -563,16 +543,15 @@ model mission_types {
 }
 
 model missions {
-  mission_id      Int               @id
-  unit_id         Int
-  type_id         Int
-  level_number    Int?
-  mission_name    String            @db.VarChar(255)
-  is_active       Boolean
-  mission_rewards mission_rewards[]
-  mission_types   mission_types     @relation(fields: [type_id], references: [type_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_type")
-  units           units             @relation(fields: [unit_id], references: [unit_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_unit")
-  user_missions   user_missions[]
+  mission_id    Int             @id
+  unit_id       Int
+  type_id       Int
+  level_number  Int?
+  mission_name  String          @db.VarChar(255)
+  is_active     Boolean
+  mission_types mission_types   @relation(fields: [type_id], references: [type_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_type")
+  units         units           @relation(fields: [unit_id], references: [unit_id], onDelete: NoAction, onUpdate: NoAction, map: "mission_fk_unit")
+  user_missions user_missions[]
 }
 
 model question {
@@ -595,23 +574,6 @@ model quizzes {
   question_text     String
   max_score         Int?                @default(5)
   user_quiz_answers user_quiz_answers[]
-}
-
-model reward_types {
-  type_id     Int      @id @default(autoincrement())
-  type_name   String   @db.VarChar(100)
-  description String?
-  rewards     rewards?
-}
-
-model rewards {
-  reward_id           Int                   @id @default(autoincrement())
-  reward_name         String                @db.VarChar(255)
-  reward_value        Int
-  type_id             Int
-  mission_rewards     mission_rewards[]
-  reward_types        reward_types          @relation(fields: [reward_id], references: [type_id], onDelete: NoAction, onUpdate: NoAction, map: "reward_fk_reward_type")
-  user_earned_rewards user_earned_rewards[]
 }
 
 model roles {
@@ -704,21 +666,10 @@ model units {
   description         String?
   created_at          DateTime              @db.Timestamptz(6)
   updated_at          DateTime?             @db.Timestamptz(6)
-  feedback            feedback[]
   missions            missions[]
   unit_contents       unit_contents[]
   user_level_progress user_level_progress[]
   user_progress       user_progress[]
-}
-
-model user_earned_rewards {
-  user_id   Int
-  reward_id Int
-  earned_at DateTime @db.Timestamptz(6)
-  rewards   rewards  @relation(fields: [reward_id], references: [reward_id], onDelete: NoAction, onUpdate: NoAction, map: "reward_fk")
-  users     users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_fk")
-
-  @@id([user_id, reward_id])
 }
 
 model user_missions {
@@ -781,12 +732,10 @@ model users {
   created_at          DateTime              @db.Timestamptz(6)
   consent_at          DateTime?             @db.Timestamptz(6)
   consent_version     String?               @db.VarChar(10)
-  feedback            feedback[]
   game_play_history   game_play_history[]
   logs_user_actions   logs_user_actions[]
   students            students[]
   teachers            teachers[]
-  user_earned_rewards user_earned_rewards[]
   user_level_progress user_level_progress[]
   user_missions       user_missions[]
   user_progress       user_progress[]

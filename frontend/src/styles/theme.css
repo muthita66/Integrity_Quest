@@ -1,33 +1,23 @@
-/* ============================================================
-   Integrity Quest — Unit 4 : Cyber Trap
-   ธีมกลางของยูนิต (แทนที่ src/styles/theme.css เดิมได้เลย)
-   ============================================================ */
-
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Mali:wght@500;600&family=Noto+Serif+Thai:wght@500;600;700&display=swap');
 
 :root {
-    /* ---- ทอง : ไล่จากทองอ่อนเนื้อครีมไปทองเก่า ไม่ใช่เหลืองจ้า ---- */
     --gold-light: #F2D89A;
     --gold-main: #C08A2E;
     --gold-deep: #8A5F14;
     --gold-gradient: linear-gradient(135deg, #FBEFC9 0%, #EACD86 34%, #C9A24A 66%, #8A5F14 100%);
 
-    /* ---- พื้นหลังห้องสมุดยามค่ำ ---- */
     --bg-radial: radial-gradient(120% 120% at 50% 0%, #1C2647 0%, #101830 44%, #070B18 100%);
 
-    /* ---- กระดาษสองหน้า ให้ซ้าย-ขวาต่างกันนิดเดียวพอรู้ว่าเป็นคนละหน้า ---- */
     --paper-bg-left: linear-gradient(115deg, #FBF4E4 0%, #F3E7CF 100%);
     --paper-bg-right: linear-gradient(245deg, #FDF9EE 0%, #F6EEDC 100%);
     --paper-border: #E2D1AB;
     --paper-sunken: #FFFDF7;
 
-    /* ---- ตัวอักษร : คอนทราสต์ผ่าน WCAG AA บนพื้นกระดาษ ---- */
     --text-primary: #38281A;
     --text-secondary: #6B5636;
     --text-gold: #8E6415;
     --text-muted: #9A8B70;
 
-    /* ---- ฟอนต์ : Cinzel รับภาษาอังกฤษ, Noto Serif Thai รับภาษาไทย ---- */
     --font-title: 'Cinzel', 'Noto Serif Thai', serif;
     --font-serif: 'Noto Serif Thai', 'Cinzel', serif;
     --font-ui: 'IBM Plex Sans Thai', 'Segoe UI', system-ui, sans-serif;
@@ -45,12 +35,10 @@
 body {
     margin: 0;
     font-family: var(--font-ui);
-    /* ภาษาไทยต้องการ line-height สูงกว่าปกติ ไม่งั้นสระบนล่างชนกัน */
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
 }
 
-/* โฟกัสด้วยคีย์บอร์ดต้องเห็นชัดทุกที่ */
 :where(button, a, [tabindex]):focus-visible {
     outline: 3px solid var(--gold-main);
     outline-offset: 3px;
@@ -67,10 +55,6 @@ body {
         transition-duration: .001ms !important;
     }
 }
-
-/* ============================================================
-   โครงหนังสือ
-   ============================================================ */
 
 .book-stage {
     width: 100%;
@@ -91,6 +75,7 @@ body {
     width: 100%;
     max-width: 1320px;
     height: min(86vh, 820px);
+    height: min(86dvh, 820px);
     display: flex;
     position: relative;
     border-radius: var(--radius-page);
@@ -127,12 +112,11 @@ body {
     box-shadow: none;
 }
 
-/* ไม่วางเงาซ้อนทับตรงสันกลางเล่ม */
+
 .book-gutter {
     display: none;
 }
 
-/* พื้นที่เลื่อนในแต่ละหน้า + สกรอลล์บาร์สีกระดาษ */
 .book-scroll {
     flex: 1;
     min-height: 0;
@@ -151,19 +135,41 @@ body {
     border-radius: 99px;
 }
 
-/* Full-spread result pages use the original cyber reward palette on both pages. */
 .book-stage--result .book-page--left,
 .book-stage--result .book-page--right {
     background: var(--paper-bg-left);
 }
 
-.book-stage--result .book-page--right { background: var(--paper-bg-right); }
-.book-stage--result .page-eyebrow { color: var(--text-gold); }
-.book-stage--result .page-title { color: var(--text-primary); }
-.book-stage--result .page-sub { color: var(--text-secondary); }
-.book-stage--result .book-scroll { overflow: visible; padding-right: 0; }
-.book-stage--result .book-spine { background: #C08A2E; }
-.book-stage--result .icon-btn { border-color: var(--paper-border); background: #FFF; color: var(--text-primary); }
+.book-stage--result .book-page--right {
+    background: var(--paper-bg-right);
+}
+
+.book-stage--result .page-eyebrow {
+    color: var(--text-gold);
+}
+
+.book-stage--result .page-title {
+    color: var(--text-primary);
+}
+
+.book-stage--result .page-sub {
+    color: var(--text-secondary);
+}
+
+.book-stage--result .book-scroll {
+    overflow: visible;
+    padding-right: 0;
+}
+
+.book-stage--result .book-spine {
+    background: #C08A2E;
+}
+
+.book-stage--result .icon-btn {
+    border-color: var(--paper-border);
+    background: #FFF;
+    color: var(--text-primary);
+}
 
 .page-eyebrow {
     font-family: var(--font-title);
@@ -188,7 +194,6 @@ body {
     color: var(--text-secondary);
 }
 
-/* ปุ่มกลมย้อนกลับ — 44px ขึ้นไปตามขนาดนิ้วขั้นต่ำ */
 .icon-btn {
     width: 46px;
     height: 46px;
@@ -214,16 +219,11 @@ body {
     transform: translateY(0) scale(.94);
 }
 
-/* ปุ่มย้อนกลับอยู่มุมซ้ายบนของหน้าสมุด */
 .book-page--left>header .icon-btn {
     position: absolute;
     top: 34px;
     left: 38px;
 }
-
-/* ============================================================
-   แถวบท (หัวใจของหน้าสารบัญ)
-   ============================================================ */
 
 .chapter-row {
     width: 100%;
@@ -263,7 +263,6 @@ body {
     transform: none;
 }
 
-/* ตราประทับเลขบท */
 .chapter-seal {
     width: 58px;
     height: 58px;
@@ -318,7 +317,6 @@ body {
     color: var(--text-muted);
 }
 
-/* ป้ายสถานะ */
 .chip {
     display: inline-flex;
     align-items: center;
@@ -344,10 +342,6 @@ body {
     background: rgba(120, 110, 92, .14);
     color: #766B57;
 }
-
-/* ============================================================
-   หน้าปก (คลาสที่ BookCover.jsx เรียกใช้)
-   ============================================================ */
 
 .unit4-hud {
     position: absolute;
@@ -390,20 +384,13 @@ body {
     color: rgba(242, 216, 154, .55);
 }
 
-/* ============================================================
-   อินโทรก่อนเปิดสมุด : คืนก่อนเริ่มงานวันแรก
-   โทนเดียวกับหน้าปกคู่มือ — ครีม / พีช / ทองแดง / ม่วงพลัม
-   จังหวะเปิดหน้า: การ์ดลอยขึ้น → ห้องมืด → โคมไฟติด → ตราประทับ → แจ้งเตือนเด้ง
-   ============================================================ */
-
 .unit4-preintro {
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     display: flex;
-    align-items: center;
-    justify-content: center;
     padding: 68px 20px 44px;
     color: #3e3340;
     background:
@@ -413,7 +400,6 @@ body {
     font-family: var(--font-ui);
 }
 
-/* ตารางจุดจาง ๆ เหมือนกระดาษสมุดร่าง */
 .unit4-preintro::before {
     content: "";
     position: absolute;
@@ -425,7 +411,6 @@ body {
     pointer-events: none;
 }
 
-/* แสงสปอตไลต์ส่องลงมาที่แฟ้ม */
 .unit4-preintro-beam {
     position: absolute;
     top: 0;
@@ -437,7 +422,6 @@ body {
     pointer-events: none;
 }
 
-/* ออโรร่าสามก้อนลอยช้า ๆ */
 .unit4-preintro-glow {
     position: absolute;
     width: 360px;
@@ -505,7 +489,6 @@ body {
     }
 }
 
-/* ไอคอนความปลอดภัยลอยจาง ๆ */
 .unit4-preintro-floater {
     position: absolute;
     display: block;
@@ -528,7 +511,7 @@ body {
 }
 
 .unit4-preintro-home {
-    position: absolute;
+    position: fixed;
     top: 22px;
     right: 24px;
     z-index: 3;
@@ -560,11 +543,10 @@ body {
     transform: scale(.96);
 }
 
-/* ---------- การ์ดหลัก : เปรียบเป็นหน้าแฟ้มคดี ---------- */
-
 .unit4-preintro-card {
     position: relative;
     z-index: 1;
+    margin: auto;
     width: min(100%, 860px);
     padding: 50px clamp(22px, 6vw, 72px) 32px;
     border-radius: 36px;
@@ -590,7 +572,6 @@ body {
     }
 }
 
-/* ขอบทองฟอยล์ มีแสงวิ่งผ่านช้า ๆ */
 .unit4-preintro-card::after {
     content: "";
     position: absolute;
@@ -612,7 +593,6 @@ body {
     }
 }
 
-/* เส้นกรอบบาง ๆ ด้านใน เหมือนหน้าปกคู่มือ */
 .unit4-preintro-card::before {
     content: "";
     position: absolute;
@@ -659,7 +639,6 @@ body {
     border-right-width: 1.5px;
 }
 
-/* ป้ายชื่อแฟ้ม พาดขอบบนของการ์ด */
 .unit4-preintro-label {
     position: absolute;
     top: -17px;
@@ -693,7 +672,6 @@ body {
     color: #fffaf3;
 }
 
-/* ---------- เวที : ภาพฉาก + โน้ตแปะ + ตราประทับ + แจ้งเตือน ---------- */
 
 .unit4-preintro-stage {
     position: relative;
@@ -742,8 +720,6 @@ body {
     right: -26px;
     transform: rotate(38deg);
 }
-
-/* ---------- ฉาก SVG : ห้องมืดลง แล้วโคมไฟติด (คุมด้วย data-lit) ---------- */
 
 .u4s-dim {
     opacity: 0;
@@ -933,7 +909,6 @@ body {
     }
 }
 
-/* แจ้งเตือนธนาคารปลอมเลื่อนลงจากขอบบนของภาพ */
 .unit4-preintro-toast-slot {
     position: absolute;
     top: 12px;
@@ -1002,8 +977,6 @@ body {
     line-height: 1.5;
 }
 
-/* ---------- โน้ตแปะข้างภาพ (จอกว้าง) / แถบเคล็ดลับวน (จอเล็ก) ---------- */
-
 .unit4-preintro-notes {
     margin: 0;
     padding: 0;
@@ -1023,7 +996,6 @@ body {
     box-shadow: 0 10px 18px rgba(80, 50, 60, .18);
 }
 
-/* มุมพับ */
 .unit4-preintro-note::after {
     content: "";
     position: absolute;
@@ -1090,8 +1062,6 @@ body {
     display: none;
 }
 
-/* ---------- ข้อความ ---------- */
-
 .unit4-preintro-copy {
     max-width: 640px;
     margin: 32px auto 0;
@@ -1125,12 +1095,10 @@ body {
     line-height: 1.32;
 }
 
-/* ตัดบรรทัดตามความหมาย ไม่ให้ขาดกลางวลี */
 .unit4-preintro-copy h1 span {
     display: inline-block;
 }
 
-/* เส้นคั่นทองเล็ก ๆ เหมือนใต้ชื่อเรื่องหน้าปก */
 .unit4-preintro-rule {
     position: relative;
     width: 96px;
@@ -1160,15 +1128,12 @@ body {
     text-wrap: pretty;
 }
 
-/* ---------- ปุ่มหลัก ---------- */
-
 .unit4-preintro-cta-wrap {
     position: relative;
     display: inline-block;
     margin-top: 28px;
 }
 
-/* รัศมีเรืองด้านหลังปุ่ม หายใจช้า ๆ */
 .unit4-preintro-cta-wrap::before {
     content: "";
     position: absolute;
@@ -1266,8 +1231,6 @@ body {
     background: rgba(255, 255, 255, .34);
 }
 
-/* ---------- จุดขายสั้น ๆ ---------- */
-
 .unit4-preintro-perks {
     display: flex;
     flex-wrap: wrap;
@@ -1296,7 +1259,6 @@ body {
     color: #c9825a;
 }
 
-/* ---------- จอกว้าง : การ์ดกว้างขึ้นให้โน้ตแปะมีที่อยู่ ---------- */
 
 @media (min-width: 1080px) {
     .unit4-preintro-card {
@@ -1304,11 +1266,8 @@ body {
     }
 }
 
-/* ---------- จอเล็ก/กลาง : โน้ตเปลี่ยนเป็นแถบเคล็ดลับวนทีละข้อ ---------- */
 
 @media (max-width: 1079px) {
-
-    /* ยังให้โปรแกรมอ่านหน้าจออ่านรายการเคล็ดลับได้ แม้มองไม่เห็น */
     .unit4-preintro-notes {
         position: absolute;
         width: 1px;
@@ -1511,28 +1470,31 @@ body {
     }
 }
 
-/* หน้าจอเตี้ย (โน้ตบุ๊กทั่วไป) : ย่อฉากและระยะห่าง ให้การ์ดพอดีจอไม่ต้องเลื่อน */
 @media (min-width: 561px) and (max-height: 820px) {
     .unit4-preintro {
-        padding-top: 62px;
-        padding-bottom: 28px;
+        padding-top: 56px;
+        padding-bottom: 22px;
     }
 
     .unit4-preintro-card {
-        padding-top: 46px;
+        padding-top: 42px;
         padding-bottom: 26px;
     }
 
     .unit4-preintro-stage {
-        margin-top: 18px;
+        margin-top: 16px;
     }
 
     .unit4-preintro-scene {
-        width: min(100%, 460px);
+        width: min(100%, 420px);
+    }
+
+    .unit4-preintro-ticker {
+        margin-top: 18px;
     }
 
     .unit4-preintro-copy {
-        margin-top: 26px;
+        margin-top: 20px;
     }
 
     .unit4-preintro-copy h1 {
@@ -1567,7 +1529,20 @@ body {
     }
 }
 
-/* ลดการเคลื่อนไหว : ทุกอย่างค้างที่สถานะสุดท้าย (โคมไฟติดแล้ว ตราประทับอยู่ที่แล้ว) */
+@media (min-width: 561px) and (max-height: 790px) {
+    .unit4-preintro-scene {
+        width: min(100%, 380px);
+    }
+
+    .unit4-preintro-description {
+        line-height: 1.7;
+    }
+
+    .unit4-preintro-perks {
+        margin-top: 16px;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
 
     .unit4-preintro-card,
@@ -1601,14 +1576,13 @@ body {
     }
 }
 
-/* ============================================================
-   จอแคบ : หนังสือคลี่เป็นหน้าเดียวเลื่อนลง แทนที่จะบีบสองหน้า
-   ============================================================ */
-
 @media (max-width: 900px) {
     .book-stage {
         padding: 12px;
         align-items: flex-start;
+        /* หนังสือคลี่เป็นหน้าเดียวยาว ต้องให้กล่องนี้เลื่อนเอง (html เลื่อนไม่ได้) */
+        height: 100dvh;
+        overflow-y: auto;
     }
 
     .book-frame {
@@ -1655,17 +1629,43 @@ body {
     }
 }
 
+@media (min-width: 901px) and (max-height: 820px) {
+    .book-stage {
+        padding: 12px 24px;
+    }
+
+    .book-frame {
+        height: min(95dvh, 820px);
+    }
+
+    .book-page {
+        padding: 24px 30px;
+    }
+
+    .book-page--left>header .icon-btn {
+        top: 24px;
+        left: 30px;
+    }
+}
+
 .unit4-complete {
-    min-height: 100vh;
-    display: grid;
-    place-items: center;
+    /* Responsive: เลื่อนได้เอง + จัดกลางด้วย margin:auto (สูงเกินจอแล้วขอบบนไม่ถูกตัด) */
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    display: flex;
     padding: 32px 18px;
     background: radial-gradient(circle at 50% 0%, rgba(255, 222, 174, .75), transparent 36%), linear-gradient(135deg, #fff8f1, #fdf0e8 54%, #f2e8f4);
     color: #49364b;
     font-family: var(--font-serif);
 }
 
+.unit4-complete>p {
+    margin: auto;
+}
+
 .unit4-complete-card {
+    margin: auto;
     width: min(100%, 640px);
     padding: 42px clamp(24px, 6vw, 72px) 38px;
     border: 1px solid rgba(199, 131, 91, .45);
@@ -1676,22 +1676,124 @@ body {
     backdrop-filter: blur(14px);
 }
 
-.unit4-complete-eyebrow { color: #9a6a4b; font-family: var(--font-title); font-size: 11px; letter-spacing: 3px; }
-.unit4-complete-medal { width: 92px; height: 92px; display: grid; place-items: center; margin: 22px auto 16px; border: 2px solid #c7835b; border-radius: 50%; color: #fff4c3; background: linear-gradient(145deg, #e5b76a, #ad6e91); box-shadow: 0 12px 26px rgba(173, 110, 145, .25), inset 0 2px 0 rgba(255,255,255,.6); font-size: 42px; }
-.unit4-complete-kicker { margin: 0 0 7px; color: #a66c50; font-size: 17px; font-weight: 700; }
-.unit4-complete-card h1 { margin: 0; color: #49364b; font-size: clamp(27px, 4vw, 38px); line-height: 1.3; }
-.unit4-complete-copy { max-width: 470px; margin: 14px auto 24px; color: #6e5d6e; font-size: 15px; line-height: 1.8; }
-.unit4-complete-score { display: flex; align-items: baseline; justify-content: center; gap: 9px; color: #9a6a4b; }
-.unit4-complete-score span { font-family: var(--font-title); font-size: 11px; letter-spacing: 2px; }
-.unit4-complete-score strong { color: #8f5e47; font-family: var(--font-title); font-size: 54px; line-height: 1; }
-.unit4-complete-score small { color: #a08d9d; font-size: 15px; }
-.unit4-complete-progress { height: 10px; overflow: hidden; margin: 18px 0 25px; border-radius: 99px; background: #eadcca; }
-.unit4-complete-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #d8895e, #ad6e91); }
-.unit4-complete-actions { display: flex; justify-content: center; gap: 10px; }
-.unit4-complete-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px; border: 1px solid #c7835b; border-radius: 999px; color: #fff; background: linear-gradient(135deg, #d8895e, #ad6e91); cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; }
-.unit4-complete-actions button:first-child { color: #8f5e47; background: #fffaf4; }
+.unit4-complete-eyebrow {
+    color: #9a6a4b;
+    font-family: var(--font-title);
+    font-size: 11px;
+    letter-spacing: 3px;
+}
+
+.unit4-complete-medal {
+    width: 92px;
+    height: 92px;
+    display: grid;
+    place-items: center;
+    margin: 22px auto 16px;
+    border: 2px solid #c7835b;
+    border-radius: 50%;
+    color: #fff4c3;
+    background: linear-gradient(145deg, #e5b76a, #ad6e91);
+    box-shadow: 0 12px 26px rgba(173, 110, 145, .25), inset 0 2px 0 rgba(255, 255, 255, .6);
+    font-size: 42px;
+}
+
+.unit4-complete-kicker {
+    margin: 0 0 7px;
+    color: #a66c50;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.unit4-complete-card h1 {
+    margin: 0;
+    color: #49364b;
+    font-size: clamp(27px, 4vw, 38px);
+    line-height: 1.3;
+}
+
+.unit4-complete-copy {
+    max-width: 470px;
+    margin: 14px auto 24px;
+    color: #6e5d6e;
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.unit4-complete-score {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 9px;
+    color: #9a6a4b;
+}
+
+.unit4-complete-score span {
+    font-family: var(--font-title);
+    font-size: 11px;
+    letter-spacing: 2px;
+}
+
+.unit4-complete-score strong {
+    color: #8f5e47;
+    font-family: var(--font-title);
+    font-size: 54px;
+    line-height: 1;
+}
+
+.unit4-complete-score small {
+    color: #a08d9d;
+    font-size: 15px;
+}
+
+.unit4-complete-progress {
+    height: 10px;
+    overflow: hidden;
+    margin: 18px 0 25px;
+    border-radius: 99px;
+    background: #eadcca;
+}
+
+.unit4-complete-progress span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #d8895e, #ad6e91);
+}
+
+.unit4-complete-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.unit4-complete-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 0 18px;
+    border: 1px solid #c7835b;
+    border-radius: 999px;
+    color: #fff;
+    background: linear-gradient(135deg, #d8895e, #ad6e91);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.unit4-complete-actions button:first-child {
+    color: #8f5e47;
+    background: #fffaf4;
+}
 
 @media (max-width: 560px) {
-    .unit4-complete-actions { flex-direction: column; }
-    .unit4-complete-actions button { width: 100%; }
+    .unit4-complete-actions {
+        flex-direction: column;
+    }
+
+    .unit4-complete-actions button {
+        width: 100%;
+    }
 }

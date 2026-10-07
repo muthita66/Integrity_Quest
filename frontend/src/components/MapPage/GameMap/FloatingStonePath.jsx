@@ -7,13 +7,6 @@ import Stone4 from "../../../assets/Stone/Stone4.png";
 import Stone5 from "../../../assets/Stone/Stone5.png";
 import Stone6 from "../../../assets/Stone/Stone6.png";
 
-// ============================================================
-// หน้าเริ่มเกมของแต่ละ Level (level_id → path)
-// ------------------------------------------------------------
-// ดึงจาก App.jsx (หน้า Intro/เริ่มเกมของแต่ละ level)
-// ถ้า level ไหนยังไม่ได้ใส่ จะพาไปหน้าบท (/unit/unitX) แทน
-// ============================================================
-
 const LEVEL_ROUTES = {
     // Unit 1
     1: "/unit1/Level1IntroPage",
@@ -30,11 +23,6 @@ const LEVEL_ROUTES = {
     9: "/unit3/level2/intro",
     10: "/unit3/final/start",
 };
-
-// ------------------------------------------------------------
-// บทที่ใช้ "ลำดับด่าน" แทน level_id (ไม่ต้องรู้ level_id ใน DB)
-// ด่านที่ 1, 2, 3 ของบท (เรียงตาม order_no) → route ตามลำดับ
-// ------------------------------------------------------------
 
 const UNIT_ORDER_ROUTES = {
     4: [
@@ -58,11 +46,6 @@ const getLevelRoute = (level, unitId, index) =>
     LEVEL_ROUTES[level.level_id] ||
     UNIT_ORDER_ROUTES[unitId]?.[index] ||
     `/unit/unit${unitId}`;
-
-// ============================================================
-// หินลอย: บทละ 3 ก้อน = Level 1, 2, 3 ของบทนั้น
-// เรียงก้อนแรก → ก้อนสุดท้ายตามลำดับ Level (order_no)
-// ============================================================
 
 const STONE_GROUPS = [
     {
@@ -123,17 +106,7 @@ const STONE_GROUPS = [
 
 const STONE_SIZE = 70;
 
-// ผ่าน Level = ติ๊กถูก (FAIL ไม่ติ๊ก)
 const PASSED_STATUSES = ["PASS", "PERFECT"];
-
-// ============================================================
-// หาสถานะของหินแต่ละก้อน
-// ------------------------------------------------------------
-// none   : บทนี้ยังไม่มี Level ใน DB           → เทา กดไม่ได้
-// locked : ยังไม่ปลดล็อก                      → เทา กดไม่ได้
-// ready  : ปลดล็อกแล้ว ยังไม่ผ่าน             → เรืองแสง กดได้
-// passed : ผ่านแล้ว (PASS/PERFECT)            → มีสี กดเล่นซ้ำได้
-// ============================================================
 
 const getStoneState = ({ unitProgress, level, index, loading }) => {
     if (loading || !unitProgress || !level) {
@@ -147,9 +120,6 @@ const getStoneState = ({ unitProgress, level, index, loading }) => {
     if (PASSED_STATUSES.includes(level.status)) {
         return "passed";
     }
-
-    // Level แรกของบทที่ปลดล็อกแล้ว เล่นได้เสมอ
-    // (Backend startGame ก็อนุญาตกรณีนี้)
     if (index === 0) {
         return "ready";
     }

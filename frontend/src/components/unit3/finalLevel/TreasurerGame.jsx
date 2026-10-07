@@ -93,7 +93,7 @@ export default function TreasurerGame() {
 
     if (game.loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-black">
+            <div className="flex min-h-dvh items-center justify-center bg-black">
                 <p className="text-xl sarabun-bold text-white">
                     กำลังโหลดข้อมูลเกม...
                 </p>
@@ -107,7 +107,7 @@ export default function TreasurerGame() {
 
     if (game.error) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-slate-900 p-6">
+            <div className="flex min-h-dvh items-center justify-center bg-slate-900 p-6">
                 <div className="w-full max-w-lg rounded-2xl bg-white p-8 text-center shadow-xl">
                     <div className="mb-3 text-5xl">
                         ❌
@@ -145,7 +145,10 @@ export default function TreasurerGame() {
     }
 
     return (
-        <div className="relative min-h-screen w-full overflow-y-auto sarabun-bold">
+        // Responsive: index.css ตั้ง html เป็น overflow-hidden (หน้าเลื่อนไม่ได้)
+        // เดิมรากเป็น min-h-dvh จึงยืดตามเนื้อหาแล้วโดนตัด — ไม่เลื่อนจริง
+        // เปลี่ยนเป็น h-dvh + overflow-y-auto ให้รากเป็นกล่องที่เลื่อนได้เอง
+        <div className="relative h-dvh w-full overflow-x-hidden overflow-y-auto sarabun-bold">
 
             {/* Background */}
             <img
@@ -162,9 +165,8 @@ export default function TreasurerGame() {
                 className="
                     relative
                     z-10
-                    min-h-screen
+                    min-h-dvh
                     w-full
-                    overflow-y-auto
                 "
                 style={{
                     backgroundImage: `url(${bgGameLevel2})`,

@@ -95,7 +95,7 @@ export default function Unit2IntroPage() {
     };
 
     return (
-        <main className="mirror-scene min-h-screen relative overflow-hidden">
+        <main className="mirror-scene min-h-dvh relative overflow-hidden">
             {/* Background */}
             <div
                 className="mirror-scene__bg absolute inset-0"

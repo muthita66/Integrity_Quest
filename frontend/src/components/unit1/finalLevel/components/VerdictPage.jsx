@@ -21,7 +21,7 @@ export default function VerdictPage({
 
     return (
         <div
-            className="cid-paper min-h-screen w-full p-6 flex flex-col items-center justify-center gap-4 md:gap-6"
+            className="cid-paper min-h-dvh w-full p-6 flex flex-col items-center justify-center gap-4 md:gap-6"
         >
             {/* stamp */}
             <div

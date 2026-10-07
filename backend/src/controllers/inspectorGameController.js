@@ -1,21 +1,5 @@
 const prisma = require("../lib/prisma");
 const gamePlayService = require("../services/gamePlayService");
-
-// ============================================================
-// Integrity Inspector (Unit 5 Level 3 : ตัดสินใจเพื่อประชาชน)
-// ------------------------------------------------------------
-// ทุก route ต้อง login (authenticateToken ใน inspectorGameRoutes)
-//
-// Flow:
-// 1. POST /api/game-play/start        { level_id: 16 } → play_id + projects
-// 2. POST /api/inspector-game/decide  ทุกครั้งที่ปั๊มตรา
-//    body: { playId, projectId, action: "approve"|"reject",
-//            tookBribe, refusedBribe }
-//    → backend ตัดสินถูก/ผิด + คิดคะแนน + บันทึก
-// 3. ตัดสินครบ / หมดเวลา → POST /api/game-play/complete
-//    { play_id, is_timeout } → คะแนน / Rank / IP
-// ============================================================
-
 const parseId = (value) => {
     const id = Number(value);
     return Number.isInteger(id) && id > 0 ? id : null;
