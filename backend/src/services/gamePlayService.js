@@ -553,7 +553,58 @@ const getBudgetAllocations = async (playId) => {
     return budgets;
 };
 
-const calcBudgetResult = (budgets) => {
+// ชื่อด้าน (ใช้ชื่อเดียวกันทั้งหน้าเกมและหน้าผล)
+const BUDGET_NAMES = {
+    school: "โรงเรียน",
+    hospital: "โรงพยาบาล",
+    road: "ถนน",
+    fire: "สถานีดับเพลิง",
+    park: "สวนสาธารณะ",
+    water: "ระบบน้ำสะอาด",
+};
+
+// เหตุการณ์สุ่มระหว่างเล่น: ถ้าด้านที่เกี่ยวข้องได้งบต่ำกว่าเกณฑ์ จะถูกหักคะแนนรวม
+const BUDGET_EVENT_MIN = 15;
+const BUDGET_EVENT_PENALTY = 10;
+
+const BUDGET_EVENTS = {
+    flood: { title: "น้ำท่วม", category: "water" },
+    virus: { title: "โรคระบาด", category: "hospital" },
+    festival: { title: "เทศกาลเมือง", category: "park" },
+    fire: { title: "เหตุเพลิงไหม้", category: "fire" },
+};
+
+const normalizeBudgetEvent = (value) =>
+    Object.prototype.hasOwnProperty.call(BUDGET_EVENTS, value) ? value : null;
+
+// เก็บเหตุการณ์ของรอบนี้ใน game_play_history.budget_event
+// (ต้องรัน: ALTER TABLE game_play_history ADD COLUMN IF NOT EXISTS budget_event VARCHAR(20);)
+// ถ้ายังไม่มีคอลัมน์ ระบบจะข้ามเหตุการณ์ไป (ไม่ทำให้เกมพัง)
+const saveBudgetEvent = async (playId, eventType) => {
+    try {
+        await prisma.$executeRaw`
+            UPDATE game_play_history
+            SET budget_event = ${normalizeBudgetEvent(eventType)}
+            WHERE play_id = ${Number(playId)}
+        `;
+    } catch (error) {
+        console.error("saveBudgetEvent error (budget_event column?):", error.message);
+    }
+};
+
+const getBudgetEvent = async (playId) => {
+    try {
+        const rows = await prisma.$queryRaw`
+            SELECT budget_event FROM game_play_history
+            WHERE play_id = ${Number(playId)}
+        `;
+        return normalizeBudgetEvent(rows?.[0]?.budget_event);
+    } catch (error) {
+        return null;
+    }
+};
+
+const calcBudgetResult = (budgets, eventType = null) => {
     const values = BUDGET_CATEGORIES.map((c) => budgets[c] ?? 0);
     const used = values.reduce((sum, v) => sum + v, 0);
     // เทียบกับ "ส่วนแบ่งเท่า ๆ กันของงบทั้งหมด" (ไม่ใช่ของงบที่ใช้ไป)
@@ -567,7 +618,37 @@ const calcBudgetResult = (budgets) => {
         used >= BUDGET_TOTAL * 0.8
             ? 20
             : Math.round((used / BUDGET_TOTAL) * 20);
-    const score = Math.min(100, Math.round(happiness * 0.8 + coverage));
+    const baseScore = Math.min(100, Math.round(happiness * 0.8 + coverage));
+
+    // โทษจากเหตุการณ์
+    const eventKey = normalizeBudgetEvent(eventType);
+    let event = null;
+    let penalty = 0;
+
+    if (eventKey) {
+        const def = BUDGET_EVENTS[eventKey];
+        const amount = budgets[def.category] ?? 0;
+        const triggered = amount < BUDGET_EVENT_MIN;
+
+        penalty = triggered ? BUDGET_EVENT_PENALTY : 0;
+        event = {
+            type: eventKey,
+            title: def.title,
+            category: def.category,
+            category_name: BUDGET_NAMES[def.category],
+            amount,
+            min_required: BUDGET_EVENT_MIN,
+            triggered,
+            penalty,
+        };
+    }
+
+    const score = Math.max(0, baseScore - penalty);
+
+    // ด้านที่ได้งบน้อยที่สุด (ไว้ทำข้อเสนอแนะ)
+    const weakestCode = BUDGET_CATEGORIES.reduce((min, c) =>
+        (budgets[c] ?? 0) < (budgets[min] ?? 0) ? c : min
+    );
 
     const tier = BUDGET_RANKS.find((r) => score >= r.min);
 
@@ -575,6 +656,14 @@ const calcBudgetResult = (budgets) => {
         used,
         remaining: BUDGET_TOTAL - used,
         happiness,
+        base_score: baseScore,
+        penalty,
+        event,
+        weakest: {
+            id: weakestCode,
+            name: BUDGET_NAMES[weakestCode],
+            amount: budgets[weakestCode] ?? 0,
+        },
         score,
         rank: tier.rank,
         earnedIP: tier.ip,
@@ -588,10 +677,16 @@ const calcBudgetResult = (budgets) => {
 const INSPECTOR_LEVEL_ID = 16;
 const INSPECTOR_SECONDS = 120;
 
+// ระดับตามจำนวนที่ตัดสินถูก (จาก 8 โครงการ) และ Integrity เป็นเพดาน
+// S: ถูก 7-8 และ Integrity >= 85 (รับสินบนแล้วไม่ได้ S)
+// A: ถูก 5-6 และ Integrity >= 50
+// B: ถูก 3-4
+// C: ถูก 0-2 (ผ่านเสมอ ได้ IP ขั้นต่ำ)
 const INSPECTOR_RANKS = [
-    { rank: "S", ip: 200, test: (s) => s >= 7 },
-    { rank: "A", ip: 170, test: (s) => s >= 5 },
-    { rank: "B", ip: 120, test: () => true },
+    { rank: "S", ip: 200, test: (c, i) => c >= 7 && i >= 85 },
+    { rank: "A", ip: 170, test: (c, i) => c >= 5 && i >= 50 },
+    { rank: "B", ip: 120, test: (c) => c >= 3 },
+    { rank: "C", ip: 100, test: () => true },
 ];
 
 const isInspectorLevel = (levelId) =>
@@ -748,8 +843,50 @@ const getInspectorStats = async (playId, levelId) => {
     return { total: projects.length, ...sumInspector(decisions) };
 };
 
+// แปลงข้อความงบ เช่น "5 ล้านบาท" / "1,200,000 บาท" เป็นตัวเลขบาท (อ่านไม่ได้ = null)
+const parseBahtText = (text) => {
+    const m = String(text ?? "").replace(/,/g, "").match(/(\d+(?:\.\d+)?)/);
+    if (!m) return null;
+
+    const t = String(text);
+    const unit = t.includes("ล้าน") ? 1e6 : t.includes("แสน") ? 1e5
+        : t.includes("หมื่น") ? 1e4 : t.includes("พัน") ? 1e3 : 1;
+
+    return Math.round(Number(m[1]) * unit);
+};
+
+// สรุปรายโครงการ + เงินที่ปกป้องได้/เสียหาย (ส่งหลังจบเกมเท่านั้น)
+const buildInspectorReview = (decisions) => {
+    let protectedBaht = 0;
+    let lostBaht = 0;
+
+    const projects = decisions.map((d) => {
+        const isFraud = d.correct_action === "reject";
+        const amount = parseBahtText(d.budget_text);
+
+        // โครงการโกงที่ปฏิเสธถูก = ปกป้องงบได้ / โครงการโกงที่อนุมัติ = งบเสียหาย
+        if (isFraud && amount != null) {
+            if (d.action === "reject") protectedBaht += amount;
+            else lostBaht += amount;
+        }
+
+        return {
+            project_id: d.project_id,
+            name: d.name,
+            budget_text: d.budget_text,
+            is_fraud: isFraud,
+            action: d.action,
+            took_bribe: Boolean(d.took_bribe),
+            is_correct: Boolean(d.is_correct),
+            explanation: d.explanation,
+        };
+    });
+
+    return { projects, protected_baht: protectedBaht, lost_baht: lostBaht };
+};
+
 const calcInspectorResult = (stats) => {
-    const tier = INSPECTOR_RANKS.find((r) => r.test(stats.correct));
+    const tier = INSPECTOR_RANKS.find((r) => r.test(stats.correct, stats.integrity));
 
     return {
         rank: tier.rank,
@@ -1219,6 +1356,12 @@ module.exports = {
     saveBudgetAllocations,
     getBudgetAllocations,
     calcBudgetResult,
+    BUDGET_NAMES,
+    BUDGET_EVENT_MIN,
+    BUDGET_EVENT_PENALTY,
+    normalizeBudgetEvent,
+    saveBudgetEvent,
+    getBudgetEvent,
 
     INSPECTOR_LEVEL_ID,
     INSPECTOR_SECONDS,
@@ -1229,6 +1372,7 @@ module.exports = {
     recordProjectDecision,
     getInspectorStats,
     calcInspectorResult,
+    buildInspectorReview,
 
     CRISIS_SECONDS,
 

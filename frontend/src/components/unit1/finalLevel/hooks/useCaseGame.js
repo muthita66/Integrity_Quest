@@ -1,8 +1,9 @@
+import { BASE_URL } from "../../../../config";
 import { useEffect, useMemo, useState } from "react";
 import { CASES } from "../data/cases";
 import { EVIDENCES } from "../data/evidences";
 
-const API_URL = "http://localhost:5000/api/final-level/3";
+const API_URL = `${BASE_URL}/api/final-level/3`;
 
 export default function useCaseGame() {
     const [cases, setCases] = useState([]);
@@ -254,7 +255,7 @@ export default function useCaseGame() {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/game-play/case/items",
+                `${BASE_URL}/api/game-play/case/items`,
                 {
                     method: "POST",
                     headers: {
@@ -357,7 +358,7 @@ export default function useCaseGame() {
                 localStorage.getItem("token");
 
             const response = await fetch(
-                "http://localhost:5000/api/game-play/case/retry",
+                `${BASE_URL}/api/game-play/case/retry`,
                 {
                     method: "POST",
                     headers: {
@@ -478,7 +479,7 @@ export default function useCaseGame() {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/game-play/answer",
+                `${BASE_URL}/api/game-play/answer`,
                 {
                     method: "POST",
                     headers: {
@@ -552,7 +553,7 @@ export default function useCaseGame() {
                 localStorage.getItem("token");
 
             const response = await fetch(
-                "http://localhost:5000/api/game-play/case/retry",
+                `${BASE_URL}/api/game-play/case/retry`,
                 {
                     method: "POST",
                     headers: {
@@ -661,7 +662,7 @@ export default function useCaseGame() {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/game-play/case/complete",
+                `${BASE_URL}/api/game-play/case/complete`,
                 {
                     method: "POST",
                     headers: {
@@ -724,7 +725,7 @@ export default function useCaseGame() {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/game-play/complete",
+                `${BASE_URL}/api/game-play/complete`,
                 {
                     method: "POST",
                     headers: {
@@ -842,7 +843,7 @@ export default function useCaseGame() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                "http://localhost:5000/api/game-play/case/retry",
+                `${BASE_URL}/api/game-play/case/retry`,
                 {
                     method: "POST",
                     headers: {
@@ -955,7 +956,7 @@ export default function useCaseGame() {
     const startFinalLevel = async () => {
         try {
             const response = await fetch(
-                "http://localhost:5000/api/game-play/start",
+                `${BASE_URL}/api/game-play/start`,
                 {
                     method: "POST",
                     headers: {
@@ -1008,7 +1009,7 @@ export default function useCaseGame() {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/game-play/case/start",
+                `${BASE_URL}/api/game-play/case/start`,
                 {
                     method: "POST",
                     headers: {

@@ -116,9 +116,9 @@
 
 .center-panel {
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     text-align: center;
-    gap: 6px;
+    gap: 4px;
 }
 
 .panel-title {
@@ -311,7 +311,7 @@
 }
 
 .score-group h2 {
-    font-size: 46px;
+    font-size: 38px;
     color: #24e24b;
     font-weight: 900;
     line-height: 1.1;
@@ -324,7 +324,7 @@
 }
 
 .grade-card {
-    margin-top: 22px;
+    margin-top: 6px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -338,13 +338,13 @@
 }
 
 .grade-shield {
-    width: 118px;
-    height: 118px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 68px;
+    font-size: 46px;
     font-weight: 900;
     color: #7a4a00;
     background: radial-gradient(circle at 35% 30%, #fff3b0, #ffcb33 55%, #c98910);
@@ -355,9 +355,9 @@
 }
 
 .grade-banner {
-    margin-top: -12px;
-    padding: 7px 28px;
-    font-size: 16px;
+    margin-top: -10px;
+    padding: 4px 22px;
+    font-size: 14px;
     font-weight: 800;
     color: white;
     background: linear-gradient(#d92b2b, #8a1010);
@@ -366,31 +366,31 @@
 }
 
 .stars {
-    margin-top: 12px;
+    margin-top: 6px;
     display: flex;
     justify-content: center;
-    gap: 7px;
-    font-size: 20px;
+    gap: 5px;
+    font-size: 15px;
     color: #ffd13b;
 }
 
 .grade-description {
-    margin-top: 20px;
+    margin-top: 8px;
     color: #ead9bd;
-    font-size: 15px;
-    line-height: 1.6;
-    max-width: 300px;
+    font-size: 13px;
+    line-height: 1.45;
+    max-width: 340px;
     flex-shrink: 0;
 }
 
 .hp-card {
-    margin-top: 24px;
+    margin-top: 8px;
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 14px;
-    padding: 16px;
+    padding: 8px 12px;
     border-radius: 14px;
     background: #3a2518;
     border: 1px solid #624326;
@@ -403,8 +403,8 @@
 }
 
 .hp-number {
-    font-size: 30px;
-    font-weight: 900;
+    font-size: 20px;
+    font-weight: 600;
     color: #97f76b;
 }
 
@@ -497,8 +497,8 @@
 }
 
 .suggest-card {
-    margin-top: 18px;
-    padding: 16px;
+    margin-top: 8px;
+    padding: 12px;
     border-radius: 16px;
     background: #4a2b17;
     border: 1px solid #99682b;
@@ -516,8 +516,8 @@
 }
 
 .suggest-card p {
-    font-size: 13px;
-    line-height: 1.6;
+    font-size: 12px;
+    line-height: 1.5;
     color: #f0dfc2;
 }
 
@@ -566,11 +566,11 @@
     font-weight: 500;
 }
 
-.blue {
+.btn.blue {
     background: linear-gradient(#e7b83f, #a96b18);
 }
 
-.green {
+.btn.green {
     background: linear-gradient(#d89b35, #8f5015);
 }
 
@@ -662,28 +662,28 @@
     }
 
     .score-group h2 {
-        font-size: 38px
+        font-size: 32px
     }
 
     .grade-card {
-        margin-top: 10px
+        margin-top: 4px
     }
 
     .grade-shield {
-        width: 92px;
-        height: 92px;
-        font-size: 54px
+        width: 68px;
+        height: 68px;
+        font-size: 38px
     }
 
     .grade-description {
-        margin-top: 12px;
-        font-size: 14px;
-        line-height: 1.5
+        margin-top: 6px;
+        font-size: 12px;
+        line-height: 1.4
     }
 
     .hp-card {
-        margin-top: 12px;
-        padding: 10px
+        margin-top: 6px;
+        padding: 6px 10px
     }
 
     .happy-card {
@@ -700,13 +700,13 @@
     }
 
     .suggest-card {
-        margin-top: 10px;
-        padding: 12px
+        margin-top: 6px;
+        padding: 10px
     }
 
     .suggest-card p {
-        font-size: 12px;
-        line-height: 1.5
+        font-size: 11.5px;
+        line-height: 1.4
     }
 
     .bottom-buttons {

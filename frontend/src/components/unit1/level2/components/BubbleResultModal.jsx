@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import ResultHappy from "../../../../assets/unit1/level2/resultHappy.png";
+import ResultHappy from "../../../../assets/unit1/level2/ResultHappy.png";
 import LevelUpSound from "../../../../assets/sounds/level_up.mp3";
 
 function useCountUp(target, duration = 900) {

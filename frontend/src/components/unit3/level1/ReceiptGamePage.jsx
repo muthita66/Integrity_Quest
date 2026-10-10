@@ -25,6 +25,8 @@ export default function ReceiptGamePage() {
         isPaused,
         totalDocuments,
         maxWrong,
+        message,
+        error,
 
         handleClickDoc,
         restartGame,
@@ -33,8 +35,6 @@ export default function ReceiptGamePage() {
         handleBackToMap,
     } = useReceiptGame();
 
-    // เพลงพื้นหลัง เบา ๆ เล่นวน เปิด/ปิดได้จากปุ่มใน PauseModal
-    // จบเกม (ชนะ/แพ้) แล้วเพลงหยุด และเริ่มใหม่ตั้งแต่ต้นเมื่อกดเริ่มภารกิจใหม่
     const [muted] = useGameMuted();
     const isGameOver = gameStatus === "win" || gameStatus === "lose";
 
@@ -91,10 +91,43 @@ export default function ReceiptGamePage() {
                     onExit={handleBackToMap}
                 />
 
-                {/* แสดง popup ผลเฉพาะตอน "แพ้จริง" เท่านั้น
-                    เดิม render ตลอด → ช่วง loading ก่อนเริ่มเกม
-                    (gameStatus = "loading") popup ภารกิจไม่สำเร็จเลยโผล่แวบหนึ่ง
-                    (ชนะ = เด้งไปหน้า Result อยู่แล้ว ไม่ต้องใช้ popup) */}
+                {/* ข้อความตอบกลับตอนกด (พบ/ไม่ใช่เอกสารการเงิน/error จาก server)
+                    เดิม hook ส่ง message มาแต่หน้าไม่เคยแสดง ทำให้เห็นไม่ได้เลย
+                    ว่า server ปฏิเสธการกดหรือจบเกมไม่สำเร็จ */}
+                {message && (
+                    <div className="pointer-events-none absolute left-1/2 top-24 z-[60] max-w-[80%] -translate-x-1/2 rounded-xl bg-black/80 px-5 py-2 text-center text-base font-bold text-white shadow-lg">
+                        {message}
+                    </div>
+                )}
+
+                {/* จบเกมไม่สำเร็จ (เช่น เก็บครบแล้วแต่ server ไม่ยอมจบ) */}
+                {error && gameStatus !== "lose" && (
+                    <div className="absolute inset-0 z-[70] flex items-center justify-center bg-black/50">
+                        <div className="max-w-[80%] rounded-2xl bg-white px-6 py-5 text-center shadow-xl">
+                            <p className="text-lg font-black text-red-700">
+                                เกิดข้อผิดพลาด
+                            </p>
+                            <p className="mt-1 text-sm text-gray-700">
+                                {error}
+                            </p>
+                            <div className="mt-4 flex justify-center gap-3">
+                                <button
+                                    onClick={restartGame}
+                                    className="rounded-lg bg-green-600 px-4 py-2 font-bold text-white"
+                                >
+                                    เริ่มใหม่
+                                </button>
+                                <button
+                                    onClick={handleBackToMap}
+                                    className="rounded-lg bg-gray-500 px-4 py-2 font-bold text-white"
+                                >
+                                    กลับหน้าหลัก
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {gameStatus === "lose" && (
                     <ResultModel
                         gameStatus={gameStatus}

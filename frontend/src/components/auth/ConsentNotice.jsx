@@ -46,7 +46,7 @@ export default function ConsentNotice({ onAgree, onDecline }) {
                 <div className="max-h-[45vh] overflow-y-auto bg-gray-50/60 p-4 pr-3 sm:p-5 sm:pr-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300">
                     <Section title="ข้อมูลที่เก็บ">
                         <ul className="list-disc space-y-1 pl-5">
-                            <li>ข้อมูลทั่วไป ได้แก่ เพศ อายุ ชั้นปี คณะ และสาขาวิชา</li>
+                            <li>ข้อมูลทั่วไป ได้แก่ ชื่อ-สกุล เพศ อายุ ชั้นปี คณะ และสาขาวิชา</li>
                             <li>ข้อมูลการเข้าใช้งานระบบ</li>
                             <li>ข้อมูลการตัดสินใจและคะแนนจากการเล่นเกม</li>
                             <li>คำตอบจากแบบวัดทัศนคติและความเข้าใจก่อนและหลังเรียน</li>

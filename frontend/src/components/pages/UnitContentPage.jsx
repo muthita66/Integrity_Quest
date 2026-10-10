@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../config";
 import React, {
     useEffect,
     useState,
@@ -16,7 +17,7 @@ import {
 } from "react-icons/fa6";
 
 const API_BASE_URL =
-    "http://localhost:5000";
+    `${BASE_URL}`;
 
 // Unit 4 : ด่านที่ 1, 2, 3 (ตาม order_no) → หน้า intro ของแต่ละบท
 const UNIT4_ROUTES = [
@@ -395,7 +396,7 @@ export default function UnitContentPage() {
 
     return (
         <div
-            className="min-h-dvh flex items-center justify-center bg-cover bg-center bg-fixed sarabun-medium relative"
+            className="min-h-dvh md:h-dvh md:overflow-hidden flex flex-col bg-cover bg-center bg-fixed sarabun-medium relative"
             style={{
                 backgroundImage: `url(${bgGame})`,
             }}
@@ -419,45 +420,45 @@ export default function UnitContentPage() {
 
             {/* Main Content */}
 
-            <div className="relative z-10 w-full px-6 py-8">
+            <div className="relative z-10 w-full flex-1 min-h-0 flex flex-col px-4 md:px-6 pt-12 pb-3">
                 {/* Title */}
-                <div className="text-center mt-2 mb-4">
-                    <h1 className="text-3xl sarabun-bold text-gray-800 tracking-wide uppercase">
+                <div className="text-center mb-2 md:mb-3 shrink-0">
+                    <h1 className="text-2xl lg:text-3xl sarabun-bold text-gray-800 tracking-wide uppercase">
                         {header?.title || header?.name_en}
                     </h1>
                 </div>
 
                 {/* Cards */}
                 <div
-                    className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-[1300px] h-[550px] mx-auto">
+                    className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4 w-full max-w-[1300px] mx-auto md:flex-1 md:min-h-0">
                     {cards.length > 0 ? (
                         cards.map((item) => (
                             <div
                                 key={
                                     item.content_id
                                 }
-                                className="border-[3px] border-black bg-white/90 rounded-2xl px-4 py-4 flex flex-col items-center justify-between min-h-[450px] shadow-lg">
-                                <h2 className="text-xl sarabun-bold text-center border-b pb-1 w-full">
+                                className="border-[3px] border-black bg-white/90 rounded-2xl px-3 py-3 lg:px-4 lg:py-4 flex flex-col items-center justify-between min-h-[450px] md:min-h-0 md:overflow-hidden shadow-lg">
+                                <h2 className="text-lg lg:text-xl sarabun-bold text-center border-b pb-1 w-full shrink-0">
                                     {item.title}
                                 </h2>
 
                                 <p
-                                    className="mt-2 sarabun-light text-md text-center text-black whitespace-pre-line">
+                                    className="mt-2 shrink-0 sarabun-light text-sm lg:text-base leading-snug text-center text-black whitespace-pre-line">
                                     {item.description}
                                 </p>
 
                                 <div
-                                    className="flex-grow flex items-center justify-center my-4 w-full"
+                                    className="relative flex-1 min-h-0 flex items-center justify-center my-2 lg:my-4 w-full"
                                 >
                                     <img
                                         src={`/image/${item.image_url}`}
                                         alt={item.title}
-                                        className="max-h-64 max-w-full object-contain"
+                                        className="max-h-64 max-w-full object-contain md:max-h-none md:absolute md:inset-0 md:h-full md:w-full"
                                     />
                                 </div>
 
                                 <p
-                                    className="sarabun-light text-sm text-center justify-center text-black whitespace-pre-line">
+                                    className="shrink-0 sarabun-light text-xs lg:text-sm leading-snug text-center justify-center text-black whitespace-pre-line">
                                     {item.reflection}
                                 </p>
                             </div>
@@ -475,7 +476,7 @@ export default function UnitContentPage() {
                     !progressError &&
                     nextPlayableLevel && (
                         <div
-                            className="flex justify-center mt-2 text-sm font-bold text-gray-800">
+                            className="flex justify-center mt-2 shrink-0 text-sm font-bold text-gray-800">
                             พร้อมเล่น:{" "}
                             {nextPlayableLevel.title}
                         </div>
@@ -483,14 +484,14 @@ export default function UnitContentPage() {
 
                 {progressError && (
                     <div
-                        className="flex justify-center mt-2 text-sm font-bold text-red-600">
+                        className="flex justify-center mt-2 shrink-0 text-sm font-bold text-red-600">
                         {progressError}
                     </div>
                 )}
 
                 {/* START Button */}
 
-                <div className="flex justify-center mt-4">
+                <div className="flex justify-center mt-2 shrink-0">
                     <button
                         onClick={handleStart}
                         disabled={

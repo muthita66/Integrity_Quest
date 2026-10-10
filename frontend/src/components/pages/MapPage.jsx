@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../config";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../MapPage/Header";
@@ -16,7 +17,7 @@ import { useSound } from '../../hooks/useSound';
 import useGameMuted from '../../hooks/useGameMuted';
 import mapMusic from '../../assets/sounds/Map/magical-storytime.mp3';
 
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = `${BASE_URL}`;
 
 // ------------------------------------------------------------
 // Responsive: ปราสาท/ป้ายชื่อบทมีขนาดเป็นพิกเซลคงที่ แต่ตำแหน่งเป็น %

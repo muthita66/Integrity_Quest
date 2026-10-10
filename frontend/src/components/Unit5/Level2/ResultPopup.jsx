@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import './Result.css';
@@ -20,12 +21,12 @@ import {
 
 // Config ชื่อและสีแต่ละหมวด
 const BUDGET_CONFIG = [
-    { id: "school", title: "การศึกษา", icon: FaBookOpen, color: "#3b82f6" },
-    { id: "hospital", title: "สาธารณสุข", icon: FaHeart, color: "#ef4444" },
-    { id: "road", title: "คมนาคม", icon: FaRoad, color: "#22c55e" },
-    { id: "fire", title: "ความปลอดภัย", icon: FaFire, color: "#f97316" },
-    { id: "park", title: "สวนสาธารณะ", icon: FaTree, color: "#22c55e" },
-    { id: "water", title: "ระบบน้ำประปา", icon: FaTint, color: "#06b6d4" },
+    { id: "school", title: "โรงเรียน", icon: FaBookOpen, color: "#3b82f6" },
+    { id: "hospital", title: "โรงพยาบาล", icon: FaHeart, color: "#ef4444" },
+    { id: "road", title: "ถนน", icon: FaRoad, color: "#22c55e" },
+    { id: "fire", title: "สถานีดับเพลิง", icon: FaFire, color: "#f97316" },
+    { id: "park", title: "สวนสาธารณะ", icon: FaTree, color: "#84cc16" },
+    { id: "water", title: "ระบบน้ำสะอาด", icon: FaTint, color: "#06b6d4" },
 ];
 
 // ============================================================
@@ -33,7 +34,7 @@ const BUDGET_CONFIG = [
 // คะแนน / ความสุข / Rank / IP คิดที่ backend (gamePlayService.calcBudgetResult)
 // ============================================================
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 
 const RANK_INFO = {
     S: { rankText: "ยอดเยี่ยม!", stars: 5 },
@@ -121,7 +122,7 @@ export default function TaxBuilderResult() {
     const score = result.score;
     const rank = result.rank;
     const earnedIP = result.earned_ip ?? 0;
-    const { rankText, stars } = RANK_INFO[rank] || RANK_INFO.D;
+    const { rankText, stars } = RANK_INFO[rank] || RANK_INFO.C;
 
     // แปลง budgets object → array ที่มี cost และ percent
     const budgetList = BUDGET_CONFIG.map((cfg) => {
@@ -130,14 +131,18 @@ export default function TaxBuilderResult() {
         return { ...cfg, cost, percent };
     });
 
-    // statData สำหรับ right panel
-    const statData = [
-        { title: "การศึกษา", icon: FaBookOpen, color: "#3b82f6", value: Math.min(100, (budgets.school / totalBudget) * 100 * 3 | 0) },
-        { title: "สุขภาพ", icon: FaHeart, color: "#ef4444", value: Math.min(100, (budgets.hospital / totalBudget) * 100 * 3 | 0) },
-        { title: "คมนาคม", icon: FaRoad, color: "#22c55e", value: Math.min(100, (budgets.road / totalBudget) * 100 * 3 | 0) },
-        { title: "ความปลอดภัย", icon: FaFire, color: "#f97316", value: Math.min(100, (budgets.fire / totalBudget) * 100 * 3 | 0) },
-        { title: "สิ่งแวดล้อม", icon: FaTree, color: "#22c55e", value: Math.min(100, (budgets.park / totalBudget) * 100 * 3 | 0) },
-    ];
+    // ความพอเพียงรายด้าน = งบที่ได้ ÷ ส่วนแบ่งเท่ากัน (งบรวม ÷ 6)
+    // 100% = ได้เท่ากับส่วนแบ่งเท่ากันหรือมากกว่า, ต่ำกว่านั้นคือได้น้อยกว่าส่วนแบ่ง
+    const fairShare = totalBudget / BUDGET_CONFIG.length;
+    const statData = budgetList.map((item) => ({
+        ...item,
+        value: fairShare > 0 ? Math.min(100, Math.round((item.cost / fairShare) * 100)) : 0,
+    }));
+
+    const event = result.event ?? null;
+    const penalty = result.penalty ?? 0;
+    const baseScore = result.base_score ?? score + penalty;
+    const weakest = result.weakest ?? null;
 
     return (
         <>
@@ -212,14 +217,6 @@ export default function TaxBuilderResult() {
                                                     />
                                                 </div>
 
-                                                <span
-                                                    className="progress-text"
-                                                    style={{
-                                                        color: item.color,
-                                                    }}
-                                                >
-                                                    {item.percent}%
-                                                </span>
                                             </div>
                                         </div>
                                     );
@@ -325,16 +322,35 @@ export default function TaxBuilderResult() {
 
                             <div className="hp-card">
 
-                                <FaHeart className="hp-heart" />
-
                                 <span className="hp-number">
-                                    +{earnedIP}
+                                    {earnedIP} IP ที่ได้รับ
                                 </span>
+                            </div>
 
-                                <span className="hp-label">
-                                    IP ที่ได้รับ
-                                </span>
+                            <div className="suggest-card" style={{ width: "100%", textAlign: "left", marginTop: 12 }}>
+                                <div className="suggest-title">
+                                    <FaLightbulb />
+                                    ข้อเสนอแนะ
+                                </div>
 
+                                <p>
+                                    {event && (
+                                        <>
+                                            <strong>เหตุการณ์ {event.title}:</strong>{" "}
+                                            {event.triggered
+                                                ? `${event.category_name}ได้งบ ${event.amount} เหรียญ ต่ำกว่า ${event.min_required} จึงถูกหัก ${event.penalty} คะแนน`
+                                                : `${event.category_name}ได้งบ ${event.amount} เหรียญ รับมือได้ ไม่ถูกหักคะแนน`}
+                                            <br />
+                                        </>
+                                    )}
+                                    {weakest && (
+                                        <>
+                                            ด้านที่ได้งบน้อยที่สุดคือ{weakest.name} ({weakest.amount} เหรียญ)
+                                            ลองเพิ่มงบด้านนี้เพื่อให้ประชาชนพึงพอใจมากขึ้น
+                                        </>
+                                    )}
+
+                                </p>
                             </div>
 
                         </div>
@@ -355,6 +371,10 @@ export default function TaxBuilderResult() {
                                 </div>
 
                             </div>
+
+                            <p style={{ color: "#d7bf98", fontSize: 12, textAlign: "center", marginBottom: 8, flexShrink: 0 }}>
+                                ความพอเพียงรายด้าน (100% = ได้เท่าส่วนแบ่งเท่ากัน {fairShare.toFixed(1)} เหรียญ)
+                            </p>
 
                             <div className="stat-list">
 
@@ -412,18 +432,6 @@ export default function TaxBuilderResult() {
 
                             </div>
 
-                            <div className="suggest-card">
-                                <div className="suggest-title">
-                                    <FaLightbulb />
-                                    ข้อเสนอแนะ
-                                </div>
-
-                                <p>
-                                    ควรเพิ่มงบประมาณด้านคมนาคมและความปลอดภัย
-                                    เพื่อเพิ่มความสุขของประชาชน
-                                </p>
-                            </div>
-
                         </div>
 
                     </div>
@@ -452,7 +460,7 @@ export default function TaxBuilderResult() {
 
                         </button>
 
-                        <button className="btn blue" onClick={() => navigate('/map')}>กลับหน้าแมพ</button>
+                        <button className="btn blue" onClick={() => navigate('/map')}>กลับหน้าหลัก</button>
                     </div>
 
                 </div>

@@ -91,6 +91,7 @@ const submit = async (req, res) => {
         }
 
         await gamePlayService.saveBudgetAllocations(playId, checked.budgets);
+        await gamePlayService.saveBudgetEvent(playId, req.body.event);
 
         return res.status(201).json({
             success: true,
@@ -121,7 +122,8 @@ const getPlay = async (req, res) => {
             });
         }
 
-        const result = gamePlayService.calcBudgetResult(budgets);
+        const eventType = await gamePlayService.getBudgetEvent(playId);
+        const result = gamePlayService.calcBudgetResult(budgets, eventType);
 
         return res.status(200).json({
             success: true,
@@ -137,6 +139,10 @@ const getPlay = async (req, res) => {
                 remaining_budget: result.remaining,
 
                 score: result.score,
+                base_score: result.base_score,
+                penalty: result.penalty,
+                event: result.event,
+                weakest: result.weakest,
                 happiness: result.happiness,
                 rank: result.rank,
             },

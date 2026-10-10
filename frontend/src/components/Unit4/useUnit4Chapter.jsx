@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../config";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -16,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 // ถ้ายังล็อก → แจ้งเตือนแล้วพากลับไปหน้าสารบัญ /unit4/book
 // ============================================================
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const UNIT_ID = 4;
 
 // ต้องตรงกับ Unit4Book.jsx — เปลี่ยนเป็น false พร้อมกันเมื่อทุกบทบันทึกลง DB แล้ว

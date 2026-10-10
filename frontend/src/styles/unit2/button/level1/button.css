@@ -8,6 +8,7 @@
     -webkit-appearance: none;
     appearance: none;
     position: relative;
+    isolation: isolate;
     border-width: 0;
     padding: 0 8px 12px;
     min-width: 10em;
@@ -127,6 +128,17 @@
     box-shadow:
         0 1px 1px 0 rgba(255, 255, 255, .75),
         inset 0 2px 2px rgba(0, 0, 0, .25);
+}
+
+/* สีของปุ่ม: ตั้งแค่ตัวแปรสี
+   และบังคับ background โปร่งใสด้วย specificity สูงกว่า (button.x.y)
+   กันไม่ให้ CSS ที่มี .gray/.green/.red/.blue ลอยอยู่จากหน้าอื่นมาทาพื้นหลังเป็นกล่องสี่เหลี่ยม */
+button.button-finish-game.green,
+button.button-finish-game.red,
+button.button-finish-game.gray,
+button.button-finish-game.blue,
+button.button-finish-game.yellow {
+    background: transparent;
 }
 
 .button-finish-game.green {

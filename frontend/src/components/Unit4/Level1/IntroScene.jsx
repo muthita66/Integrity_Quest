@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaPlay, FaChevronRight } from "react-icons/fa";
@@ -9,7 +10,7 @@ import jane from "../../../assets/unit4/senior-detective.png";
 import "../../../styles/theme.css";
 import "./level1.css";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = `${BASE_URL}`;
 const SLIP_HUNT_LEVEL_ID = 11;
 const getToken = () => localStorage.getItem("token");
 

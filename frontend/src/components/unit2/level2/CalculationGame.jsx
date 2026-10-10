@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import React, { useState, useEffect, useRef } from "react";
 import bgGame from "../../../assets/unit2/Level2/bgLevel2.png";
 import bgMusic from "../../../assets/sounds/Unit2/bg_Level2.mp3";
@@ -62,7 +63,7 @@ export default function CalculationGame() {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/game-play/start",
+                `${BASE_URL}/api/game-play/start`,
                 {
                     method: "POST",
                     headers: {
@@ -102,10 +103,10 @@ export default function CalculationGame() {
                 const [questionsResponse, hintsResponse] =
                     await Promise.all([
                         fetch(
-                            "http://localhost:5000/api/comparisonQuestion/level/6"
+                            `${BASE_URL}/api/comparisonQuestion/level/6`
                         ),
                         fetch(
-                            "http://localhost:5000/api/levelHint/level/6/hints"
+                            `${BASE_URL}/api/levelHint/level/6/hints`
                         ),
                     ]);
 
@@ -253,7 +254,7 @@ export default function CalculationGame() {
                 }
 
                 const response = await fetch(
-                    "http://localhost:5000/api/game-play/comparison",
+                    `${BASE_URL}/api/game-play/comparison`,
                     {
                         method: "POST",
                         headers: {
@@ -287,7 +288,7 @@ export default function CalculationGame() {
                     } else {
                         try {
                             const completeResponse = await fetch(
-                                "http://localhost:5000/api/game-play/complete",
+                                `${BASE_URL}/api/game-play/complete`,
                                 {
                                     method: "POST",
                                     headers: {
@@ -342,7 +343,7 @@ export default function CalculationGame() {
                 }
 
                 const response = await fetch(
-                    "http://localhost:5000/api/game-play/comparison",
+                    `${BASE_URL}/api/game-play/comparison`,
                     {
                         method: "POST",
                         headers: {

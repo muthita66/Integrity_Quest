@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Level2Intro from "./Level2Intro";
@@ -33,7 +34,7 @@ import {
 //   จบ      → POST /api/game-play/complete { play_id }  (ถึงศาล = PASS / หัวใจหมด = FAIL)
 // ============================================================
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const UNIT_ID = 6;
 const LEVEL_ORDER = 2;
 

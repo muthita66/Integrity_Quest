@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../../config";
 import { useState, useEffect } from "react";
 import { FaPlay, FaCheckCircle, FaHome } from "react-icons/fa";
 import { IoMdSkipForward } from "react-icons/io";
@@ -22,7 +23,7 @@ export default function SceneMission({
 
     useEffect(() => {
         if (!scene) {
-            fetch("http://localhost:5000/api/introDialog/level/7")
+            fetch(`${BASE_URL}/api/introDialog/level/7`)
                 .then((res) => res.json())
                 .then((data) => {
                     // หา scene ที่มี sceneMission (scene_type_id = 2)

@@ -1,6 +1,7 @@
+import { BASE_URL } from "../../config";
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/game-play";
+const API_URL = `${BASE_URL}/api/game-play`;
 
 const authConfig = () => {
     const token = localStorage.getItem("token");

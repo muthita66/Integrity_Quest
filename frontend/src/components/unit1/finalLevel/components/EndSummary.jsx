@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../../config";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Star from "../../../../assets/unit1/finalLevel/star.png";
@@ -165,7 +166,7 @@ export default function EndSummary({ finalLevelResult, cases, onRestart }) {
                 setMessageError(false);
 
                 const response = await fetch(
-                    `http://localhost:5000/api/level-result/${LEVEL_ID}/${rank}`
+                    `${BASE_URL}/api/level-result/${LEVEL_ID}/${rank}`
                 );
 
                 if (!response.ok) {

@@ -1,6 +1,7 @@
+import { BASE_URL } from "../../../../config";
 import { useState, useEffect, useRef } from "react";
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 
 const INITIAL_MONEY = 500;
 const INITIAL_TIME = 70;

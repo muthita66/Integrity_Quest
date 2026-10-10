@@ -1,6 +1,7 @@
+import { BASE_URL } from "../../config";
 import { useEffect } from "react";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = `${BASE_URL}/api`;
 const HEARTBEAT_MS = 60 * 1000;     // ส่งทุก 1 นาที
 const IDLE_LIMIT_MS = 3 * 60 * 1000; // ไม่ขยับเกิน 3 นาที = ไม่นับ
 

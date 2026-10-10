@@ -56,7 +56,6 @@ export default function ResultScreen({
             )}
 
             <p className="sm-overall">{result.overall_reflection}</p>
-            <p className="sm-badge-th" style={{ fontWeight: 800, fontSize: 22 }}>คะแนนพิเศษ +250 IP</p>
 
             <div className="sm-traits">
                 {TRAITS.map((t) => (

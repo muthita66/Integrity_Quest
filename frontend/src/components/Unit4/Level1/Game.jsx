@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaSearchPlus, FaChevronRight } from "react-icons/fa";
@@ -49,7 +50,7 @@ export default function Game() {
         const startNewPlay = async () => {
             try {
                 const response = await fetch(
-                    "http://localhost:5000/api/game-play/start",
+                    `${BASE_URL}/api/game-play/start`,
                     {
                         method: "POST",
                         headers: {
@@ -93,7 +94,7 @@ export default function Game() {
         const fetchSlips = async () => {
             try {
                 const response = await fetch(
-                    "http://localhost:5000/api/slips/level/11"
+                    `${BASE_URL}/api/slips/level/11`
                 );
 
                 if (!response.ok) {
@@ -197,7 +198,7 @@ export default function Game() {
         try {
             // ส่งคำตอบไปบ็อกแอนด์
             const response = await fetch(
-                "http://localhost:5000/api/slip-hunt/answer",
+                `${BASE_URL}/api/slip-hunt/answer`,
                 {
                     method: "POST",
                     headers: {
@@ -256,7 +257,7 @@ export default function Game() {
 
             try {
                 const response = await fetch(
-                    "http://localhost:5000/api/game-play/complete",
+                    `${BASE_URL}/api/game-play/complete`,
                     {
                         method: "POST",
                         headers: {

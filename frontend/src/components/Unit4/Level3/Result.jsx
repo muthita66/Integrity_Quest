@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -27,7 +28,7 @@ import "../Level3/level3.css";
 // จะคืนผลเดิม (ไม่คิด IP ซ้ำ) → refresh หน้านี้ก็ยังเห็นผลเดิม
 // ============================================================
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const HEARTS = 4; // ต้องตรงกับ FIREWALL_HEARTS ใน gamePlayService.js
 
 export default function ResultPage() {

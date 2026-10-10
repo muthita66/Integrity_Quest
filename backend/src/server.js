@@ -103,7 +103,7 @@ app.get("/", (req, res) => {
     res.send("APT running...");
 })
 
-const port = process.env.port || 5000;
+const port = process.env.PORT || 5000;
 
 const server = app.listen(port, () => {
     console.log(`Server running on port ${port}`);

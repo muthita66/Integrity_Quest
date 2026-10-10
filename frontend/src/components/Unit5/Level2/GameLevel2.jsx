@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -27,7 +28,7 @@ import EventPopup from "./EventPopup";
 //              → /unit5/result?playId=
 // ============================================================
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 15;
 
 const authHeaders = () => ({
@@ -44,6 +45,7 @@ export default function GameLevel2() {
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
     const startingRef = useRef(false); // กัน StrictMode เริ่มเกมซ้ำ
+    const eventRef = useRef(null);     // เหตุการณ์ที่สุ่มได้ (เกิดครั้งเดียวต่อรอบ ส่งให้ backend ตอนสรุปผล)
 
     // --------------------------------------------------------
     // เริ่มรอบใหม่ (backend ตรวจล็อกด่านให้)
@@ -185,7 +187,7 @@ export default function GameLevel2() {
                 "ฝนตกหนัก ระบบระบายน้ำของเมืองไม่เพียงพอ",
 
             effect:
-                "ถ้างบระบบน้ำต่ำ ประชาชนจะเดือดร้อน",
+                "ถ้างบระบบน้ำสะอาดต่ำกว่า 15 เหรียญ จะถูกหักคะแนน 10",
         },
 
         {
@@ -196,7 +198,7 @@ export default function GameLevel2() {
                 "จำนวนผู้ป่วยเพิ่มขึ้นอย่างรวดเร็ว",
 
             effect:
-                "หากโรงพยาบาลได้รับงบน้อย สุขภาพของประชาชนจะลดลง",
+                "ถ้างบโรงพยาบาลต่ำกว่า 15 เหรียญ จะถูกหักคะแนน 10",
         },
 
         {
@@ -207,7 +209,7 @@ export default function GameLevel2() {
                 "สวนสาธารณะจัดกิจกรรมประจำปี",
 
             effect:
-                "หากสวนได้รับงบเพียงพอ ความสุขจะเพิ่มขึ้น",
+                "ถ้างบสวนสาธารณะต่ำกว่า 15 เหรียญ จะถูกหักคะแนน 10",
         },
 
         {
@@ -218,7 +220,7 @@ export default function GameLevel2() {
                 "เกิดเหตุไฟไหม้ในเขตชุมชน",
 
             effect:
-                "หากสถานีดับเพลิงงบน้อย การช่วยเหลือจะล่าช้า",
+                "ถ้างบสถานีดับเพลิงต่ำกว่า 15 เหรียญ จะถูกหักคะแนน 10",
         },
     ];
 
@@ -229,11 +231,14 @@ export default function GameLevel2() {
     useEffect(() => {
 
         if (remainingBudget !== 50) return;
+        if (eventRef.current) return; // เหตุการณ์เกิดครั้งเดียวต่อรอบ
 
         const random =
             events[
             Math.floor(Math.random() * events.length)
             ];
+
+        eventRef.current = random.type;
 
         setCurrentEvent(random);
 
@@ -292,7 +297,7 @@ export default function GameLevel2() {
             const submitRes = await fetch(`${API_URL}/api/budget-game/submit`, {
                 method: "POST",
                 headers: authHeaders(),
-                body: JSON.stringify({ playId, budgets }),
+                body: JSON.stringify({ playId, budgets, event: eventRef.current }),
             });
 
             if (submitRes.status === 401) {

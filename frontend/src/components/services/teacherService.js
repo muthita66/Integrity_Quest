@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000/api";
+import { BASE_URL } from "../../config";
+const API_URL = `${BASE_URL}/api`;
 
 const request = async (path, options = {}) => {
     const token = localStorage.getItem("token");

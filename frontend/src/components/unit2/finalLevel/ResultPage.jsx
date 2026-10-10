@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import React, { useEffect, useState } from 'react';
 import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import useGameMuted from "../../../hooks/useGameMuted";
@@ -10,7 +11,7 @@ import MedalGold from "../../../assets/unit2/FinalLevel/Result/gold.jpg";
 import MedalSilver from "../../../assets/unit2/FinalLevel/Result/silver.jpg";
 import MedalBronze from "../../../assets/unit2/FinalLevel/Result/bronze.jpg";
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 7;
 
 export default function ResultPage({

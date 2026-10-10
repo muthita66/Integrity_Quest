@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../../config";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -51,7 +52,7 @@ export default function FinalLevelIntroPage() {
         const fetchScenes = async () => {
             try {
                 const response = await fetch(
-                    "http://localhost:5000/api/introDialog/level/10"
+                    `${BASE_URL}/api/introDialog/level/10`
                 );
 
                 if (!response.ok) {

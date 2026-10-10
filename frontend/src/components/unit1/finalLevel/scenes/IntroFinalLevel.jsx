@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../../config";
 import { useState, useEffect } from "react";
 import { IoMdSkipForward } from "react-icons/io";
 
@@ -43,7 +44,7 @@ export default function IntroScenes({ onComplete }) {
             try {
                 setLoading(true);
                 const response = await fetch(
-                    "http://localhost:5000/api/introDialog/level/3"
+                    `${BASE_URL}/api/introDialog/level/3`
                 );
                 if (!response.ok) {
                     throw new Error("ไม่สามารถดึงข้อมูล Scene ได้");

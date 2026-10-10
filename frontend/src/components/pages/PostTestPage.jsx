@@ -1,12 +1,12 @@
+import { BASE_URL } from "../../config";
 import { useEffect, useState } from "react";
 import bg_game from "../../assets/bg_game.png";
 import { useNavigate } from "react-router-dom";
 
-// TODO: ถ้ามี env ของ backend URL อยู่แล้ว (เช่น VITE_API_URL) ให้ใช้ตัวนั้นแทน
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-const QUIZ_TYPE = "pre_test";
+const API_BASE = import.meta.env.VITE_API_URL || `${BASE_URL}/api`;
+const QUIZ_TYPE = "post_test";
 
-function PreTest() {
+function PostTest() {
     const [questions, setQuestions] = useState([]); // [{ quiz_id, question_text, ... }]
     const [answers, setAnswers] = useState({}); // { [quiz_id]: score }
     const [loading, setLoading] = useState(true);
@@ -75,7 +75,7 @@ function PreTest() {
             const data = await res.json().catch(() => ({}));
 
             if (res.status === 409) {
-                // ทำ pre-test ไปแล้ว (เผื่อกรณีหลุดผ่านการเช็คที่ปุ่มบนหน้า map มาได้)
+                // ทำ post-test ไปแล้ว (เผื่อกรณีหลุดผ่านการเช็คที่ปุ่มบนหน้า map มาได้)
                 alert(data.message || "คุณทำแบบทดสอบนี้ไปแล้ว");
                 navigate("/map");
                 return;
@@ -85,7 +85,7 @@ function PreTest() {
                 throw new Error(data.message || "บันทึกคำตอบไม่สำเร็จ");
             }
 
-            navigate("/map", { state: { preTestJustCompleted: true } });
+            navigate("/map", { state: { postTestJustCompleted: true } });
         } catch (err) {
             console.error(err);
             alert(err.message || "เกิดข้อผิดพลาด ไม่สามารถบันทึกคำตอบได้ กรุณาลองใหม่อีกครั้ง");
@@ -135,7 +135,7 @@ function PreTest() {
                             boxShadow: "0 6px 15px rgba(0,0,0,.25)",
                         }}
                     >
-                        Pre-Test
+                        Post-Test
                     </div>
 
                     {/* Description */}
@@ -283,4 +283,4 @@ function PreTest() {
     );
 }
 
-export default PreTest;
+export default PostTest;

@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../config";
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import template from '../../assets/certificate.png';
@@ -27,7 +28,7 @@ export default function CertificateReward({ onClose }) {
         document.addEventListener('keydown', keydown);
         (async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/user-progress/certificate', {
+                const response = await fetch(`${BASE_URL}/api/user-progress/certificate`, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 });
                 const payload = await response.json();

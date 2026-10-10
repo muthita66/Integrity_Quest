@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import React, { useState, useEffect } from "react";
 import { FaLock, FaUnlock, FaTimes } from "react-icons/fa";
 import "../../../styles/unit2/button/level2/button.css";
@@ -78,7 +79,7 @@ function MoneyMatchGame({ onWin, onWrong, state }) {
     const [status, setStatus] = useState("loading");
     const [error, setError] = useState("");
 
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const API_URL = import.meta.env.VITE_API_URL || `${BASE_URL}`;
 
     useEffect(() => {
         const fetchGame = async () => {
@@ -230,7 +231,7 @@ function WorthGame({ onWin, onWrong, state }) {
     const [status, setStatus] = useState("loading");
     const [error, setError] = useState("");
 
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const API_URL = import.meta.env.VITE_API_URL || `${BASE_URL}`;
 
     useEffect(() => {
         const fetchGame = async () => {
@@ -453,7 +454,7 @@ function SavingsGame({ onWin }) {
     const [status, setStatus] = useState("loading");
     const [error, setError] = useState("");
 
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const API_URL = import.meta.env.VITE_API_URL || `${BASE_URL}`;
 
     useEffect(() => {
         const fetchGame = async () => {
@@ -731,7 +732,7 @@ function NeedsWantsGame({ onWin }) {
     const [status, setStatus] = useState("loading");
     const [error, setError] = useState("");
 
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const API_URL = import.meta.env.VITE_API_URL || `${BASE_URL}`;
 
     useEffect(() => {
         const fetchGame = async () => {

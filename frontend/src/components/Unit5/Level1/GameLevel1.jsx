@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../../config";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +22,7 @@ import investigationMusic from "../../../assets/sounds/Unit5/level1-investigatio
 //   หาครบ      → POST /api/game-play/complete { play_id } → IP จริง
 // ============================================================
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 14;
 
 const authHeaders = () => ({
