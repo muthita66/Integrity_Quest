@@ -20,11 +20,11 @@ import Level3Music from './components/Unit5/Level3/Level3Music';
 // ============================================================
 
 import AuthPage from "./components/pages/AuthPage";
-import MapPage from "./components/Pages/MapPage";
-import PreTestPage from "./components/Pages/PreTestPage";
-import PostTestPage from "./components/Pages/PostTestPage";
-import SettingsPage from "./components/Pages/SettingsPage";
-import ProgressPage from "./components/Pages/ProgressPage";
+import MapPage from "./components/pages/MapPage";
+import PreTestPage from "./components/pages/PreTestPage";
+import PostTestPage from "./components/pages/PostTestPage";
+import SettingsPage from "./components/pages/SettingsPage";
+import ProgressPage from "./components/pages/ProgressPage";
 import TeacherPage from "./components/pages/TeacherPage";
 import UnitContentPage from "./components/pages/UnitContentPage";
 
