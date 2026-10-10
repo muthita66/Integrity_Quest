@@ -9,22 +9,10 @@ const MAX_WRONG = 3;
 const GOOD_COUNT = 8;
 const TOTAL_DOCUMENTS = 13;
 
-// ============================================================
-// วางเอกสารแบบ "ตาราง + สุ่มเยื้องเล็กน้อย" (แทนสุ่มอิสระเดิม)
-// ------------------------------------------------------------
-// เดิมสุ่มตำแหน่งอิสระแล้วเช็กระยะห่างขั้นต่ำ ทำให้บางรอบรูปซ้อนกัน
-// จนกดรูปด้านล่างไม่ได้ → เปลี่ยนเป็นแบ่งกระดานเป็นช่อง (5 x 3)
-// แต่ละเอกสารได้ 1 ช่องของตัวเอง แล้วเยื้องแบบสุ่มเล็กน้อยให้ดูเป็น
-// ธรรมชาติ ยังซ้อนขอบกันได้นิดหน่อย แต่ไม่ทับกันจนกดไม่ได้
-//
-// หน่วยเป็น % ของกระดาน (มุมซ้ายบนของการ์ด)
-// ปรับตัวเลขตรงนี้ได้ถ้าขนาดการ์ด / กระดานเปลี่ยน
-// ============================================================
-
-const GRID_COLUMNS = [3, 21, 39, 57, 75]; // left (%)
-const GRID_ROWS = [13, 39, 64];           // top (%)
-const JITTER_X = 3;                        // เยื้องซ้าย-ขวาได้ ±3%
-const JITTER_Y = 3;                        // เยื้องขึ้น-ลงได้ ±3%
+const GRID_COLUMNS = [3, 21, 39, 57, 75];
+const GRID_ROWS = [13, 39, 64];
+const JITTER_X = 3;
+const JITTER_Y = 3;
 
 // ช่องที่ห้ามวาง (ทับกล่อง "เอกสารที่ต้องหา" มุมซ้ายล่าง)
 const BLOCKED_CELLS = [
@@ -86,6 +74,10 @@ export default function useReceiptGame() {
     const messageTimerRef = useRef(null);
     const playIdRef = useRef(null);
     const startRequestRef = useRef(false);
+    // กันเรียกจบเกมซ้ำ + เก็บค่าล่าสุดของ wrong/timeLeft โดยไม่ต้องใส่ใน deps
+    const finishingRef = useRef(false);
+    const wrongRef = useRef(0);
+    const timeLeftRef = useRef(INITIAL_TIME);
 
     const [documents, setDocuments] = useState([]);
     const [playId, setPlayId] = useState(null);
@@ -102,6 +94,9 @@ export default function useReceiptGame() {
     const [error, setError] = useState(null);
 
     const foundCount = found.length;
+
+    wrongRef.current = wrong;
+    timeLeftRef.current = timeLeft;
 
     const getAuthHeaders = () => {
         const token = localStorage.getItem("token");
@@ -315,6 +310,13 @@ export default function useReceiptGame() {
 
             const data = await response.json();
 
+            // DEBUG: ดูใน Console (F12) ว่า backend ตอบอะไรตอนกดแต่ละใบ
+            console.log("[ReceiptHunt] select", {
+                doc: doc.name,
+                http: response.status,
+                body: data,
+            });
+
             if (!response.ok) {
                 throw new Error(
                     data?.error ||
@@ -420,6 +422,12 @@ export default function useReceiptGame() {
 
         const data = await response.json();
 
+        // DEBUG: ดูใน Console (F12) ว่า backend ตอบอะไรตอนจบเกม
+        console.log("[ReceiptHunt] complete", {
+            http: response.status,
+            body: data,
+        });
+
         if (!response.ok) {
             throw new Error(
                 data?.error ||
@@ -439,7 +447,14 @@ export default function useReceiptGame() {
             return;
         }
 
-        let cancelled = false;
+        // เดิม effect นี้มี timeLeft/wrong ใน deps → ทุกวินาทีที่นาฬิกาเดิน
+        // effect รันใหม่ ตัวเก่าถูก cancel (ผลลัพธ์ถูกทิ้ง ไม่ navigate)
+        // และยิง complete ซ้ำ → ตอนนี้ใช้ ref กันซ้ำ และไม่ทิ้งผลลัพธ์
+        if (finishingRef.current) {
+            return;
+        }
+
+        finishingRef.current = true;
 
         const finishGame = async () => {
             try {
@@ -447,10 +462,6 @@ export default function useReceiptGame() {
 
                 const result =
                     await completeGame();
-
-                if (cancelled) {
-                    return;
-                }
 
                 setGameStatus("win");
 
@@ -474,8 +485,8 @@ export default function useReceiptGame() {
                             wrong:
                                 result?.data
                                     ?.wrong_count ??
-                                wrong,
-                            timeLeft,
+                                wrongRef.current,
+                            timeLeft: timeLeftRef.current,
                             score:
                                 result?.data
                                     ?.score ??
@@ -535,30 +546,29 @@ export default function useReceiptGame() {
                     err
                 );
 
-                if (!cancelled) {
+                // เกิด error → ปลดล็อกให้ลองจบเกมใหม่ได้
+                finishingRef.current = false;
+
+                {
                     setError(
+                        err.message ||
+                        "ไม่สามารถจบเกม Receipt Hunt ได้"
+                    );
+                    showMessage(
                         err.message ||
                         "ไม่สามารถจบเกม Receipt Hunt ได้"
                     );
                 }
             } finally {
-                if (!cancelled) {
-                    setIsSubmitting(false);
-                }
+                setIsSubmitting(false);
             }
         };
 
         finishGame();
-
-        return () => {
-            cancelled = true;
-        };
     }, [
         foundCount,
         gameStatus,
         navigate,
-        timeLeft,
-        wrong,
     ]);
 
     const restartGame = async () => {
@@ -569,6 +579,7 @@ export default function useReceiptGame() {
         }
 
         playIdRef.current = null;
+        finishingRef.current = false;
 
         setPlayId(null);
         setDocuments([]);

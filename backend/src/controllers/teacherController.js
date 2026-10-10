@@ -1181,7 +1181,8 @@ const buildBudgetSection = async (playId) => {
         const budgets = await gamePlayService.getBudgetAllocations(playId);
         if (!budgets) return null;
 
-        const result = gamePlayService.calcBudgetResult(budgets);
+        const budgetEvent = await gamePlayService.getBudgetEvent(playId);
+        const result = gamePlayService.calcBudgetResult(budgets, budgetEvent);
         const total = gamePlayService.BUDGET_TOTAL;
 
         return {
@@ -1200,7 +1201,14 @@ const buildBudgetSection = async (playId) => {
                     answer: `คะแนน ${result.score}/100 · Rank ${result.rank}`,
                     correct_answer: null,
                     is_correct: null,
-                    note: `ความสุขประชาชน ${result.happiness}% (ยิ่งกระจายงบสมดุลยิ่งสูง)`,
+                    note: [
+                        `ความสุขประชาชน ${result.happiness}% (ยิ่งกระจายงบสมดุลยิ่งสูง)`,
+                        result.event
+                            ? `เหตุการณ์ ${result.event.title}: ${result.event.category_name} ${result.event.amount} เหรียญ${result.event.triggered ? ` (ต่ำกว่า ${result.event.min_required} หัก ${result.event.penalty} คะแนน)` : " (รับมือได้)"}`
+                            : null,
+                    ]
+                        .filter(Boolean)
+                        .join(" · "),
                 },
             ],
         };
@@ -1358,7 +1366,7 @@ const buildShadowMirrorSection = async (playId) => {
         }));
 
         const summaryRow = {
-            title: "สรุปจาก AI",
+            title: "สรุปภาพรวมจาก AI",
             answer: `คะแนนเฉลี่ย ${Number(row.avg_score).toFixed(1)}/100 · ${SHADOW_MIRROR_BADGE_LABEL[row.badge_key] || row.badge_key
                 }`,
             correct_answer: null,
@@ -1371,11 +1379,19 @@ const buildShadowMirrorSection = async (playId) => {
                 .join(" · "),
         };
 
-        return {
-            key: "shadow_mirror",
-            title: "กระจกสะท้อนใจ (คำถามปลายเปิด วิเคราะห์โดย AI — ไม่มี IP)",
-            rows: [...qaRows, ...traitRows, summaryRow],
-        };
+        // แยกเป็น 2 หัวข้อ ให้รู้ว่าส่วนไหนนิสิตตอบเอง ส่วนไหน AI วิเคราะห์
+        return [
+            {
+                key: "shadow_mirror_answers",
+                title: "คำตอบของนิสิต",
+                rows: qaRows,
+            },
+            {
+                key: "shadow_mirror_ai",
+                title: "🤖 ผลวิเคราะห์โดย AI (Gemini)",
+                rows: [...traitRows, summaryRow],
+            },
+        ];
     } catch (error) {
         console.error("buildShadowMirrorSection error:", error.message);
         return null;
@@ -1399,6 +1415,24 @@ exports.getLevelPlayDetail = async (req, res) => {
         if (!student) {
             return res.status(404).json({ message: "ไม่พบนิสิต" });
         }
+        const isBadgeLevel = await gamePlayService.isShadowMirrorLevel(levelId);
+
+        let playWhere = {
+            user_id: studentUserId,
+            level_id: levelId,
+            completed_at: { not: null },
+        };
+
+        if (isBadgeLevel) {
+            const hasRealPlay = await prisma.game_play_history.findFirst({
+                where: { ...playWhere, game_play_shadow_mirror: { isNot: null } },
+                select: { play_id: true },
+            });
+
+            if (hasRealPlay) {
+                playWhere = { ...playWhere, game_play_shadow_mirror: { isNot: null } };
+            }
+        }
 
         const [level, play, playCount] = await Promise.all([
             prisma.level.findUnique({
@@ -1406,20 +1440,10 @@ exports.getLevelPlayDetail = async (req, res) => {
                 select: { level_id: true, title: true, order_no: true, unit_id: true },
             }),
             prisma.game_play_history.findFirst({
-                where: {
-                    user_id: studentUserId,
-                    level_id: levelId,
-                    completed_at: { not: null },
-                },
+                where: playWhere,
                 orderBy: { completed_at: "desc" },
             }),
-            prisma.game_play_history.count({
-                where: {
-                    user_id: studentUserId,
-                    level_id: levelId,
-                    completed_at: { not: null },
-                },
-            }),
+            prisma.game_play_history.count({ where: playWhere }),
         ]);
 
         if (!level) {
@@ -1428,6 +1452,32 @@ exports.getLevelPlayDetail = async (req, res) => {
 
         if (!play) {
             return res.json({ data: { level, play: null, sections: [] } });
+        }
+
+        // ด่านที่ให้ "ตรา" แทน IP (ShadowMirror) : ส่งตราของรอบล่าสุดไปให้ popup
+        let badge = null;
+
+        if (isBadgeLevel) {
+            const sm = await prisma.game_play_shadow_mirror
+                .findUnique({ where: { play_id: play.play_id } })
+                .catch(() => null);
+
+            // มีแถวคำตอบ → ใช้ตราที่บันทึกไว้ / ไม่มี แต่รอบนี้มี max_score (รอบใหม่) → คิดจากคะแนน
+            // รอบเก่าที่เล่นก่อนมีระบบบันทึก (max_score = 0) จะไม่แสดงตรา
+            const avg = sm
+                ? Number(sm.avg_score)
+                : Number(play.max_score) > 0
+                    ? Number(play.score) || 0
+                    : null;
+
+            if (avg !== null) {
+                const ranks = gamePlayService.SHADOW_MIRROR_RANKS;
+                const rank = ranks.find((r) => r.test(avg)) || ranks[ranks.length - 1];
+                const key = sm?.badge_key || rank.key;
+                const th = ranks.find((r) => r.key === key)?.th || key;
+
+                badge = { key, th, avg: Math.round(avg * 10) / 10 };
+            }
         }
 
         const [questions, bubbles, needWant, comparison, cases, receipt, money, treasurer, slipHunt, slot, wordClue, budget, inspector, crisis, shadowMirror] =
@@ -1464,7 +1514,7 @@ exports.getLevelPlayDetail = async (req, res) => {
             budget,
             inspector,
             crisis,
-            shadowMirror,
+            ...(Array.isArray(shadowMirror) ? shadowMirror : [shadowMirror]),
         ].filter(Boolean);
 
         return res.json({
@@ -1481,7 +1531,10 @@ exports.getLevelPlayDetail = async (req, res) => {
                     max_score: play.max_score,
                     correct_count: play.correct_count,
                     wrong_count: play.wrong_count,
-                    earned_ip: play.earned_ip,
+                    // ด่านที่ให้ตรา: ไม่แสดง IP (ค่าเก่าที่ค้างอยู่ไม่ใช่ผลจริง)
+                    earned_ip: isBadgeLevel ? null : play.earned_ip,
+                    is_badge_level: isBadgeLevel,
+                    badge,
                 },
                 treasurer: treasurer.summary
                     ? {

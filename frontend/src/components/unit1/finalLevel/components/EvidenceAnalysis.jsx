@@ -62,7 +62,7 @@ export default function EvidenceAnalysis({
     }, [currentCase.id]);
 
     // Countdown timer
-    const TIMER_SECONDS = 20;
+    const TIMER_SECONDS = 60;
     const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
     const intervalRef = useRef(null);
 

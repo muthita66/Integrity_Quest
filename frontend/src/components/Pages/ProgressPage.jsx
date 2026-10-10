@@ -15,6 +15,7 @@ import {
     FiStar,
 } from "react-icons/fi";
 
+import { Trophy } from "lucide-react";
 import bg_login from "../../assets/bg_login.png";
 import { getOverview } from "../services/profileService";
 
@@ -73,6 +74,61 @@ const matchFilter = (unit, filter) => {
     }
     return unit.status === filter;
 };
+
+// ตราของด่านที่ให้ "ตรา" แทน IP (เช่น กระจกสะท้อนใจ Unit 6 ด่าน 3)
+const REFLECT_BADGE = {
+    LEGEND: { label: "ตำนาน", className: "bg-fuchsia-100 text-fuchsia-700" },
+    PLATINUM: { label: "แพลทินัม", className: "bg-sky-100 text-sky-700" },
+    GOLD: { label: "ทอง", className: "bg-amber-100 text-amber-700" },
+    SILVER: { label: "เงิน", className: "bg-slate-200 text-slate-700" },
+    BRONZE: { label: "บรอนซ์", className: "bg-orange-100 text-orange-700" },
+};
+
+const BADGE_TH = {
+    LEGEND: "ตำนานแห่งกระจก",
+    PLATINUM: "ตรารางวัลระดับแพลทินัม",
+    GOLD: "ตรารางวัลระดับทอง",
+    SILVER: "ตรารางวัลระดับเงิน",
+    BRONZE: "ตรารางวัลระดับบรอนซ์",
+};
+
+// เหรียญตราแบบเดียวกับหน้า Result (วงทอง + ถ้วยรางวัล บนพื้นเข้ม)
+function BadgeChip({ badgeKey, size = "sm" }) {
+    if (!REFLECT_BADGE[badgeKey]) return null;
+    const big = size === "lg";
+    const d = big ? 44 : 20;
+
+    return (
+        <span
+            className="inline-flex flex-col items-center"
+            title={BADGE_TH[badgeKey]}
+        >
+            <span
+                className="inline-flex items-center justify-center rounded-full"
+                style={{
+                    width: d,
+                    height: d,
+                    background: "#1b1b2b",
+                    border: `${big ? 2 : 1.5}px solid #d4af37`,
+                    boxShadow: big ? "0 0 0 3px rgba(212,175,55,0.2)" : "none",
+                    color: "#d4af37",
+                }}
+            >
+                <Trophy size={big ? 22 : 11} strokeWidth={1.6} />
+            </span>
+            {big ? (
+                <>
+                    <span className="mt-1 text-xs font-bold tracking-wide text-gray-800">
+                        {badgeKey}
+                    </span>
+                    <span className="text-[10px] leading-tight text-gray-400">
+                        {BADGE_TH[badgeKey]}
+                    </span>
+                </>
+            ) : null}
+        </span>
+    );
+}
 
 const UNIT_BADGE = {
     completed: { label: "เล่นจบแล้ว", className: "bg-emerald-100 text-emerald-700" },
@@ -318,20 +374,47 @@ function UnitCard({ unit, preTestDone, onGo }) {
                                             ? `เล่นแล้ว ${level.times_played} ครั้ง`
                                             : "ยังไม่เคยเล่น"}
                                     </p>
+                                    {level.gives_badge && level.latest_badge && (
+                                        <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-400">
+                                            ล่าสุด
+                                            <BadgeChip badgeKey={level.latest_badge} />
+                                            <span className="font-semibold text-gray-600">
+                                                {level.latest_badge}
+                                            </span>
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="shrink-0 text-right">
-                                    <p
-                                        className={`text-sm font-bold ${level.times_played > 0
-                                            ? "text-gray-800"
-                                            : "text-gray-300"
-                                            }`}
-                                    >
-                                        {level.best_ip} IP
-                                    </p>
-                                    <p className="text-[10px] text-gray-400">
-                                        คะแนนดีที่สุด
-                                    </p>
+                                    {level.gives_badge ? (
+                                        <>
+                                            {/* ด่านที่ให้ตรา: แสดงตราที่ดีที่สุดแทน IP */}
+                                            <div className="flex flex-col items-center text-sm font-bold">
+                                                {level.best_badge ? (
+                                                    <BadgeChip badgeKey={level.best_badge} size="lg" />
+                                                ) : (
+                                                    <span className="text-gray-300">-</span>
+                                                )}
+                                            </div>
+                                            <p className="mt-1 text-[10px] text-gray-400">
+                                                ตราที่ดีที่สุด
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p
+                                                className={`text-sm font-bold ${level.times_played > 0
+                                                    ? "text-gray-800"
+                                                    : "text-gray-300"
+                                                    }`}
+                                            >
+                                                {level.best_ip} IP
+                                            </p>
+                                            <p className="text-[10px] text-gray-400">
+                                                คะแนนดีที่สุด
+                                            </p>
+                                        </>
+                                    )}
                                 </div>
                             </button>
                         </li>
@@ -451,6 +534,10 @@ function TestStarSummary({ overview }) {
     );
 }
 
+// ============================================================
+// Page
+// ============================================================
+
 export default function ProgressPage() {
     const navigate = useNavigate();
 
@@ -503,6 +590,8 @@ export default function ProgressPage() {
 
     const handleGo = (level, unitId) => {
         if (!level || level.state === "locked") return;
+
+        // ลำดับของด่านในบท (เรียงตาม order_no) → ใช้กับบทที่ map ตามลำดับ
         const unit = units.find((u) => Number(u.unit_id) === Number(unitId));
         const index = [...(unit?.levels || [])]
             .sort((a, b) => Number(a.order_no) - Number(b.order_no))
@@ -518,6 +607,7 @@ export default function ProgressPage() {
         >
             <div className="flex min-h-full items-center justify-center p-6 lg:p-8">
                 <div className="w-full max-w-7xl rounded-2xl bg-white/60 p-6 shadow-2xl backdrop-blur-lg border border-white/20 lg:p-8">
+                    {/* ================= HEADER ================= */}
                     <button
                         type="button"
                         onClick={() => navigate("/map")}
@@ -536,17 +626,22 @@ export default function ProgressPage() {
                                 ดูผลการเล่นทุกบท และกดเพื่อไปเล่นต่อได้เลย
                             </p>
                         </div>
+                        {/* ================= FILTER ================= */}
                         <FilterDropdown
                             value={filter}
                             onChange={setFilter}
                             counts={counts}
                         />
                     </div>
+
+                    {/* ================= PRE/POST-TEST + ดาว ================= */}
                     {!loading && !error && overview && (
                         <div className="mt-5">
                             <TestStarSummary overview={overview} />
                         </div>
                     )}
+
+                    {/* ================= CONTENT ================= */}
                     <div className="mt-5">
                         {loading && (
                             <p className="py-16 text-center text-gray-500">

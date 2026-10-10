@@ -8,7 +8,17 @@ const INITIAL_TIME = 60;
 const TOTAL_ITEMS = 11;
 
 export default function useMoneyGame() {
-    const navigate = useNavigate();
+    const rawNavigate = useNavigate();
+
+    // [DEBUG] log ทุกครั้งที่ hook นี้สั่งเปลี่ยนหน้า พร้อม stack — ลบออกได้เมื่อหาสาเหตุเจอ
+    const navigate = useCallback(
+        (to, options) => {
+            console.log("[useMoneyGame] navigate →", to, options?.state);
+            console.trace("[useMoneyGame] ถูกเรียกจาก");
+            rawNavigate(to, options);
+        },
+        [rawNavigate]
+    );
 
     const messageTimeoutRef = useRef(null);
     const playIdRef = useRef(null);
@@ -104,6 +114,7 @@ export default function useMoneyGame() {
                 );
             }
 
+            console.log("[useMoneyGame] เริ่มเกมสำเร็จ play_id =", playId, "items =", play.items.length);
             playIdRef.current = playId;
             setItems(play.items);
             setIsLoading(false);
@@ -148,6 +159,7 @@ export default function useMoneyGame() {
         }
 
         if (timeLeft <= 0) {
+            console.log("[useMoneyGame] หมดเวลา: timeLeft =", timeLeft, "isLoading =", isLoading);
             setIsGameEnded(true);
 
             const failGame = async () => {

@@ -35,11 +35,17 @@ const RANK_INFO = {
     S: { rankText: "ยอดเยี่ยม", flavor: "ประชาชนเชื่อมั่นในหน่วยงานของคุณ คุณปกป้องภาษีของประชาชนได้สำเร็จ" },
     A: { rankText: "ดีมาก", flavor: "คุณตรวจสอบได้อย่างละเอียดรอบคอบ" },
     B: { rankText: "ดี", flavor: "ยังมีบางจุดที่พลาดไปบ้าง แต่โดยรวมทำได้ดี" },
-    C: { rankText: "พอใช้", flavor: "ควรตรวจสอบเอกสารให้ละเอียดขึ้น" },
-    D: { rankText: "ควรปรับปรุง", flavor: "งบประมาณของประชาชนเสียหายไปไม่น้อย ลองใหม่อีกครั้ง" },
+    C: { rankText: "ควรทบทวน", flavor: "ยังพลาดหลายจุด ลองทบทวนจุดสังเกตแล้วเล่นใหม่" },
 };
 
 const GAME_SECONDS = 120;
+
+const formatBaht = (n) => {
+    const v = Number(n) || 0;
+    return v >= 1e6
+        ? `${(v / 1e6).toLocaleString("th-TH", { maximumFractionDigits: 2 })} ล้านบาท`
+        : `${v.toLocaleString("th-TH")} บาท`;
+};
 
 export default function IntegrityInspector({ nextRoute = "/unit/unit6" }) {
     const navigate = useNavigate();
@@ -320,8 +326,8 @@ export default function IntegrityInspector({ nextRoute = "/unit/unit6" }) {
     // ผลสุดท้ายมาจาก backend (complete)
     const finalScore = result?.score ?? Math.min(100, score);
     const finalIntegrity = result?.integrity ?? integrity;
-    const rank = result?.rank ?? "D";
-    const { rankText, flavor } = RANK_INFO[rank] || RANK_INFO.D;
+    const rank = result?.rank ?? "C";
+    const { rankText, flavor } = RANK_INFO[rank] || RANK_INFO.C;
     const earnedIP = result?.earned_ip ?? 0;
     const missionFailed = Boolean(
         result?.is_timeout ||
@@ -390,6 +396,52 @@ export default function IntegrityInspector({ nextRoute = "/unit/unit6" }) {
                         </div>
 
                         <p className="summary-flavor">{displayFlavor}</p>
+
+                        {!missionFailed && Array.isArray(result?.review_projects) && result.review_projects.length > 0 && (
+                            <div style={{ textAlign: "left", margin: "10px 0" }}>
+                                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 8, fontWeight: 800 }}>
+                                    <span style={{ color: "#7ddc8f" }}>
+                                        <FaShieldAlt /> เงินที่ปกป้องได้ {formatBaht(result.protected_baht)}
+                                    </span>
+                                    {result.lost_baht > 0 && (
+                                        <span style={{ color: "#ff8a80" }}>
+                                            เงินที่เสียหาย {formatBaht(result.lost_baht)}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div style={{ maxHeight: 190, overflowY: "auto", paddingRight: 4 }}>
+                                    {result.review_projects.map((p) => (
+                                        <div
+                                            key={p.project_id}
+                                            style={{
+                                                padding: "6px 8px",
+                                                marginBottom: 6,
+                                                borderRadius: 8,
+                                                background: "rgba(255,255,255,.07)",
+                                                borderLeft: `4px solid ${p.is_correct ? "#7ddc8f" : "#ff8a80"}`,
+                                                fontSize: 14,
+                                                lineHeight: 1.4,
+                                            }}
+                                        >
+                                            <strong>{p.name}</strong>
+                                            <div style={{ opacity: 0.85 }}>
+                                                คุณ{p.took_bribe ? "รับสินบนและอนุมัติ" : p.action === "approve" ? "อนุมัติ" : "ปฏิเสธ"}
+                                                {" · "}
+                                                {p.is_correct ? "ถูกต้อง" : "ไม่ถูกต้อง"}
+                                                {p.is_fraud ? " · โครงการมีพิรุธ" : " · โครงการปกติ"}
+                                            </div>
+                                            {p.explanation && (
+                                                <div style={{ opacity: 0.8 }}>
+                                                    {p.is_fraud ? "พิรุธที่ควรจับ: " : "ข้อสังเกต: "}
+                                                    {p.explanation}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         <p className="summary-reward">
                             ได้รับ +{displayIP} IP

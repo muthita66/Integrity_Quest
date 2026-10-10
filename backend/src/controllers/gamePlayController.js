@@ -2349,6 +2349,10 @@ exports.completeGame = async (req, res) => {
             const result =
                 gamePlayService.calcInspectorResult(stats);
 
+            const review = gamePlayService.buildInspectorReview(
+                await gamePlayService.getProjectDecisions(playId)
+            );
+
             const completedAt = new Date();
 
             const updated =
@@ -2404,6 +2408,10 @@ exports.completeGame = async (req, res) => {
                     total_projects: stats.total,
                     is_timeout: stats.decided < stats.total,
 
+                    protected_baht: review.protected_baht,
+                    lost_baht: review.lost_baht,
+                    review_projects: review.projects,
+
                     total_integrity_points: totalIP ?? 0,
                     completed_at: completedAt,
 
@@ -2425,8 +2433,11 @@ exports.completeGame = async (req, res) => {
                 });
             }
 
+            const budgetEvent =
+                await gamePlayService.getBudgetEvent(playId);
+
             const result =
-                gamePlayService.calcBudgetResult(budgets);
+                gamePlayService.calcBudgetResult(budgets, budgetEvent);
 
             const completedAt = new Date();
 

@@ -11,103 +11,103 @@ import useGameMuted from '../../../hooks/useGameMuted';
 import levelMusic from '../../../assets/sounds/Unit6/level3-quiet-mind.mp3';
 
 const questions = [
-    {
-        tag: "ข้อ 1 · เพื่อน",
-        text: "เพื่อนสนิทมาสารภาพว่าทำเรื่องผิดพลาดร้ายแรง และขอร้องไม่ให้คุณบอกใคร คุณจะพูดอะไรกับเขา?"
-    },
-    {
-        tag: "ข้อ 2 · การตัดสินใจ",
-        text: "คุณต้องตัดสินใจเรื่องสำคัญภายในไม่กี่นาที โดยมีข้อมูลไม่ครบถ้วน คุณจะตัดสินใจอย่างไร และเพราะอะไร?"
-    },
-    {
-        tag: "ข้อ 3 · ความผิดพลาด",
-        text: "คุณทำผิดพลาดโดยไม่ตั้งใจจนทีมเสียหาย แต่ไม่มีใครรู้ว่าเป็นความผิดของคุณ คุณจะทำอย่างไรต่อ?"
-    },
-    {
-        tag: "ข้อ 4 · หลักการ",
-        text: "มีคนเสนอผลประโยชน์ให้คุณ แลกกับการที่คุณต้องเปลี่ยนหลักการที่ยึดมั่นมาตลอด คุณจะตอบเขาว่าอย่างไร?"
-    },
-    {
-        tag: "ข้อ 5 · เงา",
-        text: "ถ้าเงาของคุณพูดได้ และบอกความจริงที่คุณไม่กล้ายอมรับกับตัวเอง มันจะพูดว่าอะไร?"
-    },
-    {
-        tag: "ข้อ 6 · กระจก",
-        text: "เมื่อมองภาพสะท้อนของตัวเองในกระจกคืนนี้ คุณอยากบอกอะไรกับตัวเองมากที่สุด?"
-    },
+  {
+    tag: "ข้อ 1 · เพื่อน",
+    text: "เพื่อนสนิทเป็นเหรัญญิกชมรม มาสารภาพว่าเอาเงินชมรมไปใช้ส่วนตัวก่อน และขอร้องไม่ให้บอกใคร คุณจะพูดอะไรกับเขา?"
+  },
+  {
+    tag: "ข้อ 2 · การตัดสินใจ",
+    text: "คุณต้องตัดสินใจเรื่องเงินก้อนใหญ่ของกลุ่มภายในไม่กี่นาที โดยมีข้อมูลไม่ครบ คุณจะตัดสินใจอย่างไร และเพราะอะไร?"
+  },
+  {
+    tag: "ข้อ 3 · ความผิดพลาด",
+    text: "คุณจดยอดเงินของกลุ่มผิด ทำให้เงินขาดไป แต่ไม่มีใครรู้ว่าเป็นความผิดของคุณ คุณจะทำอย่างไรต่อ?"
+  },
+  {
+    tag: "ข้อ 4 · ความโปร่งใส",
+    text: "มีคนเสนอเงินพิเศษให้คุณ แลกกับการช่วยแก้ตัวเลขในเอกสารการเงินให้ดูดีกว่าจริง คุณจะตอบเขาว่าอย่างไร?"
+  },
+  {
+    tag: "ข้อ 5 · เงา",
+    text: "ถ้าเงาของคุณพูดได้ และบอกความจริงที่คุณไม่กล้ายอมรับกับตัวเอง มันจะพูดว่าอะไร?"
+  },
+  {
+    tag: "ข้อ 6 · กระจก",
+    text: "เมื่อมองภาพสะท้อนของตัวเองในกระจกคืนนี้ คุณอยากบอกอะไรกับตัวเองมากที่สุด?"
+  },
 ];
 
 const TRAITS = [
-    { key: "logic", label: "Logic · ตรรกะ" },
-    { key: "empathy", label: "Empathy · ความเห็นใจ" },
-    { key: "responsibility", label: "Responsibility · ความรับผิดชอบ" },
-    { key: "consistency", label: "Consistency · ความสอดคล้อง" },
+  { key: "logic", label: "Logic · ตรรกะ" },
+  { key: "empathy", label: "Empathy · ความเห็นใจ" },
+  { key: "responsibility", label: "Responsibility · ความรับผิดชอบ" },
+  { key: "consistency", label: "Consistency · ความสอดคล้อง" },
 ];
 
 const LOADING_LINES = [
-    "กระจกกำลังสะท้อนใจคุณ...",
-    "เงากำลังเรียงร้อยคำตอบของคุณ...",
-    "แสงเทียนกำลังส่องผ่านรอยแตกของกระจก...",
-    "ใกล้เห็นภาพสะท้อนที่แท้จริงแล้ว...",
+  "กระจกกำลังสะท้อนใจคุณ...",
+  "เงากำลังเรียงร้อยคำตอบของคุณ...",
+  "แสงเทียนกำลังส่องผ่านรอยแตกของกระจก...",
+  "ใกล้เห็นภาพสะท้อนที่แท้จริงแล้ว...",
 ];
 
 function badgeFromScore(avg) {
-    if (avg >= 90) {
-        return { key: "LEGEND", th: "ตำนานแห่งกระจก" };
-    }
+  if (avg >= 90) {
+    return { key: "LEGEND", th: "ตำนานแห่งกระจก" };
+  }
 
-    if (avg >= 78) {
-        return { key: "PLATINUM", th: "ตรารางวัลระดับแพลทินัม" };
-    }
+  if (avg >= 78) {
+    return { key: "PLATINUM", th: "ตรารางวัลระดับแพลทินัม" };
+  }
 
-    if (avg >= 63) {
-        return { key: "GOLD", th: "ตรารางวัลระดับทอง" };
-    }
+  if (avg >= 63) {
+    return { key: "GOLD", th: "ตรารางวัลระดับทอง" };
+  }
 
-    if (avg >= 48) {
-        return { key: "SILVER", th: "ตรารางวัลระดับเงิน" };
-    }
+  if (avg >= 48) {
+    return { key: "SILVER", th: "ตรารางวัลระดับเงิน" };
+  }
 
-    return { key: "BRONZE", th: "ตรารางวัลระดับบรอนซ์" };
+  return { key: "BRONZE", th: "ตรารางวัลระดับบรอนซ์" };
 }
 
 // Local fallback used only when the backend (localhost:5000) is unreachable,
 // e.g. during frontend-only preview/dev.
 function generateMockResult(answers) {
-    const seed = answers.join(" ").length || 1;
+  const seed = answers.join(" ").length || 1;
 
-    const scoreFor = (offset) => {
-        const v = (seed * (offset + 3)) % 43;
-        return 45 + v;
-    };
+  const scoreFor = (offset) => {
+    const v = (seed * (offset + 3)) % 43;
+    return 45 + v;
+  };
 
-    return {
-        overall_reflection:
-            "เงาในกระจกเห็นคำตอบของคุณแล้ว คุณมักตัดสินใจด้วยเหตุผลควบคู่กับความรู้สึกของคนรอบข้าง และพร้อมยอมรับผลจากสิ่งที่ทำเสมอ",
+  return {
+    overall_reflection:
+      "เงาในกระจกเห็นคำตอบของคุณแล้ว คุณมักตัดสินใจด้วยเหตุผลควบคู่กับความรู้สึกของคนรอบข้าง และพร้อมยอมรับผลจากสิ่งที่ทำเสมอ",
 
-        logic: {
-            score: scoreFor(1),
-            note: "คุณให้เหตุผลประกอบการตัดสินใจอย่างเป็นระบบ"
-        },
+    logic: {
+      score: scoreFor(1),
+      note: "คุณให้เหตุผลประกอบการตัดสินใจอย่างเป็นระบบ"
+    },
 
-        empathy: {
-            score: scoreFor(2),
-            note: "คุณคำนึงถึงความรู้สึกของผู้อื่นในคำตอบส่วนใหญ่"
-        },
+    empathy: {
+      score: scoreFor(2),
+      note: "คุณคำนึงถึงความรู้สึกของผู้อื่นในคำตอบส่วนใหญ่"
+    },
 
-        responsibility: {
-            score: scoreFor(3),
-            note: "คุณมักรับผิดชอบต่อผลลัพธ์ของการกระทำตัวเอง"
-        },
+    responsibility: {
+      score: scoreFor(3),
+      note: "คุณมักรับผิดชอบต่อผลลัพธ์ของการกระทำตัวเอง"
+    },
 
-        consistency: {
-            score: scoreFor(4),
-            note: "คำตอบของคุณสอดคล้องกับหลักการที่คุณยึดถือ"
-        },
+    consistency: {
+      score: scoreFor(4),
+      note: "คำตอบของคุณสอดคล้องกับหลักการที่คุณยึดถือ"
+    },
 
-        shadow_message:
-            "เงาบอกว่า... สิ่งที่คุณกลัวที่สุดไม่ใช่ความผิดพลาด แต่คือการที่คนอื่นเห็นตัวตนจริงของคุณ",
-    };
+    shadow_message:
+      "เงาบอกว่า... สิ่งที่คุณกลัวที่สุดไม่ใช่ความผิดพลาด แต่คือการที่คนอื่นเห็นตัวตนจริงของคุณ",
+  };
 }
 
 // level_id ของ ShadowMirror
@@ -116,213 +116,213 @@ const SHADOW_MIRROR_LEVEL_ID = 19;
 
 // แนบ JWT token
 const authConfig = () => {
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
-    if (!token) {
-        throw new Error("กรุณาเข้าสู่ระบบก่อนเริ่มเกม");
-    }
+  if (!token) {
+    throw new Error("กรุณาเข้าสู่ระบบก่อนเริ่มเกม");
+  }
 
-    return {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    };
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 };
 
 export default function ShadowMirror() {
-    const [muted] = useGameMuted();
+  const [muted] = useGameMuted();
 
-    const {
-        play: playMusic,
-        stop: stopMusic
-    } = useSound(levelMusic, {
-        volume: 0.25,
-        loop: true,
-        preload: true,
-        retryOnInteract: true,
+  const {
+    play: playMusic,
+    stop: stopMusic
+  } = useSound(levelMusic, {
+    volume: 0.25,
+    loop: true,
+    preload: true,
+    retryOnInteract: true,
+  });
+
+  useEffect(() => {
+    if (!muted) {
+      playMusic();
+    } else {
+      stopMusic();
+    }
+
+    return stopMusic;
+  }, [muted, playMusic, stopMusic]);
+
+  const [screen, setScreen] = useState("intro");
+  const [current, setCurrent] = useState(0);
+  const [answers, setAnswers] = useState(
+    Array(questions.length).fill("")
+  );
+  const [error, setError] = useState("");
+  const [result, setResult] = useState(null);
+  const [loadingIdx, setLoadingIdx] = useState(0);
+  const [playId, setPlayId] = useState(null);
+
+  const textareaRef = useRef(null);
+
+  const BACKEND_URL = `${BASE_URL}`;
+
+  useEffect(() => {
+    if (screen !== "loading") return;
+
+    const timer = setInterval(() => {
+      setLoadingIdx(
+        (i) => (i + 1) % LOADING_LINES.length
+      );
+    }, 1600);
+
+    return () => clearInterval(timer);
+  }, [screen]);
+
+  const startGame = async () => {
+    setError("");
+    setCurrent(0);
+    setAnswers(Array(questions.length).fill(""));
+
+    // ขอ play_id จากระบบ game_play_history
+    try {
+      const response = await axios.post(
+        BACKEND_URL + "/api/game-play/start",
+        {
+          level_id: SHADOW_MIRROR_LEVEL_ID
+        },
+        authConfig()
+      );
+
+      setPlayId(
+        response.data?.data?.play_id ?? null
+      );
+    } catch (err) {
+      console.warn(
+        "เริ่มบันทึกรอบการเล่นไม่สำเร็จ จะเล่นแบบไม่บันทึกผล:",
+        err.message
+      );
+
+      setPlayId(null);
+    }
+
+    setScreen("quiz");
+  };
+
+  const updateAnswer = (val) => {
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[current] = val;
+      return next;
     });
+  };
 
-    useEffect(() => {
-        if (!muted) {
-            playMusic();
-        } else {
-            stopMusic();
-        }
+  const nextQuestion = () => {
+    if (current < questions.length - 1) {
+      setCurrent((c) => c + 1);
+    } else {
+      runAnalysis();
+    }
+  };
 
-        return stopMusic;
-    }, [muted, playMusic, stopMusic]);
+  const runAnalysis = async () => {
+    setScreen("loading");
+    setError("");
 
-    const [screen, setScreen] = useState("intro");
-    const [current, setCurrent] = useState(0);
-    const [answers, setAnswers] = useState(
-        Array(questions.length).fill("")
-    );
-    const [error, setError] = useState("");
-    const [result, setResult] = useState(null);
-    const [loadingIdx, setLoadingIdx] = useState(0);
-    const [playId, setPlayId] = useState(null);
-
-    const textareaRef = useRef(null);
-
-    const BACKEND_URL = `${BASE_URL}`;
-
-    useEffect(() => {
-        if (screen !== "loading") return;
-
-        const timer = setInterval(() => {
-            setLoadingIdx(
-                (i) => (i + 1) % LOADING_LINES.length
-            );
-        }, 1600);
-
-        return () => clearInterval(timer);
-    }, [screen]);
-
-    const startGame = async () => {
-        setError("");
-        setCurrent(0);
-        setAnswers(Array(questions.length).fill(""));
-
-        // ขอ play_id จากระบบ game_play_history
-        try {
-            const response = await axios.post(
-                BACKEND_URL + "/api/game-play/start",
-                {
-                    level_id: SHADOW_MIRROR_LEVEL_ID
-                },
-                authConfig()
-            );
-
-            setPlayId(
-                response.data?.data?.play_id ?? null
-            );
-        } catch (err) {
-            console.warn(
-                "เริ่มบันทึกรอบการเล่นไม่สำเร็จ จะเล่นแบบไม่บันทึกผล:",
-                err.message
-            );
-
-            setPlayId(null);
-        }
-
-        setScreen("quiz");
+    const payload = {
+      play_id: playId,
+      answers: questions.map((q, i) => ({
+        question: q.text,
+        answer: answers[i]
+      })),
     };
 
-    const updateAnswer = (val) => {
-        setAnswers((prev) => {
-            const next = [...prev];
-            next[current] = val;
-            return next;
-        });
-    };
+    try {
+      // ใช้ axios และส่ง JWT token
+      const response = await axios.post(
+        BACKEND_URL + "/api/reflect",
+        payload,
+        authConfig()
+      );
 
-    const nextQuestion = () => {
-        if (current < questions.length - 1) {
-            setCurrent((c) => c + 1);
-        } else {
-            runAnalysis();
+      setResult(response.data);
+      setScreen("result");
+
+    } catch (err) {
+      console.warn(
+        "reflect API unavailable, showing local preview data:",
+        err.message
+      );
+
+      setResult(generateMockResult(answers));
+      setError("");
+    }
+
+    // บันทึกว่าการสะท้อนความคิดเสร็จสมบูรณ์
+    try {
+      const saved = await fetch(
+        BACKEND_URL +
+        "/api/user-progress/reflection-complete",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization:
+              `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(payload),
         }
-    };
+      );
 
-    const runAnalysis = async () => {
-        setScreen("loading");
-        setError("");
+      if (!saved.ok) {
+        const data = await saved.json();
 
-        const payload = {
-            play_id: playId,
-            answers: questions.map((q, i) => ({
-                question: q.text,
-                answer: answers[i]
-            })),
-        };
+        throw new Error(
+          data.message ||
+          "บันทึกผลไม่สำเร็จ"
+        );
+      }
 
-        try {
-            // ใช้ axios และส่ง JWT token
-            const response = await axios.post(
-                BACKEND_URL + "/api/reflect",
-                payload,
-                authConfig()
-            );
+    } catch (err) {
+      setError(
+        `ยังไม่ได้บันทึกการเล่นจบ: ${err.message} กรุณาลองใหม่เพื่อรับรางวัล`
+      );
+    }
 
-            setResult(response.data);
-            setScreen("result");
+    setScreen("result");
+  };
 
-        } catch (err) {
-            console.warn(
-                "reflect API unavailable, showing local preview data:",
-                err.message
-            );
+  const restart = () => {
+    setCurrent(0);
+    setAnswers(Array(questions.length).fill(""));
+    setError("");
+    setPlayId(null);
+    setScreen("intro");
+  };
 
-            setResult(generateMockResult(answers));
-            setError("");
-        }
+  const q = questions[current];
 
-        // บันทึกว่าการสะท้อนความคิดเสร็จสมบูรณ์
-        try {
-            const saved = await fetch(
-                BACKEND_URL +
-                "/api/user-progress/reflection-complete",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization:
-                            `Bearer ${localStorage.getItem("token")}`,
-                    },
-                    body: JSON.stringify(payload),
-                }
-            );
+  const nextDisabled =
+    !answers[current] ||
+    answers[current].trim().length === 0;
 
-            if (!saved.ok) {
-                const data = await saved.json();
+  const scores = result
+    ? TRAITS.map(
+      (t) => Number(result[t.key]?.score) || 0
+    )
+    : [];
 
-                throw new Error(
-                    data.message ||
-                    "บันทึกผลไม่สำเร็จ"
-                );
-            }
+  const avg = scores.length
+    ? scores.reduce((a, b) => a + b, 0) / scores.length
+    : 0;
 
-        } catch (err) {
-            setError(
-                `ยังไม่ได้บันทึกการเล่นจบ: ${err.message} กรุณาลองใหม่เพื่อรับรางวัล`
-            );
-        }
+  const badge = result
+    ? badgeFromScore(avg)
+    : null;
 
-        setScreen("result");
-    };
+  return (
+    <div className="sm-root">
 
-    const restart = () => {
-        setCurrent(0);
-        setAnswers(Array(questions.length).fill(""));
-        setError("");
-        setPlayId(null);
-        setScreen("intro");
-    };
-
-    const q = questions[current];
-
-    const nextDisabled =
-        !answers[current] ||
-        answers[current].trim().length === 0;
-
-    const scores = result
-        ? TRAITS.map(
-            (t) => Number(result[t.key]?.score) || 0
-        )
-        : [];
-
-    const avg = scores.length
-        ? scores.reduce((a, b) => a + b, 0) / scores.length
-        : 0;
-
-    const badge = result
-        ? badgeFromScore(avg)
-        : null;
-
-    return (
-        <div className="sm-root">
-
-            <style>{`
+      <style>{`
         .sm-root{
           --void:#0a0a12;
           --void-2:#0f0f18;
@@ -826,41 +826,41 @@ export default function ShadowMirror() {
         }
       `}</style>
 
-            {screen === "intro" && (
-                <IntroScreen
-                    startGame={startGame}
-                />
-            )}
+      {screen === "intro" && (
+        <IntroScreen
+          startGame={startGame}
+        />
+      )}
 
-            {screen === "quiz" && (
-                <QuizScreen
-                    q={q}
-                    current={current}
-                    questions={questions}
-                    answers={answers}
-                    textareaRef={textareaRef}
-                    updateAnswer={updateAnswer}
-                    nextQuestion={nextQuestion}
-                    nextDisabled={nextDisabled}
-                />
-            )}
+      {screen === "quiz" && (
+        <QuizScreen
+          q={q}
+          current={current}
+          questions={questions}
+          answers={answers}
+          textareaRef={textareaRef}
+          updateAnswer={updateAnswer}
+          nextQuestion={nextQuestion}
+          nextDisabled={nextDisabled}
+        />
+      )}
 
-            {screen === "loading" && (
-                <LoadingScreen
-                    loadingIdx={loadingIdx}
-                    LOADING_LINES={LOADING_LINES}
-                />
-            )}
+      {screen === "loading" && (
+        <LoadingScreen
+          loadingIdx={loadingIdx}
+          LOADING_LINES={LOADING_LINES}
+        />
+      )}
 
-            {screen === "result" && (
-                <ResultScreen
-                    result={result}
-                    badge={badge}
-                    error={error}
-                    restart={restart}
-                />
-            )}
+      {screen === "result" && (
+        <ResultScreen
+          result={result}
+          badge={badge}
+          error={error}
+          restart={restart}
+        />
+      )}
 
-        </div>
-    );
+    </div>
+  );
 }

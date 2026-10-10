@@ -1,3 +1,4 @@
+/* รีเซ็ตเฉพาะภายในหน้านี้ (อย่าใช้ * แบบ global เพราะจะทำให้ padding/margin ของหน้าอื่นหายขณะหน้านี้เปิดอยู่) */
 .inspector-stage,
 .inspector-stage * {
     box-sizing: border-box;
@@ -510,19 +511,19 @@
     box-shadow: 0 6px 0 #642217;
 }
 
-.red {
+.btn.red {
     background: linear-gradient(#ff4d4d, #c62828);
 }
 
-.gray {
+.btn.gray {
     background: linear-gradient(#5b6472, #3a4048);
 }
 
-.blue {
+.btn.blue {
     background: linear-gradient(#2d8cff, #1450c6);
 }
 
-.green {
+.btn.green {
     background: linear-gradient(#30c84c, #15962b);
 }
 

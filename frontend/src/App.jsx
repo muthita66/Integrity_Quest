@@ -25,7 +25,7 @@ import PreTestPage from "./components/Pages/PreTestPage";
 import PostTestPage from "./components/Pages/PostTestPage";
 import SettingsPage from "./components/Pages/SettingsPage";
 import ProgressPage from "./components/Pages/ProgressPage";
-import TeacherPage from "./components/Pages/TeacherPage";
+import TeacherPage from "./components/pages/TeacherPage";
 import UnitContentPage from "./components/pages/UnitContentPage";
 
 // ============================================================
