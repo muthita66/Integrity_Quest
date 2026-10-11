@@ -13,6 +13,7 @@ import gameOverSound from "../../../../assets/sounds/BackgroundGame/GameOver.mp3
 import useGameMuted from "../../../../hooks/useGameMuted";
 
 import "../../../../styles/unit1/Level1/button.css";
+import "../../../../styles/unit2/button/level1/button.css";
 
 const API_BASE_URL = `${BASE_URL}/api`;
 

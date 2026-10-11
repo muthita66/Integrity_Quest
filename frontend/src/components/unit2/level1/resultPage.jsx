@@ -11,7 +11,8 @@ import SadExpression from "../../../assets/unit2/Level1/result/SadExpression.web
 
 import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import gameOverSound from "../../../assets/sounds/BackgroundGame/GameOver.mp3";
-import useGameMuted from "../../../hooks/useGameMuted";
+import useGameMuted from "../../../hooks/useGameMuted";
+import "../../../styles/unit2/button/level1/button.css";
 
 const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 5;

@@ -16,7 +16,8 @@ import safeScreen from "../../../assets/unit4/Potect.webp";
 import warningScreen from "../../../assets/unit4/warning.webp";
 import virusImg from "../../../assets/unit4/virus.webp";
 import "../../../styles/theme.css";
-import "./level3.css";
+import "./level3.css";
+import "../Level1/level1.css";
 
 const API_URL = `${BASE_URL}`;
 const DEFAULT_HEARTS = 4;

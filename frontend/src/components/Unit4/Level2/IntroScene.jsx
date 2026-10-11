@@ -11,7 +11,8 @@ import sceneOffice from "../../../assets/unit4/story-home.webp";
 import sceneColleagues from "../../../assets/unit4/story-colleagues.webp";
 import sceneInvite from "../../../assets/unit4/story-slot-invite.webp";
 import "../../../styles/theme.css";
-import "./level2.css";
+import "./level2.css";
+import "../Level1/level1.css";
 
 const SCENES = [
     { image: sceneOffice },

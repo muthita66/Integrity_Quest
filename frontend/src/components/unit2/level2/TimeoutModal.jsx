@@ -4,7 +4,8 @@ import { motion, useReducedMotion } from "framer-motion";
 import failed from "../../../assets/unit2/Level2/failed.webp";
 import BackgroundImg from "../../../assets/unit2/Level2/bgLevel2.webp";
 import gameOverSound from "../../../assets/sounds/BackgroundGame/GameOver.mp3";
-import useGameMuted from "../../../hooks/useGameMuted";
+import useGameMuted from "../../../hooks/useGameMuted";
+import "../../../styles/unit2/button/level1/button.css";
 
 // ละอองแสงลอยพื้นหลัง — ตำแหน่งคงที่ ไม่ re-render ใหม่ (แนวเดียวกับ
 // การ์ดผลลัพธ์อื่นๆ ในเกม เพื่อให้ลุคของ modal นี้ไปทางเดียวกัน)

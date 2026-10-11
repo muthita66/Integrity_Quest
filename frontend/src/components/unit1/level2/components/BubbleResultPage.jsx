@@ -11,6 +11,7 @@ import goodSound from "../../../../assets/sounds/BackgroundGame/Good.mp3";
 import useGameMuted from "../../../../hooks/useGameMuted";
 
 import "../../../../styles/unit1/Level1/button.css";
+import "../../../../styles/unit2/button/level1/button.css";
 
 const LEVEL_ID = 2;
 

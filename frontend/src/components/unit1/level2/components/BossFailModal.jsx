@@ -8,7 +8,8 @@ import ButtonRetry from "../../../../assets/unit1/button/buttonFailed.webp";
 import Button from "../../../../assets/unit1/button/button.webp";
 
 import gameOverSound from "../../../../assets/sounds/BackgroundGame/GameOver.mp3";
-import useGameMuted from "../../../../hooks/useGameMuted";
+import useGameMuted from "../../../../hooks/useGameMuted";
+import "../../../../styles/unit1/Level1/button.css";
 
 // ละอองแสงลอย — ตำแหน่งคงที่
 const PARTICLES = [
