@@ -44,7 +44,8 @@ export default function IntroScenes({ onComplete }) {
             try {
                 setLoading(true);
                 const response = await fetch(
-                    `${BASE_URL}/api/introDialog/level/3`
+                    `${BASE_URL}/api/introDialog/level/3`,
+                    { cache: "no-store" }
                 );
                 if (!response.ok) {
                     throw new Error("ไม่สามารถดึงข้อมูล Scene ได้");

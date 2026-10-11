@@ -1,7 +1,7 @@
 import { BASE_URL } from "../../config";
 import { useEffect } from "react";
 
-const API_URL = `${BASE_URL}/api`;
+const API_BASE = `${BASE_URL}/api`;
 const HEARTBEAT_MS = 60 * 1000;     // ส่งทุก 1 นาที
 const IDLE_LIMIT_MS = 3 * 60 * 1000; // ไม่ขยับเกิน 3 นาที = ไม่นับ
 
@@ -34,7 +34,7 @@ export default function useActivityTracker() {
             if (Date.now() - lastActivity > IDLE_LIMIT_MS) return;
 
             try {
-                await fetch(`${API_URL}/activity/heartbeat`, {
+                await fetch(`${API_BASE}/activity/heartbeat`, {
                     method: "POST",
                     headers: { Authorization: `Bearer ${token}` },
                 });

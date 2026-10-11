@@ -2,11 +2,15 @@ const express = require("express");
 const router = express.Router();
 const moneyGameController = require("../controllers/moneyGameController");
 const { syncLevelResult } = require("../controllers/levelSyncController");
+const authMiddleware = require("../../middleware/authMiddleware");
+const requirePlayOwner = require("../../middleware/requirePlayOwner");
 
 // Unit 3 Level 2 : Money Game
 // เริ่มเกม
 router.post(
     "/start/:playId",
+    authMiddleware,
+    requirePlayOwner,
     async (req, res) => {
         try {
             const playId = Number(req.params.playId);
@@ -42,6 +46,8 @@ router.post(
 // เลือกประเภทเงิน
 router.post(
     "/classify",
+    authMiddleware,
+    requirePlayOwner,
     async (req, res) => {
         try {
             const {
@@ -90,6 +96,8 @@ router.post(
 // จบเกม
 router.post(
     "/complete",
+    authMiddleware,
+    requirePlayOwner,
     async (req, res) => {
         try {
             const { play_id } = req.body;
@@ -129,6 +137,8 @@ router.post(
 // หมดเวลา / แพ้
 router.post(
     "/fail",
+    authMiddleware,
+    requirePlayOwner,
     async (req, res) => {
         try {
             const { play_id } = req.body;

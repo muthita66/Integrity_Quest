@@ -25,6 +25,7 @@ import {
     getLevelPlayDetail,
     addTeacherGroup,
     deleteTeacherGroup,
+    deleteStudent,
 } from "../services/teacherService";
 import { getFaculties } from "../services/masterService";
 import bgGame from "../../assets/bg_game.png";
@@ -57,6 +58,9 @@ const COLUMNS = [
     { key: "time_spent", label: "เวลาใช้งาน", align: "right" },
     { key: "last_active", label: "ใช้งานล่าสุด", align: "right" },
 ];
+
+// +1 = คอลัมน์ "จัดการ" (ปุ่มลบ) ท้ายตาราง ซึ่งไม่อยู่ใน COLUMNS เพราะเรียงไม่ได้
+const TABLE_COLSPAN = COLUMNS.length + 1;
 
 const ALIGN_CLASS = { left: "text-left", center: "text-center", right: "text-right" };
 
@@ -1131,6 +1135,48 @@ export default function TeacherPage() {
     };
 
     // --------------------------------------------------------
+    // ลบนิสิต (คอลัมน์สุดท้าย) → ลบบัญชี + ข้อมูลการเล่นทั้งหมดของนิสิตคนนั้น
+    // --------------------------------------------------------
+
+    const [deletingStudentId, setDeletingStudentId] = useState(null);
+
+    const handleDeleteStudent = async (student) => {
+        const confirmed = window.confirm(
+            `ลบนิสิต "${fullName(student)}" (${student.username}) ใช่หรือไม่?\n\n` +
+            "ข้อมูลต่อไปนี้จะถูกลบทั้งหมด:\n" +
+            "• บัญชีผู้ใช้ (เข้าสู่ระบบไม่ได้อีก)\n" +
+            "• ประวัติการเล่นและคำตอบทุกด่าน\n" +
+            "• ความคืบหน้า, IP, Streak\n" +
+            "• ผล Pre-Test / Post-Test\n" +
+            "• ประวัติเวลาใช้งาน\n\n" +
+            "ย้อนกลับไม่ได้"
+        );
+
+        if (!confirmed) return;
+
+        setDeletingStudentId(student.user_id);
+
+        try {
+            await deleteStudent(student.user_id);
+
+            // โหลด dashboard ใหม่ให้การ์ดสรุป/ค่าเฉลี่ยอัปเดตตามด้วย
+            const result = await getTeacherDashboard(activeScope);
+            setData(result);
+
+            if (expandedId === student.user_id) setExpandedId(null);
+            setDetails((prev) => {
+                const next = { ...prev };
+                delete next[student.user_id];
+                return next;
+            });
+        } catch (err) {
+            alert(err.message || "ลบนิสิตไม่สำเร็จ");
+        } finally {
+            setDeletingStudentId(null);
+        }
+    };
+
+    // --------------------------------------------------------
     // กรอง + เรียง
     // --------------------------------------------------------
 
@@ -1598,13 +1644,16 @@ export default function TeacherPage() {
                                                     </span>
                                                 </th>
                                             ))}
+                                            <th className="whitespace-nowrap px-4 py-3 text-center font-medium">
+                                                จัดการ
+                                            </th>
                                         </tr>
                                     </thead>
 
                                     <tbody>
                                         {visibleRows.length === 0 && (
                                             <tr>
-                                                <td colSpan={COLUMNS.length} className="py-12 text-center text-gray-400">
+                                                <td colSpan={TABLE_COLSPAN} className="py-12 text-center text-gray-400">
                                                     ไม่พบนิสิตตามเงื่อนไข
                                                 </td>
                                             </tr>
@@ -1683,11 +1732,31 @@ export default function TeacherPage() {
                                                                 </p>
                                                             )}
                                                         </td>
+                                                        <td className="px-4 py-3 text-center">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    // ไม่ให้คลิกปุ่มลบไปเปิด/ปิดแถวรายละเอียด
+                                                                    e.stopPropagation();
+                                                                    handleDeleteStudent(s);
+                                                                }}
+                                                                disabled={deletingStudentId !== null}
+                                                                title="ลบนิสิตและข้อมูลการเล่นทั้งหมด"
+                                                                aria-label={`ลบนิสิต ${fullName(s)}`}
+                                                                className="inline-flex items-center justify-center rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                                                            >
+                                                                {deletingStudentId === s.user_id ? (
+                                                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-red-300 border-t-red-600" />
+                                                                ) : (
+                                                                    <FiTrash2 size={16} />
+                                                                )}
+                                                            </button>
+                                                        </td>
                                                     </tr>
 
                                                     {/* แถวรายละเอียด: สไลด์ลงมาเมื่อกด */}
                                                     <tr>
-                                                        <td colSpan={COLUMNS.length} className="p-0">
+                                                        <td colSpan={TABLE_COLSPAN} className="p-0">
                                                             <div
                                                                 className={`grid transition-all duration-300 ease-out ${isOpen
                                                                     ? "grid-rows-[1fr] opacity-100"

@@ -49,7 +49,8 @@ export default function Unit2IntroPage() {
                 setLoading(true);
 
                 const response = await fetch(
-                    `${BASE_URL}/api/introDialog/level/5`
+                    `${BASE_URL}/api/introDialog/level/5`,
+                    { cache: "no-store" }
                 );
 
                 if (!response.ok) {

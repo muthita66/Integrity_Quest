@@ -36,7 +36,8 @@ export default function FinalLevelIntroPage({ startMission, initialStep = 0 }) {
             try {
                 setLoading(true);
                 const response = await fetch(
-                    `${BASE_URL}/api/introDialog/level/7`
+                    `${BASE_URL}/api/introDialog/level/7`,
+                    { cache: "no-store" }
                 );
                 if (!response.ok) {
                     throw new Error("ไม่สามารถดึงข้อมูล Scene ของ Unit 2 Final Level ได้");

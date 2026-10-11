@@ -561,8 +561,6 @@ exports.deleteStudent = async (req, res) => {
             }
 
             await tx.game_play_history.deleteMany({ where: { user_id: userId } });
-            await tx.feedback.deleteMany({ where: { user_id: userId } });
-            await tx.user_earned_rewards.deleteMany({ where: { user_id: userId } });
             await tx.user_quiz_answers.deleteMany({ where: { user_id: userId } });
             await tx.user_stats.deleteMany({ where: { user_id: userId } });
             await tx.students.deleteMany({ where: { user_id: userId } });

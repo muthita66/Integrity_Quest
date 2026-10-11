@@ -1,6 +1,9 @@
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
+// The .env file must be the source of truth for the database used by the API.
+// This also prevents an inherited DATABASE_URL from silently pointing at a
+// different database than the one edited by the content administrator.
+require("dotenv").config({ override: true });
 
 const quizRoutes = require("./routes/quiz");
 const userProgressRoutes = require("./routes/userProgressRoutes");
