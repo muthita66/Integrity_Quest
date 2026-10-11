@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { FaArrowLeft } from "react-icons/fa";
 import "../../styles/theme.css";
-import defaultBackground from "../../assets/unit4/investigation-room.png";
+import defaultBackground from "../../assets/unit4/investigation-room.webp";
 
 export default function BookLayout({
     eyebrow = "CYBER TRAP DOSSIER",

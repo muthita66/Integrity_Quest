@@ -1,4 +1,4 @@
-import mirrorImage from "../../../assets/unit6/golden-mirror.png";
+import mirrorImage from "../../../assets/unit6/golden-mirror.webp";
 
 export default function IntroScreen({ startGame }) {
     return (

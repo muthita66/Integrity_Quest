@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { FaLock, FaUnlock, FaCheckCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE = import.meta.env.VITE_API_URL || `${BASE_URL}/api`;
+const API_BASE = `${BASE_URL}/api`;
 
 function PrePost() {
     const navigate = useNavigate();

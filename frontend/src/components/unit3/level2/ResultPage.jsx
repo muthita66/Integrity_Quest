@@ -2,7 +2,7 @@ import { BASE_URL } from "../../../config";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import bgLevel2 from "../../../assets/unit3/level2/bgLevel2.png";
+import bgLevel2 from "../../../assets/unit3/level2/bgLevel2.webp";
 import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import gameOverSound from "../../../assets/sounds/BackgroundGame/GameOver.mp3";
 import useGameMuted from "../../../hooks/useGameMuted";

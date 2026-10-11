@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import ConfettiExplosion from "react-confetti-explosion";
-import BackgroundImg from "../../../assets/unit2/Level2/bgLevel2.png";
+import BackgroundImg from "../../../assets/unit2/Level2/bgLevel2.webp";
 import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import useGameMuted from "../../../hooks/useGameMuted";
 

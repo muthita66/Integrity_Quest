@@ -5,7 +5,7 @@ import { IoMdSkipForward } from "react-icons/io";
 
 import "../../../styles/unit1/Level1/MirrorIntro.css";
 
-import bgGame from "../../../assets/bg_game.png";
+import bgGame from "../../../assets/bg_game.webp";
 
 import SceneOne from "./scenes/SceneOneIntro";
 import SceneTwo from "./scenes/SceneTwoIntro";

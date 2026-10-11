@@ -9,7 +9,7 @@ import SceneMission from "./SceneMission";
 import IntroDialog from "./IntroDialog";
 import { IoMdSkipForward } from "react-icons/io";
 
-import bgLevel2 from "../../../../assets/unit3/level2/bgLevel2.png";
+import bgLevel2 from "../../../../assets/unit3/level2/bgLevel2.webp";
 
 const scenes = [
     SceneOne,

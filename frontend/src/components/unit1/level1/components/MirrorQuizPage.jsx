@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdTableRows } from "react-icons/md";
 
-import bgGameLevel1 from "../../../../assets/unit1/level1/bg_game.png";
+import bgGameLevel1 from "../../../../assets/unit1/level1/bg_game.webp";
 import bgMusic from "../../../../assets/sounds/BackgroundGame/1-Level1.mp3";
 
 import {

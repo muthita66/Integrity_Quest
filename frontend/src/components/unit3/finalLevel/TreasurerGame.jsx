@@ -15,8 +15,8 @@ import PauseModal from "./components/PauseModal";
 
 import { useNavigate } from "react-router-dom";
 
-import bgLevel2 from "../../../assets/unit3/level2/bgLevel2.png";
-import bgGameLevel2 from "../../../assets/unit3/level2/bgGameLevel2.png";
+import bgLevel2 from "../../../assets/unit3/level2/bgLevel2.webp";
+import bgGameLevel2 from "../../../assets/unit3/level2/bgGameLevel2.webp";
 import bgMusic from "../../../assets/sounds/Unit3/FinalLevel.mp3";
 import gameOverSound from "../../../assets/sounds/BackgroundGame/GameOver.mp3";
 

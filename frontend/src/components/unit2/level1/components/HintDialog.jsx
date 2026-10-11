@@ -1,11 +1,11 @@
 import { BASE_URL } from "../../../../config";
 import { useEffect, useState } from "react";
 import { HiLockClosed, HiLockOpen } from "react-icons/hi";
-import Lamp from "../../../../assets/unit2/Level1/intro/lamp.png";
+import Lamp from "../../../../assets/unit2/Level1/intro/lamp.webp";
 
-import QuestionOne from "../../../../assets/unit2/Level1/Minigame/QuestionOne.png";
-import QuestionTwo from "../../../../assets/unit2/Level1/Minigame/QuestionTwo.png";
-import QuestionThree from "../../../../assets/unit2/Level1/Minigame/QuestionThree.png";
+import QuestionOne from "../../../../assets/unit2/Level1/Minigame/QuestionOne.webp";
+import QuestionTwo from "../../../../assets/unit2/Level1/Minigame/QuestionTwo.webp";
+import QuestionThree from "../../../../assets/unit2/Level1/Minigame/QuestionThree.webp";
 
 const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 5;

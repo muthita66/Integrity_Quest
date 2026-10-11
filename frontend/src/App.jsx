@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import {
   Navigate,
   Routes,
@@ -20,118 +21,118 @@ import Level3Music from './components/Unit5/Level3/Level3Music';
 // ============================================================
 
 import AuthPage from "./components/pages/AuthPage";
-import MapPage from "./components/pages/MapPage";
-import PreTestPage from "./components/pages/PreTestPage";
-import PostTestPage from "./components/pages/PostTestPage";
-import SettingsPage from "./components/pages/SettingsPage";
-import ProgressPage from "./components/pages/ProgressPage";
-import TeacherPage from "./components/pages/TeacherPage";
-import UnitContentPage from "./components/pages/UnitContentPage";
+const MapPage = lazy(() => import("./components/pages/MapPage"));
+const PreTestPage = lazy(() => import("./components/pages/PreTestPage"));
+const PostTestPage = lazy(() => import("./components/pages/PostTestPage"));
+const SettingsPage = lazy(() => import("./components/pages/SettingsPage"));
+const ProgressPage = lazy(() => import("./components/pages/ProgressPage"));
+const TeacherPage = lazy(() => import("./components/pages/TeacherPage"));
+const UnitContentPage = lazy(() => import("./components/pages/UnitContentPage"));
 
 // ============================================================
 // Unit 1 - Level 1
 // ============================================================
 
-import Level1IntrpPage from "./components/unit1/level1/scenes/Level1IntroPage";
-import AttendanceIntroAnimation from "./components/unit1/level1/AttendanceIntroAnimation";
+const Level1IntrpPage = lazy(() => import("./components/unit1/level1/scenes/Level1IntroPage"));
+const AttendanceIntroAnimation = lazy(() => import("./components/unit1/level1/AttendanceIntroAnimation"));
 
-import MirrorQuizPage from "./components/unit1/level1/components/MirrorQuizPage";
-import MirrorResultPage from "./components/unit1/level1/components/MirrorResultPage";
+const MirrorQuizPage = lazy(() => import("./components/unit1/level1/components/MirrorQuizPage"));
+const MirrorResultPage = lazy(() => import("./components/unit1/level1/components/MirrorResultPage"));
 
 // ============================================================
 // Unit 1 - Final
 // ============================================================
 
-import FinalLevel from "./components/unit1/finalLevel/FinalLevel";
-import TitleFinal from "./components/unit1/finalLevel/components/TitleScreen";
-import CaseSelect from "./components/unit1/finalLevel/components/CaseSelect";
+const FinalLevel = lazy(() => import("./components/unit1/finalLevel/FinalLevel"));
+const TitleFinal = lazy(() => import("./components/unit1/finalLevel/components/TitleScreen"));
+const CaseSelect = lazy(() => import("./components/unit1/finalLevel/components/CaseSelect"));
 
 // ============================================================
 // Unit 1 - Level 2
 // ============================================================
 
-import LevelTransition from "./components/common/LevelTransition";
+const LevelTransition = lazy(() => import("./components/common/LevelTransition"));
 
-import BubbleShooterPage from "./components/unit1/level2/bubbleShooterPage";
-import Unit1Level2IntroPage from "./components/unit1/level2/scenes/Level2IntroPage";
-import Unit1Level2ResultPage from "./components/unit1/level2/components/BubbleResultPage";
+const BubbleShooterPage = lazy(() => import("./components/unit1/level2/bubbleShooterPage"));
+const Unit1Level2IntroPage = lazy(() => import("./components/unit1/level2/scenes/Level2IntroPage"));
+const Unit1Level2ResultPage = lazy(() => import("./components/unit1/level2/components/BubbleResultPage"));
 
 // ============================================================
 // Unit 2
 // ============================================================
 
-import Unit2IntroPage from "./components/unit2/level1/introPage";
-import ShoppingGame from "./components/unit2/level1/ShoppingGame";
-import Unit2ResultPage from "./components/unit2/level1/resultPage";
+const Unit2IntroPage = lazy(() => import("./components/unit2/level1/introPage"));
+const ShoppingGame = lazy(() => import("./components/unit2/level1/ShoppingGame"));
+const Unit2ResultPage = lazy(() => import("./components/unit2/level1/resultPage"));
 
-import Unit2Level2IntroPage from "./components/unit2/level2/Level2IntroPage";
-import CalculationGame from "./components/unit2/level2/CalculationGame";
+const Unit2Level2IntroPage = lazy(() => import("./components/unit2/level2/Level2IntroPage"));
+const CalculationGame = lazy(() => import("./components/unit2/level2/CalculationGame"));
 
-import FinalLevelGame from "./components/unit2/finalLevel/FinalLevelGame";
-import Unit2FinalLevelIntroPage from "./components/unit2/finalLevel/FinalLevelIntroPage";
-import SceneMission from "./components/unit2/finalLevel/scenes/SceneMission";
+const FinalLevelGame = lazy(() => import("./components/unit2/finalLevel/FinalLevelGame"));
+const Unit2FinalLevelIntroPage = lazy(() => import("./components/unit2/finalLevel/FinalLevelIntroPage"));
+const SceneMission = lazy(() => import("./components/unit2/finalLevel/scenes/SceneMission"));
 
 // ============================================================
 // Unit 3
 // ============================================================
 
-import Level1IntroPage from "./components/unit3/level1/scenes/Level1IntroPage";
-import ReceiptGamePage from "./components/unit3/level1/ReceiptGamePage";
-import ResultPage from "./components/unit3/level1/ResultPage";
+const Level1IntroPage = lazy(() => import("./components/unit3/level1/scenes/Level1IntroPage"));
+const ReceiptGamePage = lazy(() => import("./components/unit3/level1/ReceiptGamePage"));
+const ResultPage = lazy(() => import("./components/unit3/level1/ResultPage"));
 
-import Level2IntroPage from "./components/unit3/level2/scenes/Level2IntroPage";
-import MoneyGamePage from "./components/unit3/level2/MoneyGamePage";
-import MoneyResultPage from "./components/unit3/level2/ResultPage";
+const Level2IntroPage = lazy(() => import("./components/unit3/level2/scenes/Level2IntroPage"));
+const MoneyGamePage = lazy(() => import("./components/unit3/level2/MoneyGamePage"));
+const MoneyResultPage = lazy(() => import("./components/unit3/level2/ResultPage"));
 
-import Unit3FinalLevel from "./components/unit3/finalLevel/TreasurerGame";
-import FinalLevelIntroPage from "./components/unit3/finalLevel/scenes/FinalLevelIntroPage";
+const Unit3FinalLevel = lazy(() => import("./components/unit3/finalLevel/TreasurerGame"));
+const FinalLevelIntroPage = lazy(() => import("./components/unit3/finalLevel/scenes/FinalLevelIntroPage"));
 
 // ============================================================
 // Unit 4
 // ============================================================
 
 // Book / Intro
-import Unit4Book from "./components/Unit4/Unit4Book";
-import PreBookIntro from "./components/Unit4/PreBookIntro";
-import Unit4Completion from "./components/Unit4/Completion";
+const Unit4Book = lazy(() => import("./components/Unit4/Unit4Book"));
+const PreBookIntro = lazy(() => import("./components/Unit4/PreBookIntro"));
+const Unit4Completion = lazy(() => import("./components/Unit4/Completion"));
 
 // Unit 4 Level 1
-import Unit4Level1Intro from "./components/Unit4/Level1/IntroScene";
-import Unit4Level1Game from "./components/Unit4/Level1/Game";
-import Unit4Level1Result from "./components/Unit4/Level1/Result";
+const Unit4Level1Intro = lazy(() => import("./components/Unit4/Level1/IntroScene"));
+const Unit4Level1Game = lazy(() => import("./components/Unit4/Level1/Game"));
+const Unit4Level1Result = lazy(() => import("./components/Unit4/Level1/Result"));
 
 // Unit 4 Level 2
-import Unit4Level2Intro from "./components/Unit4/Level2/IntroScene";
-import Unit4Level2Game from "./components/Unit4/Level2/Game";
-import Unit4Level2Result from "./components/Unit4/Level2/Result";
+const Unit4Level2Intro = lazy(() => import("./components/Unit4/Level2/IntroScene"));
+const Unit4Level2Game = lazy(() => import("./components/Unit4/Level2/Game"));
+const Unit4Level2Result = lazy(() => import("./components/Unit4/Level2/Result"));
 
 // Unit 4 Level 3
-import Unit4Level3Intro from "./components/Unit4/Level3/IntroScene";
-import Unit4Level3Game from "./components/Unit4/Level3/Game";
-import Unit4Level3Result from "./components/Unit4/Level3/Result";
+const Unit4Level3Intro = lazy(() => import("./components/Unit4/Level3/IntroScene"));
+const Unit4Level3Game = lazy(() => import("./components/Unit4/Level3/Game"));
+const Unit4Level3Result = lazy(() => import("./components/Unit4/Level3/Result"));
 
 // ============================================================
 // Unit 5
 // ============================================================
 
-import Unit5Intro from "./components/Unit5/Level1/IntroLevel1";
-import Unit5Tutorial from "./components/Unit5/Level1/Level1Tutorial";
-import Unit5Level1Game from "./components/Unit5/Level1/GameLevel1";
+const Unit5Intro = lazy(() => import("./components/Unit5/Level1/IntroLevel1"));
+const Unit5Tutorial = lazy(() => import("./components/Unit5/Level1/Level1Tutorial"));
+const Unit5Level1Game = lazy(() => import("./components/Unit5/Level1/GameLevel1"));
 
-import Unit5Level2Intro from "./components/Unit5/Level2/Level2Intro";
-import Unit5Level2Game from "./components/Unit5/Level2/GameLevel2";
-import Unit5Result from "./components/Unit5/Level2/ResultPopup";
+const Unit5Level2Intro = lazy(() => import("./components/Unit5/Level2/Level2Intro"));
+const Unit5Level2Game = lazy(() => import("./components/Unit5/Level2/GameLevel2"));
+const Unit5Result = lazy(() => import("./components/Unit5/Level2/ResultPopup"));
 
-import Unit5Level3Game from "./components/Unit5/Level3/GameLevel3";
-import Unit5Level3Intro from "./components/Unit5/Level3/Level3Intro";
+const Unit5Level3Game = lazy(() => import("./components/Unit5/Level3/GameLevel3"));
+const Unit5Level3Intro = lazy(() => import("./components/Unit5/Level3/Level3Intro"));
 
 // ============================================================
 // Unit 6
 // ============================================================
 
-import Unit6Level1Game from "./components/Unit6/Level1/Game1";
-import Unit6Level2Game from "./components/Unit6/Level2/Game2";
-import Unit6FinalGame from "./components/Unit6/Level3/Game3";
+const Unit6Level1Game = lazy(() => import("./components/Unit6/Level1/Game1"));
+const Unit6Level2Game = lazy(() => import("./components/Unit6/Level2/Game2"));
+const Unit6FinalGame = lazy(() => import("./components/Unit6/Level3/Game3"));
 
 // ============================================================
 // Activity Tracker
@@ -165,6 +166,7 @@ function App() {
       <Level3Music />
       {(location.pathname.startsWith('/unit6/') || location.pathname === '/unit/unit6') && <Unit6Navigation key={location.pathname} />}
       {location.pathname.startsWith('/unit5/') && location.pathname.replace(/\/$/, '') !== '/unit5/result' && <Unit5Navigation key={location.pathname} />}
+      <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-900 text-white">กำลังโหลด...</div>}>
       <Routes>
 
         {/* ====================================================== */}
@@ -576,6 +578,7 @@ function App() {
         />
 
       </Routes>
+      </Suspense>
     </>
   );
 }

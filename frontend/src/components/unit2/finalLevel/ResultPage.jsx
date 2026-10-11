@@ -6,10 +6,10 @@ import { useNavigate } from 'react-router-dom';
 
 import "../../../styles/unit2/components/debrief.css";
 import "../../../styles/unit2/button/level1/button.css";
-import SceneResult from "../../../assets/unit2/FinalLevel/Result/sceneResult.png"
-import MedalGold from "../../../assets/unit2/FinalLevel/Result/gold.jpg";
-import MedalSilver from "../../../assets/unit2/FinalLevel/Result/silver.jpg";
-import MedalBronze from "../../../assets/unit2/FinalLevel/Result/bronze.jpg";
+import SceneResult from "../../../assets/unit2/FinalLevel/Result/sceneResult.webp"
+import MedalGold from "../../../assets/unit2/FinalLevel/Result/gold.webp";
+import MedalSilver from "../../../assets/unit2/FinalLevel/Result/silver.webp";
+import MedalBronze from "../../../assets/unit2/FinalLevel/Result/bronze.webp";
 
 const API_URL = `${BASE_URL}`;
 const LEVEL_ID = 7;

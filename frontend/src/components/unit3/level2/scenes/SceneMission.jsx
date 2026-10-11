@@ -6,7 +6,7 @@ import { TbDeviceGamepadFilled } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 
 import "../../../../styles/unit1/Level1/button.css";
-import bgGameLevel2 from "../../../../assets/unit3/level2/bgGameLevel2.png"
+import bgGameLevel2 from "../../../../assets/unit3/level2/bgGameLevel2.webp"
 
 export default function SceneMission({
     scene,

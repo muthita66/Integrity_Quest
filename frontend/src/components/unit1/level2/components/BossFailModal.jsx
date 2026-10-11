@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-import LogoFailed from "../../../../assets/unit1/level2/result/LogoFailed.png";
-import ResultFailed from "../../../../assets/unit1/level2/result/Failed.png";
-import ButtonRetry from "../../../../assets/unit1/button/buttonFailed.png";
-import Button from "../../../../assets/unit1/button/button.png";
+import LogoFailed from "../../../../assets/unit1/level2/result/LogoFailed.webp";
+import ResultFailed from "../../../../assets/unit1/level2/result/Failed.webp";
+import ButtonRetry from "../../../../assets/unit1/button/buttonFailed.webp";
+import Button from "../../../../assets/unit1/button/button.webp";
 
 import gameOverSound from "../../../../assets/sounds/BackgroundGame/GameOver.mp3";
 import useGameMuted from "../../../../hooks/useGameMuted";

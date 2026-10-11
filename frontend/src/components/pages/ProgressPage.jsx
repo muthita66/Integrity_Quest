@@ -16,7 +16,7 @@ import {
 } from "react-icons/fi";
 
 import { Trophy } from "lucide-react";
-import bg_login from "../../assets/bg_login.png";
+import bg_login from "../../assets/bg_login.webp";
 import { getOverview } from "../services/profileService";
 
 const LEVEL_ROUTES = {

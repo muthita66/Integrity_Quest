@@ -5,7 +5,7 @@ import { IoMdSkipForward } from "react-icons/io";
 
 import "../../../styles/unit1/Level1/MirrorIntro.css"; // Reuse styling for gate
 
-import bgGame from "../../../assets/unit2/Level2/bgLevel2.png";
+import bgGame from "../../../assets/unit2/Level2/bgLevel2.webp";
 
 import SceneOne from "./scenes/SceneOneIntro";
 import SceneTwo from "./scenes/SceneTwoIntro";

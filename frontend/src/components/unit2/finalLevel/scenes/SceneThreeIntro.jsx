@@ -1,7 +1,7 @@
 import { IoMdSkipForward } from "react-icons/io";
 import { motion } from "framer-motion";
 import IntroDialog from "../../intro/IntroDialog";
-import SceneThree from "../../../../assets/unit2/FinalLevel/intro/sceneThree.png";
+import SceneThree from "../../../../assets/unit2/FinalLevel/intro/sceneThree.webp";
 import { FaLightbulb } from "react-icons/fa";
 
 

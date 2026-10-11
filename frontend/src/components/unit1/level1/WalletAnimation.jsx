@@ -6,9 +6,9 @@ import keyboardSfx from "../../../assets/sounds/keyboard.mp3";
 import uiSoundSfx from "../../../assets/sounds/ui_sounds.mp3";
 import walletDropSfx from "../../../assets/sounds/wallet_drop.mp3";
 
-import wallet from "../../../assets/unit1/level1/wallet.png";
-import QuizImg from "../../../assets/unit1/level1/QuizImg.png";
-import gym from "../../../assets/unit1/level1/gym.jpg";
+import wallet from "../../../assets/unit1/level1/wallet.webp";
+import QuizImg from "../../../assets/unit1/level1/QuizImg.webp";
+import gym from "../../../assets/unit1/level1/gym.webp";
 
 import AnimationLayout from "./components/AnimationLayout";
 import ChoiceButtons from "./components/ChoiceButtons";

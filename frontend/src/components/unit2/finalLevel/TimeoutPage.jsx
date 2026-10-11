@@ -7,7 +7,7 @@ import useGameMuted from "../../../hooks/useGameMuted";
 
 import "../../../styles/unit2/components/debrief.css";
 import "../../../styles/unit2/button/level1/button.css";
-import SceneResult from "../../../assets/unit2/FinalLevel/Result/sceneResult.png";
+import SceneResult from "../../../assets/unit2/FinalLevel/Result/sceneResult.webp";
 
 // ============================================================
 // Unit 2 FinalLevel — หน้า "หมดเวลา"

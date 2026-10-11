@@ -6,10 +6,10 @@ import { ImCross } from "react-icons/im";
 import { useNavigate } from "react-router-dom";
 
 import "../../../../styles/unit1/Level1/button.css";
-import BgMission from "../../../../assets/unit3/level1/intro/sceneMission.png";
-import Receipt from '../../../../assets/unit3/level1/intro/receipt.png'
-import TaxReceipt from '../../../../assets/unit3/level1/intro/tax.png'
-import CashReceipt from '../../../../assets/unit3/level1/intro/cash.png'
+import BgMission from "../../../../assets/unit3/level1/intro/sceneMission.webp";
+import Receipt from '../../../../assets/unit3/level1/intro/receipt.webp'
+import TaxReceipt from '../../../../assets/unit3/level1/intro/tax.webp'
+import CashReceipt from '../../../../assets/unit3/level1/intro/cash.webp'
 
 export default function SceneMission({
     scene,

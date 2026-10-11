@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import IntroDialog from "./IntroDialog";
 
-import SceneFourImg from "../../../../assets/unit3/level1/intro/SceneFour.png"
+import SceneFourImg from "../../../../assets/unit3/level1/intro/SceneFour.webp"
 
 export default function SceneFour({
     onNext,

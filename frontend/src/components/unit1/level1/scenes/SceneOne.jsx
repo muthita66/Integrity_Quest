@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { IoMdSkipForward } from "react-icons/io";
 import IntroDialog from "./IntroDialog";
-import SceneOneImg from "../../../../assets/unit1/level1/intro/scene1.png";
+import SceneOneImg from "../../../../assets/unit1/level1/intro/scene1.webp";
 import introOneSound from "../../../../assets/sounds/BackgroundGame/IntroOne.mp3";
 import useGameMuted from "../../../../hooks/useGameMuted";
 

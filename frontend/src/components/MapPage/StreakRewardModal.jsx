@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { createPortal } from "react-dom";
-import starIcon from "../../assets/star.png";
+import starIcon from "../../assets/star.webp";
 
 // สีพลุกระดาษ (สุ่มใช้ตอนเด้ง popup)
 const CONFETTI_COLORS = [

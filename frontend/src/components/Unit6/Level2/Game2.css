@@ -5,7 +5,7 @@
   --panel-edge: #91afd34d;
   --violet: #bda2ff;
   padding: 12px 22px;
-  background: linear-gradient(180deg, #17305040, #12233e85), url('../../../assets/unit6/network-game-background.png') center / cover no-repeat;
+  background: linear-gradient(180deg, #17305040, #12233e85), url('../../../assets/unit6/network-game-background.webp') center / cover no-repeat;
   background-color: #182c48;
 }
 
@@ -228,7 +228,7 @@
 }
 
 .gng-root .gng-stage {
-  background: linear-gradient(135deg, #213d5ba6, #393556b8), url('../../../assets/unit6/network-game-background.png') center / cover no-repeat;
+  background: linear-gradient(135deg, #213d5ba6, #393556b8), url('../../../assets/unit6/network-game-background.webp') center / cover no-repeat;
   backdrop-filter: none;
 }
 

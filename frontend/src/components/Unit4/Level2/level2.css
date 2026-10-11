@@ -287,7 +287,7 @@
     border-radius: 22px;
     background:
         linear-gradient(180deg, rgba(17, 12, 34, .94), rgba(7, 5, 18, .98)),
-        url("../../../assets/unit4/Slot.png") center / cover;
+        url("../../../assets/unit4/Slot.webp") center / cover;
     color: #FFF;
     box-shadow: 0 18px 34px rgba(31, 20, 10, .3), inset 0 0 0 1px rgba(255, 255, 255, .06);
 }

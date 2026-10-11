@@ -1,4 +1,4 @@
-import bgLevel from "../../../../assets/unit2/bgLevel2.png"
+import bgLevel from "../../../../assets/unit2/bgLevel2.webp"
 
 export default function GameContainer({ children }) {
     return (

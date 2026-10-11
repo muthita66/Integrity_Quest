@@ -1,6 +1,6 @@
 import { CheckCircle2, Lock, XCircle } from "lucide-react";
 import ProgressTrack from "./ProgressTrack";
-import BgGame from "../../../../assets/unit1/finalLevel/bgGame1.png";
+import BgGame from "../../../../assets/unit1/finalLevel/bgGame1.webp";
 
 export default function CaseSelect({
     cases,

@@ -1,4 +1,4 @@
-import chestImg from "../../../assets/chest.png";
+import chestImg from "../../../assets/chest.webp";
 
 function Chest({ left, top, onClick, ready, disabled }) {
     return (

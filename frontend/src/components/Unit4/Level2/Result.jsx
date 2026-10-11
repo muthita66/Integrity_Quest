@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import scene1 from "../../../assets/unit4/Talk1.png";
-import scene2 from "../../../assets/unit4/Talk2.png";
-import scene3 from "../../../assets/unit4/Talk3.png";
-import scene4 from "../../../assets/unit4/Talk4.png";
+import scene1 from "../../../assets/unit4/Talk1.webp";
+import scene2 from "../../../assets/unit4/Talk2.webp";
+import scene3 from "../../../assets/unit4/Talk3.webp";
+import scene4 from "../../../assets/unit4/Talk4.webp";
 
 export default function Level2Intro() {
     const navigate = useNavigate();

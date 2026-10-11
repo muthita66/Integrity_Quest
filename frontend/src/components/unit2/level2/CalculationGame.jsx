@@ -1,6 +1,7 @@
 import { BASE_URL } from "../../../config";
 import React, { useState, useEffect, useRef } from "react";
-import bgGame from "../../../assets/unit2/Level2/bgLevel2.png";
+import { useNavigate } from "react-router-dom";
+import bgGame from "../../../assets/unit2/Level2/bgLevel2.webp";
 import bgMusic from "../../../assets/sounds/Unit2/bg_Level2.mp3";
 import useBackgroundMusic from "../../../hooks/useBackgroundMusic";
 import useGameMuted from "../../../hooks/useGameMuted";
@@ -10,7 +11,6 @@ import TimeoutModal from "./TimeoutModal";
 import PauseModal from "./PauseModal";
 
 import { FaPause } from "react-icons/fa";
-import ExitDialog from "../level1/components/ExitDialog";
 
 import AnswerForm from "./components/AnswerForm";
 import ProductComparison from "./components/ProductComparison";
@@ -18,6 +18,7 @@ import QuestionPanel from "./components/QuestionPanel";
 import HintMiniGameModal from "./HintMiniGameModal";
 
 export default function CalculationGame() {
+    const navigate = useNavigate();
     const [isStarted, setIsStarted] = useState(true);
     const [currentStep, setCurrentStep] = useState(0);
 
@@ -30,7 +31,6 @@ export default function CalculationGame() {
     const [timeLeft, setTimeLeft] = useState(20);
     const [isFinished, setIsFinished] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
-    const [showExitDialog, setShowExitDialog] = useState(false);
     const [hasMistakeOnCurrent, setHasMistakeOnCurrent] = useState(false);
     const [showHintModal, setShowHintModal] = useState(false);
     const [playId, setPlayId] = useState(null);
@@ -555,12 +555,7 @@ export default function CalculationGame() {
                 isOpen={isPaused}
                 onResume={() => setIsPaused(false)}
                 onRestart={resetGame}
-                onExit={() => setShowExitDialog(true)}
-            />
-
-            <ExitDialog
-                open={showExitDialog}
-                onClose={() => setShowExitDialog(false)}
+                onExit={() => navigate("/map")}
             />
         </div>
     );

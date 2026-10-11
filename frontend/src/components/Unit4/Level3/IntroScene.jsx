@@ -6,7 +6,7 @@ import { useSound } from "../../../hooks/useSound";
 import useGameMuted from "../../../hooks/useGameMuted";
 import notificationSound from "../../../assets/sounds/Unit4/unit4-level3-notification.mp3";
 import useUnit4Chapter, { Unit4Checking } from "../useUnit4Chapter";
-import janeImg from "../../../assets/unit4/Jane.png";
+import janeImg from "../../../assets/unit4/Jane.webp";
 import "../../../styles/theme.css";
 import "./level3.css";
 

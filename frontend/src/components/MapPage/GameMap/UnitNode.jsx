@@ -1,4 +1,4 @@
-import castle from "../../../assets/castle.png";
+import castle from "../../../assets/castle.webp";
 import { useNavigate } from "react-router-dom";
 
 function UnitNode({ unit, locked = false }) {

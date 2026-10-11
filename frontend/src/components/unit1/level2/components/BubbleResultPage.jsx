@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import ConfettiExplosion from "react-confetti-explosion";
 
-import bgGame from "../../../../assets/unit1/level2/bgBubble.png";
+import bgGame from "../../../../assets/unit1/level2/bgBubble.webp";
 
 import bonusSound from "../../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import goodSound from "../../../../assets/sounds/BackgroundGame/Good.mp3";

@@ -1,4 +1,4 @@
-import SceneOneImg from "../../../../assets/unit3/level2/intro/SceneOne.png";
+import SceneOneImg from "../../../../assets/unit3/level2/intro/SceneOne.webp";
 
 export default function SceneOne() {
     return (

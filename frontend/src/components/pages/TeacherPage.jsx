@@ -28,7 +28,7 @@ import {
     deleteStudent,
 } from "../services/teacherService";
 import { getFaculties } from "../services/masterService";
-import bgGame from "../../assets/bg_game.png";
+import bgGame from "../../assets/bg_game.webp";
 
 // ============================================================
 // Teacher Dashboard (ขั้นที่ 1)

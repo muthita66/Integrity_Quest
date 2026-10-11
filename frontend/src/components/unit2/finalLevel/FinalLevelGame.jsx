@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import bgGame from "../../../assets/bg_game.png";
+import bgGame from "../../../assets/bg_game.webp";
 import { FaPause, FaArrowLeft, FaPlay } from "react-icons/fa";
 import ExitDialog from "../level1/components/ExitDialog";
 

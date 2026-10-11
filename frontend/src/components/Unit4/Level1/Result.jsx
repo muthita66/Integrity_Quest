@@ -8,7 +8,7 @@ import useButtonHoverSound from "../useButtonHoverSound";
 import { useSound } from "../../../hooks/useSound";
 import useGameMuted from "../../../hooks/useGameMuted";
 import completionSound from "../../../assets/sounds/Unit4/unit4-level-complete.mp3";
-import room from "../../../assets/unit4/investigation-room.png";
+import room from "../../../assets/unit4/investigation-room.webp";
 import "../../../styles/theme.css";
 import "./level1.css";
 

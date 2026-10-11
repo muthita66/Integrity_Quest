@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-import bossBubble from "../../../../assets/unit1/level2/bossBubble.jpg";
+import bossBubble from "../../../../assets/unit1/level2/bossBubble.webp";
 
 import FitToViewport from "../../../common/FitToViewport";
 import BossChoiceButton from "./BossChoiceButton";

@@ -11,10 +11,10 @@ import blockSuccessSound from "../../../assets/sounds/Unit4/unit4-level3-block-s
 import errorAlertSound from "../../../assets/sounds/Unit4/unit4-level3-error-alert.mp3";
 import cyberMusic from "../../../assets/sounds/Unit4/unit4-level3-cyber-alarm.mp3";
 import useUnit4Chapter, { Unit4Checking } from "../useUnit4Chapter";
-import normalScreen from "../../../assets/unit4/normal.png";
-import safeScreen from "../../../assets/unit4/Potect.png";
-import warningScreen from "../../../assets/unit4/warning.png";
-import virusImg from "../../../assets/unit4/virus.png";
+import normalScreen from "../../../assets/unit4/normal.webp";
+import safeScreen from "../../../assets/unit4/Potect.webp";
+import warningScreen from "../../../assets/unit4/warning.webp";
+import virusImg from "../../../assets/unit4/virus.webp";
 import "../../../styles/theme.css";
 import "./level3.css";
 

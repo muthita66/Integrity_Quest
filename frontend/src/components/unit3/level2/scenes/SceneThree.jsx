@@ -1,4 +1,4 @@
-import SceneThreeImg from "../../../../assets/unit3/level2/intro/SceneThree.png";
+import SceneThreeImg from "../../../../assets/unit3/level2/intro/SceneThree.webp";
 
 export default function SceneThree() {
     return (

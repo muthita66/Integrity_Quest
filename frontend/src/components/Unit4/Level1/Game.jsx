@@ -10,7 +10,7 @@ import correctAnswerSound from "../../../assets/sounds/Unit4/unit4-correct-answe
 import wrongAnswerSound from "../../../assets/sounds/Unit4/unit4-wrong-answer.mp3";
 import ExhibitStrip from "./SlipCard";
 import { HINTS } from "./slips";
-import room from "../../../assets/unit4/investigation-room.png";
+import room from "../../../assets/unit4/investigation-room.webp";
 import "../../../styles/theme.css";
 import "./level1.css";
 

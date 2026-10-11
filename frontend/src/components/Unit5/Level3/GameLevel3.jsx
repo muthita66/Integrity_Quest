@@ -18,9 +18,9 @@ import {
     FaMapMarkedAlt,
     FaHandHoldingUsd,
 } from "react-icons/fa";
-import gameBg from "../../../assets/unit5/build.png";
-import inspectorImg from "../../../assets/unit5/inspector.png";
-import briefingBg from "../../../assets/unit5/briefing.png";
+import gameBg from "../../../assets/unit5/build.webp";
+import inspectorImg from "../../../assets/unit5/inspector.webp";
+import briefingBg from "../../../assets/unit5/briefing.webp";
 import "./Game.css";
 
 const API_URL = `${BASE_URL}`;

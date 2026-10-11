@@ -1,7 +1,7 @@
 import { IoMdSkipForward } from "react-icons/io";
 import { FaLightbulb } from "react-icons/fa";
 import IntroDialog from "./IntroDialog";
-import SceneTwoImg from "../../../../assets/unit1/level1/intro/scene2.png";
+import SceneTwoImg from "../../../../assets/unit1/level1/intro/scene2.webp";
 
 export default function SceneTwo({
     scene,

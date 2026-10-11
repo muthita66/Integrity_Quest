@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import ConfettiExplosion from "react-confetti-explosion";
 
-import bgGame from "../../../../assets/unit1/level1/Result/bgGameLevel1.png";
-import IP from "../../../../assets/unit1/level1/Result/IP.png";
+import bgGame from "../../../../assets/unit1/level1/Result/bgGameLevel1.webp";
+import IP from "../../../../assets/unit1/level1/Result/IP.webp";
 
 import bonusSound from "../../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import goodSound from "../../../../assets/sounds/BackgroundGame/Good.mp3";

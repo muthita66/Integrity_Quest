@@ -1,4 +1,4 @@
-import bgGameLevel2 from "../../../../assets/unit1/level2/bgGameLevel2.png";
+import bgGameLevel2 from "../../../../assets/unit1/level2/bgGameLevel2.webp";
 
 export default function Background({ children }) {
     return (

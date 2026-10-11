@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom";
 
-import Stone1 from "../../../assets/Stone/Stone1.png";
-import Stone2 from "../../../assets/Stone/Stone2.png";
-import Stone3 from "../../../assets/Stone/Stone3.png";
-import Stone4 from "../../../assets/Stone/Stone4.png";
-import Stone5 from "../../../assets/Stone/Stone5.png";
-import Stone6 from "../../../assets/Stone/Stone6.png";
+import Stone1 from "../../../assets/Stone/Stone1.webp";
+import Stone2 from "../../../assets/Stone/Stone2.webp";
+import Stone3 from "../../../assets/Stone/Stone3.webp";
+import Stone4 from "../../../assets/Stone/Stone4.webp";
+import Stone5 from "../../../assets/Stone/Stone5.webp";
+import Stone6 from "../../../assets/Stone/Stone6.webp";
 
 const LEVEL_ROUTES = {
     // Unit 1

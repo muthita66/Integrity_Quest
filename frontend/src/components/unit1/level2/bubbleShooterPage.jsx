@@ -10,7 +10,7 @@ import BossSection from "./components/BossSection";
 import BossFailModal from "./components/BossFailModal";
 import ExitDialog from "./components/ExitDialog";
 
-import BgBubble from "../../../assets/unit1/level2/bgBubble.png";
+import BgBubble from "../../../assets/unit1/level2/bgBubble.webp";
 import bgMusic from "../../../assets/sounds/Unit1/bg_game.mp3";
 
 import useBubbleGame from "./hooks/useBubbleGame";

@@ -1,5 +1,5 @@
-import needIcon from "../../../../assets/unit2/Level1/need.png";
-import wantIcon from "../../../../assets/unit2/Level1/want.png";
+import needIcon from "../../../../assets/unit2/Level1/need.webp";
+import wantIcon from "../../../../assets/unit2/Level1/want.webp";
 
 function BasketZone({
     id,

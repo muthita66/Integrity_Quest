@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Confetti from "react-confetti";
 
-import rankS from "../../../assets/unit4/s.png";
-import rankA from "../../../assets/unit4/a.png";
-import rankB from "../../../assets/unit4/b.png";
-import rankC from "../../../assets/unit4/c.png";
-import rankD from "../../../assets/unit4/d.png";
+import rankS from "../../../assets/unit4/s.webp";
+import rankA from "../../../assets/unit4/a.webp";
+import rankB from "../../../assets/unit4/b.webp";
+import rankC from "../../../assets/unit4/c.webp";
+import rankD from "../../../assets/unit4/d.webp";
 
 import {
   FaShieldAlt,

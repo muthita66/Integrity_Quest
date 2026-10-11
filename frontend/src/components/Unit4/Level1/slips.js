@@ -1,8 +1,8 @@
-import scbSlip from "../../../assets/unit4/mission-scb.png";
-import kbankSlip from "../../../assets/unit4/mission-kbank.png";
-import krungsriSlip from "../../../assets/unit4/mission-krungsri.png";
-import krungthaiSlip from "../../../assets/unit4/mission-krungthai.png";
-import integritySlip from "../../../assets/unit4/mission-integrity.png";
+import scbSlip from "../../../assets/unit4/mission-scb.webp";
+import kbankSlip from "../../../assets/unit4/mission-kbank.webp";
+import krungsriSlip from "../../../assets/unit4/mission-krungsri.webp";
+import krungthaiSlip from "../../../assets/unit4/mission-krungthai.webp";
+import integritySlip from "../../../assets/unit4/mission-integrity.webp";
 
 // หลักฐานที่ใช้ร่วมกันในฉากนำเข้า เกม และหน้าสรุปผล
 export const SLIPS = [

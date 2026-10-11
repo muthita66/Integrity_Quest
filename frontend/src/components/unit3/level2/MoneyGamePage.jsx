@@ -8,8 +8,8 @@ import { useNavigate } from "react-router-dom";
 
 import useMoneyGame from "./hooks/useMoneyGame";
 
-import bgLevel2 from "../../../assets/unit3/level2/bgLevel2.png";
-import bgGameLevel2 from "../../../assets/unit3/level2/bgGameLevel2.png";
+import bgLevel2 from "../../../assets/unit3/level2/bgLevel2.webp";
+import bgGameLevel2 from "../../../assets/unit3/level2/bgGameLevel2.webp";
 import bgMusic from "../../../assets/sounds/Unit3/Level2.mp3";
 
 import useBackgroundMusic from "../../../hooks/useBackgroundMusic";

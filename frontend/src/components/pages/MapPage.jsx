@@ -7,7 +7,7 @@ import DailyQuest from "../MapPage/Sidebar/DailyQuest";
 import Leaderboard from "../MapPage/Sidebar/Leaderboard";
 import PrePost from "../MapPage/Sidebar/PrePost";
 import units from "../MapPage/GameMap/Unitdata";
-import bg from "../../assets/bg_game.png";
+import bg from "../../assets/bg_game.webp";
 import Chest from "../MapPage/GameMap/Chest";
 import FloatingStonePath from "../MapPage/GameMap/FloatingStonePath";
 import StreakRewardModal from "../MapPage/StreakRewardModal";

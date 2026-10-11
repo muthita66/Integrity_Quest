@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
-import failed from "../../../assets/unit2/Level2/failed.png";
-import BackgroundImg from "../../../assets/unit2/Level2/bgLevel2.png";
+import failed from "../../../assets/unit2/Level2/failed.webp";
+import BackgroundImg from "../../../assets/unit2/Level2/bgLevel2.webp";
 import gameOverSound from "../../../assets/sounds/BackgroundGame/GameOver.mp3";
 import useGameMuted from "../../../hooks/useGameMuted";
 

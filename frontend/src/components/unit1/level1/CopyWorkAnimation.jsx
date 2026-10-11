@@ -5,10 +5,10 @@ import { useSound } from "../../../hooks/useSound";
 import keyboardSfx from "../../../assets/sounds/keyboard.mp3";
 import uiSoundSfx from "../../../assets/sounds/ui_sounds.mp3";
 
-import studentBg from "../../../assets/unit1/level1/student_working.png";
-import friend from "../../../assets/unit1/level1/friend5.png";
-import QuizImg from "../../../assets/unit1/level1/QuizImg.png";
-import student5 from "../../../assets/unit1/level1/student5.png";
+import studentBg from "../../../assets/unit1/level1/student_working.webp";
+import friend from "../../../assets/unit1/level1/friend5.webp";
+import QuizImg from "../../../assets/unit1/level1/QuizImg.webp";
+import student5 from "../../../assets/unit1/level1/student5.webp";
 
 import AnimationLayout from "./components/AnimationLayout";
 import ChoiceButtons from "./components/ChoiceButtons";

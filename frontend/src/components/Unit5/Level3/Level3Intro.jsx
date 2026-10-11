@@ -8,7 +8,7 @@ import {
     FaShieldAlt,
     FaExclamationTriangle,
 } from "react-icons/fa";
-import gameBg from "../../../assets/unit5/build.png";
+import gameBg from "../../../assets/unit5/build.webp";
 
 const tips = [
     {

@@ -1,7 +1,7 @@
 import { BASE_URL } from "../../config";
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import template from '../../assets/certificate.png';
+import template from '../../assets/certificate.webp';
 import './CertificateReward.css';
 
 export default function CertificateReward({ onClose }) {

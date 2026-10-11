@@ -1,6 +1,6 @@
 import { BASE_URL } from "../../config";
 import { useEffect, useState } from "react";
-import bg_game from "../../assets/bg_game.png";
+import bg_game from "../../assets/bg_game.webp";
 import { useNavigate } from "react-router-dom";
 
 const API_BASE = `${BASE_URL}/api`;

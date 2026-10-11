@@ -8,7 +8,7 @@ import {
     FaFolderOpen,
 } from "react-icons/fa";
 
-import bgOffice from "../../../assets/unit5/office.png";
+import bgOffice from "../../../assets/unit5/office.webp";
 
 const PARTICLES = [
     [8, 18, 7], [18, 72, 9], [31, 35, 8], [46, 82, 6],

@@ -11,7 +11,7 @@ import {
     FaCog,
 } from "react-icons/fa";
 
-import elephant from "../../assets/elephant.png";
+import elephant from "../../assets/elephant.webp";
 import { getProfile } from "../services/profileService";
 import "../../styles/MapPage/header.css";
 

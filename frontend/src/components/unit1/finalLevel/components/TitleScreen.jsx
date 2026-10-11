@@ -1,5 +1,5 @@
 import { Search } from "lucide-react";
-import bgGame1 from "../../../../assets/unit1/finalLevel/bgGame1.png";
+import bgGame1 from "../../../../assets/unit1/finalLevel/bgGame1.webp";
 
 export default function TitleScreen({ onStart }) {
     return (

@@ -12,7 +12,7 @@ import useCaseGame from "./hooks/useCaseGame";
 import NavBar from "./components/NavBar";
 import { CASES } from "./data/cases";
 import IntroScenes from "./scenes/IntroFinalLevel";
-import BgGameLevel from "../../../assets/unit1/finalLevel/bgGameFinal.png";
+import BgGameLevel from "../../../assets/unit1/finalLevel/bgGameFinal.webp";
 import GameOverPopup from "./components/GameOverPopup";
 
 const FONT_STYLE = `

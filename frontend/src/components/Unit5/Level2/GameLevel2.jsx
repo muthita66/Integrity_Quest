@@ -11,7 +11,7 @@ import {
     FaTint,
     FaFireExtinguisher,
 } from "react-icons/fa";
-import bg from '../../../assets/unit5/citymap.png'
+import bg from '../../../assets/unit5/citymap.webp'
 
 import BuildingCard from "./BuildingCard";
 import BudgetPanel from "./BudgetPanel";

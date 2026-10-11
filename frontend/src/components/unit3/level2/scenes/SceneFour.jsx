@@ -1,4 +1,4 @@
-import SceneFourImg from "../../../../assets/unit3/level2/intro/SceneFour.png";
+import SceneFourImg from "../../../../assets/unit3/level2/intro/SceneFour.webp";
 
 export default function SceneFour() {
     return (

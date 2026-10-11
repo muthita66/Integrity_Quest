@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdTableRows, MdArrowBack } from "react-icons/md";
 import { FaLightbulb, FaStar } from "react-icons/fa";
-import bgGameImg from "../../../assets/unit2/Level1/bgmarket.png";
+import bgGameImg from "../../../assets/unit2/Level1/bgmarket.webp";
 import bgMusic from "../../../assets/sounds/Unit2/bg_Level1.mp3";
 import useBackgroundMusic from "../../../hooks/useBackgroundMusic";
 import useGameMuted from "../../../hooks/useGameMuted";

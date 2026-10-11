@@ -1,7 +1,7 @@
 import { IoMdSkipForward } from "react-icons/io";
 import { motion } from "framer-motion";
 import IntroDialog from "../../intro/IntroDialog";
-import SceneOne from "../../../../assets/unit2/FinalLevel/intro/sceneOne.png";
+import SceneOne from "../../../../assets/unit2/FinalLevel/intro/sceneOne.webp";
 import { FaLightbulb } from "react-icons/fa";
 
 export default function SceneOneIntro({

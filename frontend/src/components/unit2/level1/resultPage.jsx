@@ -4,10 +4,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import ConfettiExplosion from "react-confetti-explosion";
 
-import bgGame from "../../../assets/unit2/Level1/bgmarket.png";
+import bgGame from "../../../assets/unit2/Level1/bgmarket.webp";
 
-import GoalCelebration from "../../../assets/unit2/Level1/result/GoalCelebration.png";
-import SadExpression from "../../../assets/unit2/Level1/result/SadExpression.png";
+import GoalCelebration from "../../../assets/unit2/Level1/result/GoalCelebration.webp";
+import SadExpression from "../../../assets/unit2/Level1/result/SadExpression.webp";
 
 import bonusSound from "../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import gameOverSound from "../../../assets/sounds/BackgroundGame/GameOver.mp3";

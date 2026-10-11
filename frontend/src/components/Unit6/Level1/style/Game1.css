@@ -27,7 +27,7 @@
     gap: clamp(6px, 1.2vh, 14px);
     background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .05) 0 2px, transparent 2px 64px),
         linear-gradient(180deg, rgba(10, 18, 34, .55) 0%, rgba(6, 11, 22, .75) 55%, rgba(3, 6, 12, .92) 100%),
-        url("../../../../assets/unit6/school-bg.png") center / cover no-repeat fixed;
+        url("../../../../assets/unit6/school-bg.webp") center / cover no-repeat fixed;
     color: white;
 }
 

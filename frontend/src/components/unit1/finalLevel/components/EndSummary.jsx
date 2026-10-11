@@ -1,7 +1,7 @@
 import { BASE_URL } from "../../../../config";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Star from "../../../../assets/unit1/finalLevel/star.png";
+import Star from "../../../../assets/unit1/finalLevel/star.webp";
 
 import bonusSound from "../../../../assets/sounds/BackgroundGame/Bonus.mp3";
 import goodSound from "../../../../assets/sounds/BackgroundGame/Good.mp3";

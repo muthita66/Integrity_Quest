@@ -1,7 +1,7 @@
 import { IoMdSkipForward } from "react-icons/io";
 import { motion } from "framer-motion";
 import IntroDialog from "../../intro/IntroDialog";
-import SceneTwo from "../../../../assets/unit2/FinalLevel/intro/sceneTwo.png"
+import SceneTwo from "../../../../assets/unit2/FinalLevel/intro/sceneTwo.webp"
 import { FaLightbulb } from "react-icons/fa";
 
 const CHOICES = [

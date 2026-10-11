@@ -111,7 +111,7 @@
   aspect-ratio: 2 / 3;
   margin: 0 auto;
   padding: 150px 80px 170px;
-  background: url('../../../assets/unit6/golden-mirror.png') center / 100% 100% no-repeat;
+  background: url('../../../assets/unit6/golden-mirror.webp') center / 100% 100% no-repeat;
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -195,7 +195,7 @@
   width: 100%;
   max-width: 980px;
   aspect-ratio: 1672 / 941;
-  background-image: url('../../../assets/unit6/golden-mirror-wide.png');
+  background-image: url('../../../assets/unit6/golden-mirror-wide.webp');
   padding: 145px 190px 155px;
   justify-content: center;
 }
@@ -512,7 +512,7 @@
     max-width: 430px;
     height: auto;
     aspect-ratio: 2 / 3;
-    background-image: url('../../../assets/unit6/golden-mirror.png');
+    background-image: url('../../../assets/unit6/golden-mirror.webp');
   }
 
   .sm-root .sm-wide-scene .sm-q-tag {

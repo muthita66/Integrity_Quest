@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import "../../../styles/unit1/Level1/MirrorIntro.css";
 
-import bgMarket from "../../../assets/unit2/Level1/intro/bgmarket.png";
+import bgMarket from "../../../assets/unit2/Level1/intro/bgmarket.webp";
 
 import SceneOne from "./scenes/SceneOneIntro";
 import SceneTwo from "./scenes/SceneTwoIntro";

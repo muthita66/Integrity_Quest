@@ -6,16 +6,13 @@ import { useSound } from "../../../hooks/useSound";
 import useGameMuted from "../../../hooks/useGameMuted";
 import dialogueTypingSound from "../../../assets/sounds/Unit5/level2-dialogue-typing-clear.wav";
 import introMusic from "../../../assets/sounds/Unit5/level2-intro-documentary.mp3";
+import policeImg from "../../../assets/unit5/Police.webp";
+import mayorImg from "../../../assets/unit5/Mayor.webp";
+import policeBG from "../../../assets/unit5/office.webp";
+import cityBG from "../../../assets/unit5/hall.webp";
 
 export default function Level2Intro() {
     const navigate = useNavigate();
-
-    // ===== รูปภาพ (เปลี่ยน Path เอง) =====
-    const policeImg = "/src/assets/unit5/Police.png";
-    const mayorImg = "/src/assets/unit5/Mayor.png";
-
-    const policeBG = "/src/assets/unit5/office.png";
-    const cityBG = "/src/assets/unit5/hall.png";
 
     // ===== บทสนทนา =====
     const policeDialogue = [

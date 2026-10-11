@@ -5,10 +5,10 @@ import { useSound } from "../../../hooks/useSound";
 import keyboardSfx from "../../../assets/sounds/keyboard.mp3";
 import uiSoundSfx from "../../../assets/sounds/ui_sounds.mp3";
 
-import score1 from "../../../assets/unit1/level1/score1.png";
-import score2 from "../../../assets/unit1/level1/score2.png";
-import friend from "../../../assets/unit1/level1/friend.png";
-import QuizImg from "../../../assets/unit1/level1/QuizImg.png";
+import score1 from "../../../assets/unit1/level1/score1.webp";
+import score2 from "../../../assets/unit1/level1/score2.webp";
+import friend from "../../../assets/unit1/level1/friend.webp";
+import QuizImg from "../../../assets/unit1/level1/QuizImg.webp";
 
 import AnimationLayout from "./components/AnimationLayout";
 import ChoiceButtons from "./components/ChoiceButtons";

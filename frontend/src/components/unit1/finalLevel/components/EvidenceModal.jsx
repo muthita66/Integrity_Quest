@@ -1,4 +1,4 @@
-import Cross from "../../../../assets/unit1/finalLevel/case/cross.png";
+import Cross from "../../../../assets/unit1/finalLevel/case/cross.webp";
 import { TfiSave } from "react-icons/tfi";
 
 export default function EvidenceModal({

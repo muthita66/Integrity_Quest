@@ -7,9 +7,9 @@ import useBackgroundMusic from "../../../hooks/useBackgroundMusic";
 import useGameMuted from "../../../hooks/useGameMuted";
 import casinoAmbience from "../../../assets/sounds/Unit4/unit4-level2-casino-ambience.mp3";
 import useUnit4Chapter, { Unit4Checking } from "../useUnit4Chapter";
-import sceneOffice from "../../../assets/unit4/story-home.png";
-import sceneColleagues from "../../../assets/unit4/story-colleagues.png";
-import sceneInvite from "../../../assets/unit4/story-slot-invite.png";
+import sceneOffice from "../../../assets/unit4/story-home.webp";
+import sceneColleagues from "../../../assets/unit4/story-colleagues.webp";
+import sceneInvite from "../../../assets/unit4/story-slot-invite.webp";
 import "../../../styles/theme.css";
 import "./level2.css";
 

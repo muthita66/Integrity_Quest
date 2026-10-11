@@ -6,9 +6,9 @@ import keyboardSfx from "../../../assets/sounds/keyboard.mp3";
 import uiSoundSfx from "../../../assets/sounds/ui_sounds.mp3";
 import Notification from "../../../assets/sounds/notification.mp3";
 
-import QuizImg from "../../../assets/unit1/level1/QuizImg.png";
-import phone from "../../../assets/unit1/level1/exam1.png";
-import friend from "../../../assets/unit1/level1/exam2.png";
+import QuizImg from "../../../assets/unit1/level1/QuizImg.webp";
+import phone from "../../../assets/unit1/level1/exam1.webp";
+import friend from "../../../assets/unit1/level1/exam2.webp";
 
 import AnimationLayout from "./components/AnimationLayout";
 import ChoiceButtons from "./components/ChoiceButtons";

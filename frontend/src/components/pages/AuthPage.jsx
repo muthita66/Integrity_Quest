@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import bg_login from "../../assets/bg_login.png";
+import bg_login from "../../assets/bg_login.webp";
 import useAuth from "../hooks/useAuth";
 import Popup from "../../components/auth/Popup";
 import AuthHeader from "../../components/auth/AuthHeader";

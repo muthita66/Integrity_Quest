@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import "../../../../styles/unit1/Level1/button.css";
 
-import SceneMissionImg from "../../../../assets/unit1/level2/intro/sceneMission.png";
+import SceneMissionImg from "../../../../assets/unit1/level2/intro/sceneMission.webp";
 
 
 export default function SceneMission({

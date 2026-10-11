@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FaCheckCircle } from "react-icons/fa";
 
 import { getDailyQuests } from "../../services/profileService";
-import starIcon from "../../../assets/star.png";
+import starIcon from "../../../assets/star.webp";
 
 function DailyQuest() {
     const [quests, setQuests] = useState([]);

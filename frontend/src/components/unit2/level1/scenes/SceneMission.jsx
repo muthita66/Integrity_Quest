@@ -4,7 +4,7 @@ import { MdTimerOff } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 
 import "../../../../styles/unit1/Level1/button.css";
-import sceneMission from "../../../../assets/unit2/Level1/intro/sceneMission.png";
+import sceneMission from "../../../../assets/unit2/Level1/intro/sceneMission.webp";
 
 
 export default function SceneMission({

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
-import bgScene1 from "../../../../assets/unit3/level1/intro/bgScene1.png"
+import bgScene1 from "../../../../assets/unit3/level1/intro/bgScene1.webp"
 
 import { IoMdSkipForward } from "react-icons/io";
 

@@ -1,4 +1,4 @@
-import bgGame1 from "../../../assets/unit3/level1/bgGame1.png";
+import bgGame1 from "../../../assets/unit3/level1/bgGame1.webp";
 import bgMusic from "../../../assets/sounds/Unit3/Level1.mp3";
 
 import DocumentCard from "./components/DocumentCard";

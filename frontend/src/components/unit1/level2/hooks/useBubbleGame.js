@@ -6,8 +6,8 @@ import {
     useState,
 } from "react";
 
-import bubble1 from "../../../../assets/unit1/level2/bubble1.jpg";
-import bubble2 from "../../../../assets/unit1/level2/bubble2.jpg";
+import bubble1 from "../../../../assets/unit1/level2/bubble1.webp";
+import bubble2 from "../../../../assets/unit1/level2/bubble2.webp";
 import bubblePopSound from "../../../../assets/sounds/bubble_pop.mp3";
 
 import useParticles from "./useParticles";

@@ -2,8 +2,8 @@ import { BASE_URL } from "../../../config";
 import React, { useState, useEffect } from "react";
 import { FaLock, FaUnlock, FaTimes } from "react-icons/fa";
 import "../../../styles/unit2/button/level2/button.css";
-import Hint from "../../../assets/unit2/Level2/Hint/Hint.png";
-import Lock from "../../../assets/unit2/Level2/Hint/Lock.png";
+import Hint from "../../../assets/unit2/Level2/Hint/Hint.webp";
+import Lock from "../../../assets/unit2/Level2/Hint/Lock.webp";
 
 export default function HintMiniGameModal({ isOpen, onClose, questionId, hint }) {
     const [isUnlocked, setIsUnlocked] = useState(false);

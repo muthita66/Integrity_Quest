@@ -5,8 +5,8 @@ import { FaPlay, FaChevronRight } from "react-icons/fa";
 import BookLayout from "../BookLayout";
 import useButtonHoverSound from "../useButtonHoverSound";
 import { HINTS } from "./slips";
-import room from "../../../assets/unit4/investigation-room.png";
-import jane from "../../../assets/unit4/senior-detective.png";
+import room from "../../../assets/unit4/investigation-room.webp";
+import jane from "../../../assets/unit4/senior-detective.webp";
 import "../../../styles/theme.css";
 import "./level1.css";
 

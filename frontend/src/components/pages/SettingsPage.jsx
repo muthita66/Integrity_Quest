@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiArrowLeft, FiUser, FiMail, FiLock } from "react-icons/fi";
 
-import bg_login from "../../assets/bg_login.png";
+import bg_login from "../../assets/bg_login.webp";
 
 import Popup from "../auth/Popup";
 import FormInput from "../auth/FormInput";

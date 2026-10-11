@@ -8,8 +8,8 @@ import { useSound } from "../../../hooks/useSound";
 import messageNotification from "../../../assets/sounds/Unit5/level1-message-notification.mp3";
 import policeAtmosphere from "../../../assets/sounds/Unit5/level1-police-station-atmosphere.mp3";
 
-import officeBg from "../../../assets/unit5/office.png";
-import heroChar from "../../../assets/unit5/hero.png";
+import officeBg from "../../../assets/unit5/office.webp";
+import heroChar from "../../../assets/unit5/hero.webp";
 
 export default function IntroScene() {
     const [muted] = useGameMuted();

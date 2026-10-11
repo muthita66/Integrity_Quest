@@ -1,4 +1,4 @@
-import bgGameLevel1 from "../../../../assets/unit3/level1/bgGameLevel1.png";
+import bgGameLevel1 from "../../../../assets/unit3/level1/bgGameLevel1.webp";
 
 export default function GameBoard({ children }) {
     return (

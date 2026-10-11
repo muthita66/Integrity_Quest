@@ -4,7 +4,7 @@ import React, {
     useState,
 } from "react";
 
-import bgGame from "../../assets/bg_game.png";
+import bgGame from "../../assets/bg_game.webp";
 
 import {
     useParams,

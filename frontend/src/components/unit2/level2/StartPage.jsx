@@ -3,8 +3,8 @@ import { FaLightbulb } from "react-icons/fa";
 import { LuAlarmClock } from "react-icons/lu";
 import { IoIosStar } from "react-icons/io";
 import { MdTask } from "react-icons/md";
-import bgGame from "../../../assets/bg_game.png";
-import bgMission from "../../../assets/unit2/bgLevel2.png"
+import bgGame from "../../../assets/bg_game.webp";
+import bgMission from "../../../assets/unit2/bgLevel2.webp"
 
 export default function StartPage({ setIsStarted }) {
     return (

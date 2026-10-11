@@ -1,7 +1,7 @@
 import IntroDialog from "./IntroDialog";
 import { IoMdSkipForward } from "react-icons/io";
 
-import SceneTwoImg from "../../../../assets/unit1/level2/intro/scene2.png";
+import SceneTwoImg from "../../../../assets/unit1/level2/intro/scene2.webp";
 
 export default function SceneTwo({
     scene,

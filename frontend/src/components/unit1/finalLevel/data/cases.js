@@ -1,8 +1,8 @@
-import BgCase1 from "../../../../assets/unit1/finalLevel/bgCase1.png";
-import BgCase2 from "../../../../assets/unit1/finalLevel/bgCase2.png";
-import BgCase3 from "../../../../assets/unit1/finalLevel/bgCase3.png";
-import BgCase4 from "../../../../assets/unit1/finalLevel/bgCase4.png";
-import BgCase5 from "../../../../assets/unit1/finalLevel/bgCase5.png";
+import BgCase1 from "../../../../assets/unit1/finalLevel/bgCase1.webp";
+import BgCase2 from "../../../../assets/unit1/finalLevel/bgCase2.webp";
+import BgCase3 from "../../../../assets/unit1/finalLevel/bgCase3.webp";
+import BgCase4 from "../../../../assets/unit1/finalLevel/bgCase4.webp";
+import BgCase5 from "../../../../assets/unit1/finalLevel/bgCase5.webp";
 
 export const CASES = [
     { id: 1, background: BgCase1 },
