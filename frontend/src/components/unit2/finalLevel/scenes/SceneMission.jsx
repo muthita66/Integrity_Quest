@@ -23,7 +23,7 @@ export default function SceneMission({
 
     useEffect(() => {
         if (!scene) {
-            fetch(`${BASE_URL}/api/introDialog/level/7`)
+            fetch(`${BASE_URL}/api/introDialog/level/7`, { cache: "no-store" })
                 .then((res) => res.json())
                 .then((data) => {
                     // หา scene ที่มี sceneMission (scene_type_id = 2)

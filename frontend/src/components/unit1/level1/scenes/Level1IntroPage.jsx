@@ -1,5 +1,5 @@
 import { BASE_URL } from "../../../../config";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import "../../../../styles/unit1/Level1/MirrorIntro.css";
@@ -46,7 +46,8 @@ export default function Level1IntroPage() {
                 setLoading(true);
 
                 const response = await fetch(
-                    `${BASE_URL}/api/introDialog/level/1`
+                    `${BASE_URL}/api/introDialog/level/1`,
+                    { cache: "no-store" }
                 );
 
                 if (!response.ok) {
@@ -70,22 +71,6 @@ export default function Level1IntroPage() {
 
     const handleInitialClick = () => {
         if (!hasStarted) {
-            textAudioRef.current
-                .play()
-                .then(() => {
-                    textAudioRef.current.pause();
-                    textAudioRef.current.currentTime = 0;
-                })
-                .catch(() => { });
-
-            uiSoundSfxAudioRef.current
-                .play()
-                .then(() => {
-                    uiSoundSfxAudioRef.current.pause();
-                    uiSoundSfxAudioRef.current.currentTime = 0;
-                })
-                .catch(() => { });
-
             setHasStarted(true);
         }
     };

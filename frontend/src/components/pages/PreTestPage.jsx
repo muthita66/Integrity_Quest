@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import bg_game from "../../assets/bg_game.png";
 import { useNavigate } from "react-router-dom";
 
-// TODO: ถ้ามี env ของ backend URL อยู่แล้ว (เช่น VITE_API_URL) ให้ใช้ตัวนั้นแทน
-const API_BASE = import.meta.env.VITE_API_URL || `${BASE_URL}/api`;
+const API_BASE = `${BASE_URL}/api`;
 const QUIZ_TYPE = "pre_test";
 
 function PreTest() {

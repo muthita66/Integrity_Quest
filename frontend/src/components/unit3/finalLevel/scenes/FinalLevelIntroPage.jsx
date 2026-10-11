@@ -52,7 +52,8 @@ export default function FinalLevelIntroPage() {
         const fetchScenes = async () => {
             try {
                 const response = await fetch(
-                    `${BASE_URL}/api/introDialog/level/10`
+                    `${BASE_URL}/api/introDialog/level/10`,
+                    { cache: "no-store" }
                 );
 
                 if (!response.ok) {
