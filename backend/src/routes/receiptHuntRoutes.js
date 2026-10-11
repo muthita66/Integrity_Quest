@@ -3,12 +3,16 @@ const router = express.Router();
 
 const receiptHuntController = require("../controllers/receiptHuntController");
 const { syncLevelResult } = require("../controllers/levelSyncController");
+const authMiddleware = require("../../middleware/authMiddleware");
+const requirePlayOwner = require("../../middleware/requirePlayOwner");
 
 // ================= Unit 3 Level 1 : Receipt Hunt =================
 
 // เริ่มเกม Receipt Hunt
 router.post(
     "/start/:playId",
+    authMiddleware,
+    requirePlayOwner,
     async (req, res) => {
         try {
             const { playId } = req.params;
@@ -45,6 +49,8 @@ router.post(
 // เลือก Receipt
 router.post(
     "/select",
+    authMiddleware,
+    requirePlayOwner,
     async (req, res) => {
         try {
             const {
@@ -87,6 +93,8 @@ router.post(
 // จบเกม Receipt Hunt
 router.post(
     "/complete",
+    authMiddleware,
+    requirePlayOwner,
     async (req, res) => {
         try {
             const { play_id } = req.body;
