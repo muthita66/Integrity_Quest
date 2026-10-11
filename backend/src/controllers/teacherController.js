@@ -2,6 +2,8 @@ const prisma = require("../lib/prisma");
 const gamePlayService = require("../services/gamePlayService");
 const { buildOverview } = require("./profileController");
 const PASSED_STATUSES = ["PASS", "PERFECT"];
+// สถานะใน game_play_history ที่ถือว่ายังไม่ผ่านด่าน
+const FAILED_PLAY_STATUSES = ["FAIL", "FAILED", "IN_PROGRESS"];
 const STUDENT_ROLE_ID = 1;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -165,6 +167,7 @@ exports.getDashboard = async (req, res) => {
             timeSpent,
             quizzes,
             quizAnswers,
+            finishedPlays,
         ] = await Promise.all([
             prisma.users.findMany({
                 where: { id: { in: userIds }, role_id: STUDENT_ROLE_ID },
@@ -187,7 +190,7 @@ exports.getDashboard = async (req, res) => {
                     user_id: { in: userIds },
                     status: { in: PASSED_STATUSES },
                 },
-                select: { user_id: true, level_id: true },
+                select: { user_id: true, level_id: true, completed_at: true },
             }),
             prisma.game_play_history.groupBy({
                 by: ["user_id"],
@@ -214,6 +217,11 @@ exports.getDashboard = async (req, res) => {
                 where: { user_id: { in: userIds } },
                 select: { user_id: true, quiz_id: true, score_given: true },
             }),
+            // ใช้คิดเวลาที่เล่นจนจบครบทุกด่าน
+            prisma.game_play_history.findMany({
+                where: { user_id: { in: userIds }, completed_at: { not: null } },
+                select: { user_id: true, level_id: true, status: true, started_at: true, completed_at: true },
+            }),
         ]);
 
         const userById = new Map(users.map((u) => [u.id, u]));
@@ -230,6 +238,39 @@ exports.getDashboard = async (req, res) => {
             }
             passedByUser.get(row.user_id).add(row.level_id);
         });
+
+        // เวลาที่ผ่านแต่ละด่านครั้งแรก = ค่าที่เร็วกว่าระหว่าง
+        // - รอบแรกที่ไม่ตกใน game_play_history (บางเกมไม่ได้บันทึกทุกรอบ)
+        // - user_level_progress.completed_at (บางเกมเขียนทับทุกครั้งที่เล่นซ้ำ)
+        const firstPassAt = new Map(); // "userId:levelId" -> Date
+        finishedPlays.forEach((play) => {
+            if (FAILED_PLAY_STATUSES.includes(play.status)) return;
+            const key = `${play.user_id}:${play.level_id}`;
+            const prev = firstPassAt.get(key);
+            if (!prev || play.completed_at < prev) firstPassAt.set(key, play.completed_at);
+        });
+
+        // เวลาเล่นจนจบครบทุกด่าน
+        // finishedAt = ตอนที่ผ่านด่านสุดท้าย (นับแต่ละด่านตอนผ่านครั้งแรก)
+        // minutes    = รวมเวลาทุกรอบที่เล่น (รวมรอบที่ตก) จนถึง finishedAt
+        const getFinish = (userId) => {
+            const finishedAt = passedRows
+                .filter((row) => row.user_id === userId)
+                .map((row) =>
+                    [firstPassAt.get(`${userId}:${row.level_id}`), row.completed_at]
+                        .filter(Boolean)
+                        .reduce((min, d) => (!min || d < min ? d : min), null)
+                )
+                .filter(Boolean)
+                .reduce((max, d) => (!max || d > max ? d : max), null);
+            if (!finishedAt) return { minutes: null, finishedAt: null };
+
+            const ms = finishedPlays
+                .filter((play) => play.user_id === userId && play.completed_at <= finishedAt)
+                .reduce((sum, play) => sum + Math.max(0, play.completed_at - play.started_at), 0);
+
+            return { minutes: Math.round(ms / 60000), finishedAt };
+        };
 
         // Level ของแต่ละบท (ใช้คิด % ภาพรวมแบบเดียวกับหน้า Progress)
         const levelsByUnit = new Map(
@@ -322,6 +363,10 @@ exports.getDashboard = async (req, res) => {
                 else if ((play?._count._all || 0) > 0) status = "playing";
                 else status = "not_started";
 
+                const finish = status === "completed"
+                    ? getFinish(student.user_id)
+                    : { minutes: null, finishedAt: null };
+
                 return {
                     user_id: student.user_id,
                     username: user.username,
@@ -347,6 +392,8 @@ exports.getDashboard = async (req, res) => {
                     last_active_at: lastActiveAt,     // เวลาเต็ม (ถ้ามี)
                     pre_test: preTest,
                     post_test: postTest,
+                    finish_minutes: finish.minutes,
+                    finished_at: finish.finishedAt,
                     status,
                 };
             })

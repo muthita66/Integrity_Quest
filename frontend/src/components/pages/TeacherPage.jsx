@@ -56,8 +56,18 @@ const COLUMNS = [
     { key: "pre_test", label: "Pre", align: "right" },
     { key: "post_test", label: "Post", align: "right" },
     { key: "time_spent", label: "เวลาใช้งาน", align: "right" },
+    { key: "finish_minutes", label: "เวลาเล่นจบ", align: "right" },
     { key: "last_active", label: "ใช้งานล่าสุด", align: "right" },
 ];
+
+// ตัวกรองเพิ่มเติมในช่อง "ทุกสถานะ" (ไม่ใช่สถานะของนิสิต จึงไม่อยู่ใน STATUS)
+const NO_POSTTEST_FILTER = "no_posttest";
+
+// ตัวกรองความเร็วในการเล่นจบ: เหลือเฉพาะคนที่เล่นครบแล้ว และเรียงตามเวลาเล่นจบ
+const SPEED_FILTERS = {
+    fastest: { label: "จบเร็วที่สุด", dir: "asc" },
+    slowest: { label: "จบช้าที่สุด", dir: "desc" },
+};
 
 // +1 = คอลัมน์ "จัดการ" (ปุ่มลบ) ท้ายตาราง ซึ่งไม่อยู่ใน COLUMNS เพราะเรียงไม่ได้
 const TABLE_COLSPAN = COLUMNS.length + 1;
@@ -114,14 +124,14 @@ const exportCsv = (rows) => {
     const header = [
         "username", "ชื่อ", "นามสกุล", "email", "คณะ", "สาขา", "ชั้นปี",
         "สถานะ", "Progress(%)", "ด่านที่ผ่าน", "IP", "Streak",
-        "Pre-Test(%)", "Post-Test(%)", "จำนวนครั้งที่เล่น", "เวลาใช้งาน(นาที)", "ใช้งานล่าสุด",
+        "Pre-Test(%)", "Post-Test(%)", "จำนวนครั้งที่เล่น", "เวลาใช้งาน(นาที)", "เวลาเล่นจบ(นาที)", "ใช้งานล่าสุด",
     ];
 
     const lines = rows.map((r) => [
         r.username, r.first_name, r.last_name, r.email, r.faculty_name, r.major_name, r.year,
         STATUS[r.status]?.label, r.progress, `${r.passed_levels}/${r.total_levels}`,
         r.integrity_points, r.streak, r.pre_test ?? "", r.post_test ?? "",
-        r.plays, r.time_spent,
+        r.plays, r.time_spent, r.finish_minutes ?? "",
         r.last_active_at ? new Date(r.last_active_at).toLocaleString("th-TH") : r.last_active ?? "",
     ]);
 
@@ -988,6 +998,7 @@ export default function TeacherPage() {
 
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
+    const [speedFilter, setSpeedFilter] = useState("");
     const [sort, setSort] = useState({ key: "integrity_points", dir: "desc" });
 
     // แถวที่เปิดดูรายละเอียด + cache ข้อมูลที่โหลดแล้ว
@@ -1180,11 +1191,21 @@ export default function TeacherPage() {
     // กรอง + เรียง
     // --------------------------------------------------------
 
+    const activeSort = speedFilter
+        ? { key: "finish_minutes", dir: SPEED_FILTERS[speedFilter].dir }
+        : sort;
+
     const visibleRows = useMemo(() => {
         const keyword = search.trim().toLowerCase();
 
         const filtered = students.filter((s) => {
-            if (statusFilter && s.status !== statusFilter) return false;
+            if (statusFilter === NO_POSTTEST_FILTER) {
+                if (s.post_test !== null) return false;
+            } else if (statusFilter && s.status !== statusFilter) {
+                return false;
+            }
+
+            if (speedFilter && s.finish_minutes === null) return false;
 
             if (keyword) {
                 const text = `${fullName(s)} ${s.username} ${s.email}`.toLowerCase();
@@ -1195,7 +1216,7 @@ export default function TeacherPage() {
         });
 
         const getValue = (row) =>
-            sort.key === "name" ? fullName(row) : row[sort.key];
+            activeSort.key === "name" ? fullName(row) : row[activeSort.key];
 
         return filtered.sort((a, b) => {
             const va = getValue(a);
@@ -1210,16 +1231,19 @@ export default function TeacherPage() {
                     ? va - vb
                     : String(va).localeCompare(String(vb), "th");
 
-            return sort.dir === "asc" ? result : -result;
+            return activeSort.dir === "asc" ? result : -result;
         });
-    }, [students, search, statusFilter, sort]);
+    }, [students, search, statusFilter, speedFilter, activeSort.key, activeSort.dir]);
 
-    const toggleSort = (key) =>
+    const toggleSort = (key) => {
+        // กดหัวคอลัมน์ = เลิกใช้ตัวกรองความเร็ว แล้วเรียงตามคอลัมน์นั้นแทน
+        setSpeedFilter("");
         setSort((prev) =>
             prev.key === key
                 ? { key, dir: prev.dir === "asc" ? "desc" : "asc" }
                 : { key, dir: key === "name" || key === "major_name" ? "asc" : "desc" }
         );
+    };
 
     // --------------------------------------------------------
     // Logout
@@ -1614,6 +1638,18 @@ export default function TeacherPage() {
                                     {Object.entries(STATUS).map(([key, s]) => (
                                         <option key={key} value={key}>{s.label}</option>
                                     ))}
+                                    <option value={NO_POSTTEST_FILTER}>ยังไม่ได้ทำ Post-test</option>
+                                </select>
+
+                                <select
+                                    value={speedFilter}
+                                    onChange={(e) => setSpeedFilter(e.target.value)}
+                                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                                >
+                                    <option value="">ความเร็วในการเล่นจบ</option>
+                                    {Object.entries(SPEED_FILTERS).map(([key, f]) => (
+                                        <option key={key} value={key}>{f.label}</option>
+                                    ))}
                                 </select>
 
                                 <button
@@ -1639,8 +1675,8 @@ export default function TeacherPage() {
                                                 >
                                                     <span className="inline-flex items-center gap-1">
                                                         {col.label}
-                                                        {sort.key === col.key &&
-                                                            (sort.dir === "asc" ? <FiChevronUp /> : <FiChevronDown />)}
+                                                        {activeSort.key === col.key &&
+                                                            (activeSort.dir === "asc" ? <FiChevronUp /> : <FiChevronDown />)}
                                                     </span>
                                                 </th>
                                             ))}
@@ -1720,6 +1756,9 @@ export default function TeacherPage() {
                                                         <td className="px-4 py-3 text-right text-gray-600">{percentText(s.pre_test)}</td>
                                                         <td className="px-4 py-3 text-right text-gray-600">{percentText(s.post_test)}</td>
                                                         <td className="whitespace-nowrap px-4 py-3 text-right text-gray-600">{formatMinutes(s.time_spent)}</td>
+                                                        <td className="whitespace-nowrap px-4 py-3 text-right text-gray-600">
+                                                            {s.finish_minutes === null ? "-" : s.finish_minutes === 0 ? "< 1 น." : formatMinutes(s.finish_minutes)}
+                                                        </td>
                                                         <td className="whitespace-nowrap px-4 py-3 text-right text-gray-600">
                                                             <p>{formatDate(s.last_active)}</p>
                                                             {s.last_active_at && (

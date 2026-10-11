@@ -279,7 +279,7 @@ const todayInBangkok = () =>
 const toDateKey = (date) =>
     date ? new Date(date).toISOString().slice(0, 10) : null;
 
-const STREAK_REWARD_EVERY = 3;
+const STREAK_REWARD_EVERY = 2;
 const STREAK_REWARD_IP = 500;
 
 const updateLoginStreak = async (userId) => {
@@ -346,7 +346,7 @@ const updateLoginStreak = async (userId) => {
         },
     });
 
-    // justEarned          = เพิ่งได้รางวัลตอน Login ครั้งนี้ (ครั้งแรกของวันที่ครบ 7)
+    // justEarned          = เพิ่งได้รางวัลตอน Login ครั้งนี้ (ครั้งแรกของวันที่ streak ครบรอบ STREAK_REWARD_EVERY วัน)
     // alreadyClaimedToday = วันนี้ได้รับไปแล้ว (Login ซ้ำรอบ 2+ ในวันเดียวกัน)
     // stars               = จำนวนดาวสะสมทั้งหมด (นับรวมดวงที่เพิ่งได้ในครั้งนี้ด้วย)
     const streakReward = {
