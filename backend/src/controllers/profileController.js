@@ -133,7 +133,7 @@ const getDisplayStreak = (stats) => {
     return diffDays <= 1 ? stats.current_streak : 0;
 };
 
-// รวมข้อมูลโปรไฟล์ให้อยู่ในรูปแบบเดียวกันทั้งนักเรียน/อาจารย์
+// รวมข้อมูลโปรไฟล์ให้อยู่ในรูปแบบเดียวกันทั้งนิสิต/อาจารย์
 const buildProfile = async (userId) => {
     const user = await prisma.users.findUnique({
         where: { id: userId },

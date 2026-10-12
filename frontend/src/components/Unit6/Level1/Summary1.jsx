@@ -28,7 +28,7 @@ export default function SummaryScreen(props) {
                 <div className="rank-shield">{rank}</div>
                 <div className="rank-text">{rankText}</div>
             </div>
-            <p>{studentsSafe ? "นักเรียนปลอดภัย" : "นักเรียนบางส่วนไม่ปลอดภัย"} — {flavor}</p>
+            <p>{studentsSafe ? "นิสิตปลอดภัย" : "นิสิตบางส่วนไม่ปลอดภัย"} — {flavor}</p>
             <button onClick={onRestart}>เล่นใหม่</button>
             <button onClick={() => navigate('/unit6/game2')}>ด่านถัดไป</button>
         </div>

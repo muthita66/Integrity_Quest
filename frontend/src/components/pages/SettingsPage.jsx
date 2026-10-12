@@ -95,7 +95,7 @@ export default function SettingsPage() {
     const isTeacher = form?.role === "teacher";
     const theme = getRoleTheme(form?.role);
 
-    // สาขา (นักเรียน) ของคณะที่เลือก
+    // สาขา (นิสิต) ของคณะที่เลือก
     const majors = useMemo(() => {
         const faculty = faculties.find(
             (f) => String(f.faculty_id) === String(form?.faculty)

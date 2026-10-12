@@ -34,7 +34,7 @@ const average = (values) => {
 
 const normalizedGain = (pre, post) => {
     if (pre === null || post === null) return null;
-    if (pre >= 100) return post >= 100 ? 0 : null; // ไม่เหลือช่องว่างให้พัฒนาแล้ว
+    if (pre >= 100) return post >= 100 ? 0 : null; 
     return (post - pre) / (100 - pre);
 };
 

@@ -56,7 +56,7 @@ export default function AddGroupModal({ faculties, onClose, onAdded }) {
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-gray-800">เพิ่มกลุ่มนักเรียน</h3>
+                    <h3 className="text-lg font-bold text-gray-800">เพิ่มกลุ่มนิสิต</h3>
                     <button
                         type="button"
                         onClick={onClose}

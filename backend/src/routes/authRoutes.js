@@ -11,7 +11,7 @@ const {
 
 const authenticateToken = require("../../middleware/authMiddleware");
 
-// Register (นักเรียน / อาจารย์)
+// Register (นิสิต / อาจารย์)
 router.post("/register", register);
 
 // Login

@@ -19,7 +19,7 @@ export const getRoleTheme = (role) =>
     ROLE_THEME[role] || ROLE_THEME.student;
 
 const OPTIONS = [
-    { value: "student", label: "นักเรียน", icon: FiBookOpen },
+    { value: "student", label: "นิสิต", icon: FiBookOpen },
     { value: "teacher", label: "อาจารย์", icon: FiUsers },
 ];
 

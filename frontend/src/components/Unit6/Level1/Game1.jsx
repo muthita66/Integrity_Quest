@@ -66,7 +66,7 @@ const CHOICE_ICONS = {
 };
 
 const RANK_INFO = {
-    S: { rankText: "ยอดเยี่ยม", flavor: "คุณคือ Integrity Ambassador ตัวจริง นักเรียนทุกคนปลอดภัย" },
+    S: { rankText: "ยอดเยี่ยม", flavor: "คุณคือ Integrity Ambassador ตัวจริง นิสิตทุกคนปลอดภัย" },
     A: { rankText: "ดีมาก", flavor: "คุณจัดการวิกฤตได้อย่างมีสติและทันเวลา" },
     B: { rankText: "ดี", flavor: "ยังพลาดไปบ้าง แต่ช่วยเหลือได้หลายเหตุการณ์" },
     C: { rankText: "พอใช้", flavor: "ควรตัดสินใจให้เร็วและเหมาะสมกว่านี้" },
@@ -482,7 +482,7 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
                         </p>
                         <div className="intro-goals">
                             <div className="intro-goal"><FaHeart /> Integrity ≥ 80</div>
-                            <div className="intro-goal"><FaUserFriends /> นักเรียนปลอดภัย</div>
+                            <div className="intro-goal"><FaUserFriends /> นิสิตปลอดภัย</div>
                         </div>
                         <button className="intro-start" onClick={startGame} disabled={starting}>
                             {starting ? "กำลังเตรียมภารกิจ..." : "เริ่มภารกิจ"}
@@ -622,7 +622,7 @@ export default function CrisisResponse({ nextRoute = "/unit6/game2" }) {
                         </div>
 
                         <p className="summary-flavor">
-                            {studentsSafe ? "✅ นักเรียนปลอดภัย" : "⚠️ นักเรียนบางส่วนไม่ปลอดภัย"} — {flavor}
+                            {studentsSafe ? "✅ นิสิตปลอดภัย" : "⚠️ นิสิตบางส่วนไม่ปลอดภัย"} — {flavor}
                         </p>
 
                         <p className="summary-flavor" style={{ color: "#c8102e", fontWeight: 800, fontSize: 18 }}>

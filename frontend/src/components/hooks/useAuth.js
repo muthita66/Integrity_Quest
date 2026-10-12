@@ -19,7 +19,7 @@ const initialRegisterData = {
     gender: "",
     faculty: "",
 
-    // นักเรียน
+    // นิสิต
     age: "",
     major: "",
     year: "",
@@ -28,7 +28,7 @@ const initialRegisterData = {
     department: "",
     position: "",
     inviteCode: "",
-    studentGroups: [], // กลุ่มนักเรียนที่ดูแล: [{ faculty, major, year, note }]
+    studentGroups: [], // กลุ่มนิสิตที่ดูแล: [{ faculty, major, year, note }]
 };
 
 export default function useAuth() {
@@ -112,7 +112,7 @@ export default function useAuth() {
         }));
     };
 
-    // อัปเดตรายการกลุ่มนักเรียนที่อาจารย์ดูแล (เรียกจาก RegisterForm/StudentGroupsEditor)
+    // อัปเดตรายการกลุ่มนิสิตที่อาจารย์ดูแล (เรียกจาก RegisterForm/StudentGroupsEditor)
     const updateStudentGroups = (groups) => {
         setRegisterData((prev) => ({ ...prev, studentGroups: groups }));
     };
@@ -159,7 +159,7 @@ export default function useAuth() {
         }
 
         if (role === "teacher" && (registerData.studentGroups || []).length === 0) {
-            showPopup("error", "กรุณาเพิ่มอย่างน้อย 1 กลุ่มนักเรียนที่จะดูแล");
+            showPopup("error", "กรุณาเพิ่มอย่างน้อย 1 กลุ่มนิสิตที่จะดูแล");
             return;
         }
 

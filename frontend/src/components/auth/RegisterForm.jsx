@@ -6,7 +6,7 @@ import FormSelect from "./FormSelect";
 import AuthButton from "./AuthButton";
 import RoleToggle, { getRoleTheme } from "./RoleToggle";
 
-// กลุ่มนักเรียนเปล่า 1 แถว (ใช้ตอนกด "+ เพิ่มกลุ่ม")
+// กลุ่มนิสิตเปล่า 1 แถว (ใช้ตอนกด "+ เพิ่มกลุ่ม")
 const emptyGroup = () => ({
     key: `${Date.now()}-${Math.random()}`,
     faculty: "",
@@ -16,7 +16,7 @@ const emptyGroup = () => ({
 });
 
 // ============================================================
-// ขั้นที่ 2 (เฉพาะอาจารย์): เลือกกลุ่มนักเรียนที่จะดูแล/เห็นข้อมูล
+// ขั้นที่ 2 (เฉพาะอาจารย์): เลือกกลุ่มนิสิตที่จะดูแล/เห็นข้อมูล
 // ------------------------------------------------------------
 // อาจารย์ 1 คน เพิ่มได้หลายกลุ่ม แต่ละกลุ่มเลือก คณะ/สาขา/ชั้นปี
 // ได้ "ค่าเดียวต่อช่อง" (เว้นว่าง = ทุกค่าของช่องนั้น) + รายละเอียด
@@ -180,7 +180,7 @@ export default function RegisterForm({
     const isTeacher = role === "teacher";
     const theme = getRoleTheme(role);
 
-    // ขั้นที่ 1 = กรอกข้อมูลบัญชี, ขั้นที่ 2 = เลือกกลุ่มนักเรียนที่ดูแล (อาจารย์เท่านั้น)
+    // ขั้นที่ 1 = กรอกข้อมูลบัญชี, ขั้นที่ 2 = เลือกกลุ่มนิสิตที่ดูแล (อาจารย์เท่านั้น)
     const [step, setStep] = useState(1);
 
     // สลับ student <-> teacher ระหว่างกรอกฟอร์ม ให้กลับไปขั้นที่ 1 เสมอ
@@ -224,14 +224,14 @@ export default function RegisterForm({
 
     return (
         <form onSubmit={handleRegisterSubmit} className="space-y-5">
-            {/* ROLE (ซ่อนตอนอยู่ขั้นเลือกกลุ่มนักเรียน กันสลับ role กลางคัน) */}
+            {/* ROLE (ซ่อนตอนอยู่ขั้นเลือกกลุ่มนิสิต กันสลับ role กลางคัน) */}
             {!showGroupsStep && <RoleToggle role={role} setRole={setRole} />}
 
             {showGroupsStep ? (
                 <>
                     <div>
                         <h3 className="text-base font-bold text-gray-800">
-                            กลุ่มนักเรียนที่ดูแล
+                            กลุ่มนิสิตที่ดูแล
                         </h3>
                         <p className="mt-0.5 text-xs text-gray-500">
                             เลือกคณะ / สาขา / ชั้นปีของนิสิตที่คุณจะดูแลและเห็นข้อมูล
@@ -299,7 +299,7 @@ export default function RegisterForm({
                             )}
                     </div>
 
-                    {/* RIGHT : ข้อมูลเฉพาะนักเรียน / อาจารย์ */}
+                    {/* RIGHT : ข้อมูลเฉพาะนิสิต / อาจารย์ */}
                     <div className="space-y-4">
                         <FormSelect {...field("gender")}>
                             <option value="">เพศ</option>
@@ -399,7 +399,7 @@ export default function RegisterForm({
                 </div>
             )}
 
-            {/* ปุ่มล่าง: อาจารย์ = ถัดไป/ย้อนกลับ + Sign Up, นักเรียน = Sign Up อย่างเดียว */}
+            {/* ปุ่มล่าง: อาจารย์ = ถัดไป/ย้อนกลับ + Sign Up, นิสิต = Sign Up อย่างเดียว */}
             {isTeacher && !showGroupsStep && (
                 <AuthButton
                     type="button"

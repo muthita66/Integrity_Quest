@@ -94,7 +94,7 @@ exports.register = async (req, res) => {
             department,
             position,
             inviteCode,
-            studentGroups, // [{ faculty, major, year, note }] กลุ่มนักเรียนที่ดูแล
+            studentGroups, // [{ faculty, major, year, note }] กลุ่มนิสิตที่ดูแล
         } = req.body;
 
         if (role !== ROLE.STUDENT && role !== ROLE.TEACHER) {
@@ -167,7 +167,7 @@ exports.register = async (req, res) => {
 
             if (validGroups.length === 0) {
                 return res.status(400).json({
-                    message: "กรุณาเพิ่มอย่างน้อย 1 กลุ่มนักเรียนที่จะดูแล",
+                    message: "กรุณาเพิ่มอย่างน้อย 1 กลุ่มนิสิตที่จะดูแล",
                 });
             }
 
@@ -397,7 +397,7 @@ exports.login = async (req, res) => {
                 message:
                     userRole === ROLE.TEACHER
                         ? "บัญชีนี้เป็นบัญชีอาจารย์ กรุณาเลือก 'อาจารย์'"
-                        : "บัญชีนี้เป็นบัญชีนักเรียน กรุณาเลือก 'นักเรียน'",
+                        : "บัญชีนี้เป็นบัญชีนิสิต กรุณาเลือก 'นิสิต'",
             });
         }
 

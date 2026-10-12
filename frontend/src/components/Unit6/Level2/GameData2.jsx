@@ -3,7 +3,7 @@ export const START_ID = "student";
 export const GOAL_ID = "court";
 
 export const NODES = [
-    { id: "student", label: "นักเรียน", icon: "🧑‍🎓", x: 768, y: 150 },
+    { id: "student", label: "นิสิต", icon: "🧑‍🎓", x: 768, y: 150 },
 
     { id: "parent", label: "ผู้ปกครอง", icon: "👨‍👩‍👧", x: 533, y: 226 },
     { id: "teacher", label: "คุณครู", icon: "👩‍🏫", x: 1003, y: 226 },

@@ -20,10 +20,10 @@ router.use(authenticateToken, requireTeacher);
 // GET /api/teacher/dashboard?scope=all|group:<group_id>
 router.get("/dashboard", getDashboard);
 
-// POST /api/teacher/groups (เพิ่มกลุ่มนักเรียนที่ดูแล — ปุ่ม "+ เพิ่มกลุ่ม")
+// POST /api/teacher/groups (เพิ่มกลุ่มนิสิตที่ดูแล — ปุ่ม "+ เพิ่มกลุ่ม")
 router.post("/groups", addGroup);
 
-// DELETE /api/teacher/groups/:id (ลบกลุ่มนักเรียนที่ดูแล — ปุ่มสามจุด → "ลบกลุ่มนี้")
+// DELETE /api/teacher/groups/:id (ลบกลุ่มนิสิตที่ดูแล — ปุ่มสามจุด → "ลบกลุ่มนี้")
 router.delete("/groups/:id", deleteGroup);
 
 // GET /api/teacher/students/:id/progress (รายละเอียดรายบท/รายด่าน)
