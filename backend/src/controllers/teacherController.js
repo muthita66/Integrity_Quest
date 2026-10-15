@@ -7,7 +7,8 @@ const FAILED_PLAY_STATUSES = ["FAIL", "FAILED", "IN_PROGRESS"];
 const STUDENT_ROLE_ID = 1;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const REVERSE_KEYWORDS = ["ตามอารมณ์", "โดยไม่จำเป็น"];
+// ข้อคำถามเชิงลบ (Reverse Item): ข้อ 2, 4, 6 และ 9
+const REVERSE_KEYWORDS = ["ครั้งเดียวเอง", "ตามอารมณ์", "ยืมเงินกลุ่ม", "สินบน"];
 
 const isReverseItem = (questionText = "") =>
     REVERSE_KEYWORDS.some((word) => questionText.includes(word));
@@ -26,10 +27,24 @@ const toBangkokKey = (date) =>
 const daysBetween = (fromKey, toKey) =>
     Math.round((Date.parse(toKey) - Date.parse(fromKey)) / DAY_MS);
 
-const average = (values) => {
+const averageRaw = (values) => {
     const list = values.filter((v) => typeof v === "number");
     if (list.length === 0) return null;
-    return Math.round(list.reduce((sum, v) => sum + v, 0) / list.length);
+    return list.reduce((sum, v) => sum + v, 0) / list.length;
+};
+
+// S.D. แบบกลุ่มตัวอย่าง (หารด้วย n − 1) ให้ตรงกับ SPSS
+const sampleSD = (values) => {
+    const list = values.filter((v) => typeof v === "number");
+    if (list.length < 2) return null;
+    const mean = averageRaw(list);
+    const sumSq = list.reduce((sum, v) => sum + (v - mean) ** 2, 0);
+    return Math.sqrt(sumSq / (list.length - 1));
+};
+
+const average = (values) => {
+    const avg = averageRaw(values);
+    return avg === null ? null : Math.round(avg);
 };
 
 const normalizedGain = (pre, post) => {
@@ -315,13 +330,22 @@ exports.getDashboard = async (req, res) => {
             }
 
             const bucket = quizScoreByUser.get(answer.user_id);
-            bucket[type] = bucket[type] || { score: 0, max: 0 };
+            bucket[type] = bucket[type] || { score: 0, min: 0, max: 0 };
             bucket[type].score += score;
+            bucket[type].min += 1;
             bucket[type].max += max;
         });
 
-        const toPercent = (entry) =>
-            entry && entry.max ? Math.round((entry.score / entry.max) * 100) : null;
+        // แปลงเป็นร้อยละ: (คะแนนรวม − คะแนนต่ำสุด) ÷ (คะแนนเต็ม − คะแนนต่ำสุด) × 100
+        const toPercentRaw = (entry) =>
+            entry && entry.max > entry.min
+                ? ((entry.score - entry.min) / (entry.max - entry.min)) * 100
+                : null;
+        const roundOrNull = (v) => (v === null ? null : Math.round(v));
+
+        // ร้อยละแบบไม่ปัดเศษ ใช้คำนวณสถิติ (ส่วนต่างรายคน, ค่าเฉลี่ย, S.D.)
+        // เพื่อไม่ให้การปัดเศษทำให้คะแนนที่ต่างกันเล็กน้อยกลายเป็น "เท่าเดิม"
+        const rawTestByUser = new Map();
 
         const today = todayInBangkok();
 
@@ -353,8 +377,12 @@ exports.getDashboard = async (req, res) => {
                 const streakAlive =
                     lastLoginKey && daysBetween(lastLoginKey, today) <= 1;
 
-                const preTest = toPercent(quiz.pre_test);
-                const postTest = toPercent(quiz.post_test);
+                const preRaw = toPercentRaw(quiz.pre_test);
+                const postRaw = toPercentRaw(quiz.post_test);
+                rawTestByUser.set(student.user_id, { pre: preRaw, post: postRaw });
+
+                const preTest = roundOrNull(preRaw);
+                const postTest = roundOrNull(postRaw);
                 const progress = getProgressPercent(passedSet);
 
                 let status;
@@ -392,6 +420,9 @@ exports.getDashboard = async (req, res) => {
                     last_active_at: lastActiveAt,     // เวลาเต็ม (ถ้ามี)
                     pre_test: preTest,
                     post_test: postTest,
+                    // ทศนิยม 2 ตำแหน่ง สำหรับ export CSV ไปวิเคราะห์ใน SPSS
+                    pre_test_exact: preRaw === null ? null : Math.round(preRaw * 100) / 100,
+                    post_test_exact: postRaw === null ? null : Math.round(postRaw * 100) / 100,
                     finish_minutes: finish.minutes,
                     finished_at: finish.finishedAt,
                     status,
@@ -410,13 +441,14 @@ exports.getDashboard = async (req, res) => {
         const pairedBreakdown = { improved: [], same: [], declined: [] };
 
         paired.forEach((r) => {
-            const diff = r.post_test - r.pre_test;
+            const raw = rawTestByUser.get(r.user_id);
+            const diff = raw.post - raw.pre;
             const entry = {
                 user_id: r.user_id,
                 name: `${r.first_name || ""} ${r.last_name || ""}`.trim() || r.username,
                 pre_test: r.pre_test,
                 post_test: r.post_test,
-                diff,
+                diff: Math.round(diff * 10) / 10, // ทศนิยม 1 ตำแหน่ง กันกรณีเพิ่มขึ้นแต่แสดงเป็น +0%
             };
 
             if (diff > 0) pairedBreakdown.improved.push(entry);
@@ -424,8 +456,14 @@ exports.getDashboard = async (req, res) => {
             else pairedBreakdown.same.push(entry);
         });
 
-        const avgPreTest = average(paired.map((r) => r.pre_test));
-        const avgPostTest = average(paired.map((r) => r.post_test));
+        // ไม่ปัดเศษก่อนคำนวณ g (ปัดเฉพาะตอนส่งไปแสดงผล)
+        const pairedPreRaw = paired.map((r) => rawTestByUser.get(r.user_id).pre);
+        const pairedPostRaw = paired.map((r) => rawTestByUser.get(r.user_id).post);
+        const avgPreTest = averageRaw(pairedPreRaw);
+        const avgPostTest = averageRaw(pairedPostRaw);
+        const sdPreTest = sampleSD(pairedPreRaw);
+        const sdPostTest = sampleSD(pairedPostRaw);
+        const round2 = (v) => (v === null ? null : Math.round(v * 100) / 100);
 
         const summary = {
             total_students: rows.length,
@@ -437,8 +475,10 @@ exports.getDashboard = async (req, res) => {
             avg_time_spent: average(rows.map((r) => r.time_spent)) ?? 0,
             avg_integrity_points: average(rows.map((r) => r.integrity_points)) ?? 0,
             paired_count: paired.length,
-            avg_pre_test: avgPreTest,
-            avg_post_test: avgPostTest,
+            avg_pre_test: avgPreTest === null ? null : Math.round(avgPreTest),
+            avg_post_test: avgPostTest === null ? null : Math.round(avgPostTest),
+            sd_pre_test: round2(sdPreTest),
+            sd_post_test: round2(sdPostTest),
             normalized_gain: normalizedGain(avgPreTest, avgPostTest),
             paired_breakdown: pairedBreakdown,
         };

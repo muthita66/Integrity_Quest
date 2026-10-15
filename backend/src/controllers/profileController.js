@@ -21,7 +21,8 @@ const PASSED_STATUSES = ["PASS", "PERFECT"];
 // (ใช้เกณฑ์เดียวกับ teacherController.js — ถ้ามีข้อเชิงลบเพิ่ม ให้เพิ่ม
 // คำในรายการนี้ที่ทั้ง 2 ไฟล์ให้ตรงกัน)
 // ------------------------------------------------------------
-const REVERSE_KEYWORDS = ["ตามอารมณ์", "โดยไม่จำเป็น"];
+// ข้อคำถามเชิงลบ (Reverse Item): ข้อ 2, 4, 6 และ 9
+const REVERSE_KEYWORDS = ["ครั้งเดียวเอง", "ตามอารมณ์", "ยืมเงินกลุ่ม", "สินบน"];
 
 const isReverseItem = (questionText = "") =>
     REVERSE_KEYWORDS.some((word) => questionText.includes(word));
@@ -88,8 +89,8 @@ const getQuizPercents = async (userId) => {
     });
 
     const bucket = {
-        pre_test: { score: 0, max: 0 },
-        post_test: { score: 0, max: 0 },
+        pre_test: { score: 0, min: 0, max: 0 },
+        post_test: { score: 0, min: 0, max: 0 },
     };
 
     answers.forEach((a) => {
@@ -105,10 +106,13 @@ const getQuizPercents = async (userId) => {
             : a.score_given;
 
         bucket[type].score += score;
+        bucket[type].min += 1;
         bucket[type].max += max;
     });
 
-    const toPercent = (b) => (b.max ? Math.round((b.score / b.max) * 100) : null);
+    // แปลงเป็นร้อยละ: (คะแนนรวม − คะแนนต่ำสุด) ÷ (คะแนนเต็ม − คะแนนต่ำสุด) × 100
+    const toPercent = (b) =>
+        b.max > b.min ? Math.round(((b.score - b.min) / (b.max - b.min)) * 100) : null;
 
     return {
         pre_test_percent: toPercent(bucket.pre_test),

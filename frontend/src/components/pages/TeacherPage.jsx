@@ -69,10 +69,19 @@ const SCORE_CHANGE_FILTERS = {
     most_declined: { label: "ลดลงมากที่สุด", dir: "asc" },
 };
 
-const scoreChange = (s) =>
-    s.pre_test === null || s.pre_test === undefined || s.post_test === null || s.post_test === undefined
-        ? null
-        : s.post_test - s.pre_test;
+// ส่วนต่างจากคะแนนที่ยังไม่ปัดเป็นจำนวนเต็ม (ให้ตรงกับกล่องแจกแจง ดีขึ้น/เท่าเดิม/แย่ลง)
+const exactScoreChange = (s) => {
+    const pre = s.pre_test_exact ?? s.pre_test;
+    const post = s.post_test_exact ?? s.post_test;
+    if (pre === null || pre === undefined || post === null || post === undefined) return null;
+    return post - pre;
+};
+
+// ทศนิยม 1 ตำแหน่ง สำหรับแสดงในตาราง
+const scoreChange = (s) => {
+    const diff = exactScoreChange(s);
+    return diff === null ? null : Math.round(diff * 10) / 10;
+};
 
 // +1 = คอลัมน์ "จัดการ" (ปุ่มลบ) ท้ายตาราง ซึ่งไม่อยู่ใน COLUMNS เพราะเรียงไม่ได้
 const TABLE_COLSPAN = COLUMNS.length + 1;
@@ -125,6 +134,8 @@ const percentText = (value) => (value === null || value === undefined ? "-" : `$
 // Export CSV (ตามแถวที่กรองอยู่)
 // ------------------------------------------------------------
 
+const csvDecimal = (v) => (v === null || v === undefined ? "" : v.toFixed(2));
+
 const exportCsv = (rows) => {
     const header = [
         "username", "ชื่อ", "นามสกุล", "email", "คณะ", "สาขา", "ชั้นปี",
@@ -135,7 +146,11 @@ const exportCsv = (rows) => {
     const lines = rows.map((r) => [
         r.username, r.first_name, r.last_name, r.email, r.faculty_name, r.major_name, r.year,
         STATUS[r.status]?.label, r.progress, `${r.passed_levels}/${r.total_levels}`,
-        r.integrity_points, r.streak, r.pre_test ?? "", r.post_test ?? "", scoreChange(r) ?? "",
+        r.integrity_points, r.streak,
+        // ทศนิยม 2 ตำแหน่ง เพื่อใช้วิเคราะห์ต่อ (เช่น Wilcoxon ใน SPSS) โดยไม่เกิดคะแนนเท่ากันจากการปัดเศษ
+        csvDecimal(r.pre_test_exact ?? r.pre_test),
+        csvDecimal(r.post_test_exact ?? r.post_test),
+        csvDecimal(exactScoreChange(r)),
         r.plays, r.time_spent,
         r.last_active_at ? new Date(r.last_active_at).toLocaleString("th-TH") : r.last_active ?? "",
     ]);
@@ -203,12 +218,19 @@ function PairStatCard({ label, items, sub }) {
     );
 }
 
-function CompareBar({ label, value, color }) {
+function CompareBar({ label, value, sd, color }) {
     return (
         <div>
             <div className="mb-1 flex justify-between text-sm">
                 <span className="text-gray-600">{label}</span>
-                <span className="font-semibold text-gray-800">{percentText(value)}</span>
+                <span className="font-semibold text-gray-800">
+                    {percentText(value)}
+                    {sd !== null && sd !== undefined && (
+                        <span className="ml-1.5 text-xs font-normal text-gray-500">
+                            (S.D. = {sd.toFixed(2)})
+                        </span>
+                    )}
+                </span>
             </div>
             <div className="h-3 overflow-hidden rounded-full bg-gray-100">
                 <div
@@ -1285,6 +1307,7 @@ export default function TeacherPage() {
     // อธิบายขนาดของการเปลี่ยนแปลงเป็นคำพูด โดยอิงค่า Normalized Gain (g)
     const gainLabel = (g) => {
         if (g === null || g === undefined) return "";
+        if (g < 0) return "คะแนนลดลง (Negative gain)";
         if (g < 0.3) return "พัฒนาการต่ำ (Low gain)";
         if (g < 0.7) return "พัฒนาการปานกลาง (Medium gain)";
         return "พัฒนาการสูง (High gain)";
@@ -1509,8 +1532,8 @@ export default function TeacherPage() {
                                 ) : (
                                     <>
                                         <div className="space-y-4">
-                                            <CompareBar label="Pre-Test" value={summary.avg_pre_test} color="bg-gray-400" />
-                                            <CompareBar label="Post-Test" value={summary.avg_post_test} color="bg-emerald-500" />
+                                            <CompareBar label="Pre-Test" value={summary.avg_pre_test} sd={summary.sd_pre_test} color="bg-gray-400" />
+                                            <CompareBar label="Post-Test" value={summary.avg_post_test} sd={summary.sd_post_test} color="bg-emerald-500" />
                                         </div>
 
                                         {/* แจกแจงรายคน: ดีขึ้น / เท่าเดิม / แย่ลง — เห็นภาพรวมของทั้งกลุ่ม
