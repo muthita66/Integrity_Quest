@@ -145,6 +145,7 @@ import useActivityTracker from "./components/hooks/useActivityTracker";
 // ============================================================
 
 import DeviceGuard from "./components/common/DeviceGuard";
+import RequireAuth from "./components/common/RequireAuth";
 
 // ============================================================
 // App
@@ -176,23 +177,33 @@ function App() {
         <Route path="/" element={<AuthPage />} />
         <Route path="/login" element={<AuthPage />} />
 
+        {/* ทุกหน้าด้านล่างต้อง login ก่อน — เข้าตรงผ่าน URL จะถูกส่งกลับหน้า login */}
+
+        <Route element={<RequireAuth roles={["teacher"]} />}>
+          <Route
+            path="/teacher"
+            element={<TeacherPage />}
+          />
+        </Route>
+
+        {/* หน้าตั้งค่าใช้ได้ทั้งนิสิตและอาจารย์ */}
+        <Route element={<RequireAuth />}>
+          <Route
+            path="/settings"
+            element={<SettingsPage />}
+          />
+        </Route>
+
+        {/* หน้าแผนที่ แบบทดสอบ และเกมทั้งหมด — เฉพาะนิสิต (อาจารย์จะถูกส่งกลับ /teacher) */}
+        <Route element={<RequireAuth roles={["student"]} />}>
+
         <Route path="/map" element={<MapPage />} />
         <Route path="/pretest" element={<PreTestPage />} />
         <Route path="/posttest" element={<PostTestPage />} />
 
         <Route
-          path="/settings"
-          element={<SettingsPage />}
-        />
-
-        <Route
           path="/progress"
           element={<ProgressPage />}
-        />
-
-        <Route
-          path="/teacher"
-          element={<TeacherPage />}
         />
 
         <Route
@@ -576,6 +587,11 @@ function App() {
           path="/unit6/level3"
           element={<Unit6FinalGame />}
         />
+
+        </Route>
+
+        {/* URL ที่ไม่มีอยู่จริง → กลับหน้าแรก */}
+        <Route path="*" element={<Navigate to="/" replace />} />
 
       </Routes>
       </Suspense>

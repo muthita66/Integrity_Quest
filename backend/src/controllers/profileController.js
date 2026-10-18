@@ -889,6 +889,8 @@ exports.getDailyQuests = async (req, res) => {
 // จัดอันดับจาก user_stats.integrity_points
 // (= ผลรวมคะแนนดีที่สุดของแต่ละด่าน → เล่นซ้ำปั๊มคะแนนไม่ได้)
 //   - เฉพาะนิสิต (role_id = 1) ที่มีคะแนน > 0
+//   - เฉพาะนิสิตที่อยู่ในกลุ่มของอาจารย์ (teacher_student_groups) เดียวกับผู้ดู
+//     ถ้าผู้ดูไม่อยู่ในกลุ่มใดเลย → เห็นแค่ตัวเอง
 //   - คะแนนเท่ากัน → ผ่านด่านมากกว่าอยู่ก่อน → สมัครก่อนอยู่ก่อน
 //   - ชื่อที่แสดง: "ชื่อจริง + ตัวแรกของนามสกุล." เช่น "สมชาย ก."
 //     ไม่มีชื่อจริง → ใช้ username
@@ -909,12 +911,56 @@ const toDisplayName = (user) => {
     return user.username;
 };
 
+// เงื่อนไข Prisma where ของนิสิตในกลุ่มหนึ่ง (ตรรกะเดียวกับหน้าอาจารย์:
+// ต้องมีสาขา, ตรงคณะ/สาขา/ปีที่กลุ่มระบุไว้ — ช่องที่ว่างไม่กรอง)
+const buildGroupWhere = (group) => ({
+    major_id: group.major_id ?? { not: null },
+    ...(group.faculty_id ? { majors: { faculty_id: group.faculty_id } } : {}),
+    ...(group.year ? { entry_year: group.year } : {}),
+});
+
+// user_id ของนิสิตทุกคนที่อยู่ในกลุ่มอาจารย์เดียวกับ userId (รวมตัวเอง)
+const getGroupPeerIds = async (userId) => {
+    const me = await prisma.students.findFirst({
+        where: { user_id: userId },
+        select: {
+            major_id: true,
+            entry_year: true,
+            majors: { select: { faculty_id: true } },
+        },
+    });
+
+    if (!me?.major_id) return [userId];
+
+    const myGroups = await prisma.teacher_student_groups.findMany({
+        where: {
+            AND: [
+                { OR: [{ faculty_id: null }, { faculty_id: me.majors?.faculty_id ?? -1 }] },
+                { OR: [{ major_id: null }, { major_id: me.major_id }] },
+                { OR: [{ year: null }, { year: me.entry_year ?? -1 }] },
+            ],
+        },
+        select: { faculty_id: true, major_id: true, year: true },
+    });
+
+    if (myGroups.length === 0) return [userId];
+
+    const peers = await prisma.students.findMany({
+        where: { OR: myGroups.map(buildGroupWhere) },
+        select: { user_id: true },
+    });
+
+    return [...new Set([userId, ...peers.map((p) => p.user_id)])];
+};
+
 exports.getLeaderboard = async (req, res) => {
     try {
         const userId = Number(req.user.id);
+        const peerIds = await getGroupPeerIds(userId);
 
         const stats = await prisma.user_stats.findMany({
             where: {
+                user_id: { in: peerIds },
                 OR: [
                     { integrity_points: { gt: 0 } },
                     { streak_bonus_ip: { gt: 0 } },

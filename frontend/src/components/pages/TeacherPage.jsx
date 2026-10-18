@@ -224,7 +224,7 @@ function CompareBar({ label, value, sd, color }) {
             <div className="mb-1 flex justify-between text-sm">
                 <span className="text-gray-600">{label}</span>
                 <span className="font-semibold text-gray-800">
-                    {percentText(value)}
+                    {value === null || value === undefined ? "-" : `${value.toFixed(2)}%`}
                     {sd !== null && sd !== undefined && (
                         <span className="ml-1.5 text-xs font-normal text-gray-500">
                             (S.D. = {sd.toFixed(2)})
@@ -738,7 +738,7 @@ function StudentDetail({ detail, userId, studentName }) {
                         {/* หัวบท */}
                         <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                                <p className="text-xs text-gray-400">บทที่ {unit.order_number}</p>
+                                <p className="text-xs text-gray-400">บทเรียนที่ {unit.order_number}</p>
                                 <p className="truncate font-semibold text-gray-800">
                                     {unit.name_th || unit.name_en}
                                 </p>
@@ -1301,7 +1301,7 @@ export default function TeacherPage() {
 
     const gain =
         summary?.avg_pre_test !== null && summary?.avg_post_test !== null && summary
-            ? summary.avg_post_test - summary.avg_pre_test
+            ? Math.round((summary.avg_post_test - summary.avg_pre_test) * 100) / 100
             : null;
 
     // อธิบายขนาดของการเปลี่ยนแปลงเป็นคำพูด โดยอิงค่า Normalized Gain (g)
@@ -1615,7 +1615,7 @@ export default function TeacherPage() {
                                             : "text-red-500"
                                         }`}
                                 >
-                                    {gain === null ? "-" : `${gain > 0 ? "+" : ""}${gain}%`}
+                                    {gain === null ? "-" : `${gain > 0 ? "+" : ""}${gain.toFixed(2)}%`}
                                 </p>
                                 <p className="mt-2 text-xs text-gray-800">
                                     หลังเล่นเทียบกับก่อนเล่น

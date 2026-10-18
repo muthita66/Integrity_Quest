@@ -475,8 +475,9 @@ exports.getDashboard = async (req, res) => {
             avg_time_spent: average(rows.map((r) => r.time_spent)) ?? 0,
             avg_integrity_points: average(rows.map((r) => r.integrity_points)) ?? 0,
             paired_count: paired.length,
-            avg_pre_test: avgPreTest === null ? null : Math.round(avgPreTest),
-            avg_post_test: avgPostTest === null ? null : Math.round(avgPostTest),
+            // ทศนิยม 2 ตำแหน่ง ให้ตรงกับ S.D. และค่าที่รายงานจาก SPSS
+            avg_pre_test: round2(avgPreTest),
+            avg_post_test: round2(avgPostTest),
             sd_pre_test: round2(sdPreTest),
             sd_post_test: round2(sdPostTest),
             normalized_gain: normalizedGain(avgPreTest, avgPostTest),
